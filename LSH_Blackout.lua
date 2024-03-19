@@ -50,7 +50,7 @@ local Map = workspace:WaitForChild("Map")
 local NPCs = workspace:WaitForChild("NPCs")
 local Other_NPCs = NPCs:WaitForChild("Other")
 local NotifItems = false
-local LootAreas = {}
+local ProxPrompts = {}
 local ToLoot
 --/#
 
@@ -74,8 +74,7 @@ end
 
 local function LockPick(Target,Method)
 	MinigameResult:FireServer(Target,Method)
-	task.wait()
-	MinigameResult:FireServer(Target)
+	keypress("e")
 end
 
 local function ItemAdded(Item,Method)
@@ -109,10 +108,23 @@ end
 
 --// Setup Connections
 
-for _, LootArea in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
-	if LootArea.Name == "Loot" then
-		table.insert(LootAreas, LootArea)
+for _, ProxPrompt in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+	
+	if ProxPrompt:IsA("ProximityPrompt") then
+		table.insert(ProxPrompts,ProxPrompt)
+		ProxPrompt:SetAttribute("_Original_HoldTime", ProxPrompt.HoldDuration)
+
+		ProxPrompt.Triggered:Connect(function()
+
+			if ProxPrompt.Name == "LockMinigame" then
+				task.wait(1)
+				LockPick(ProxPrompt.Parent.Parent.Parent,true)
+			end
+
+		end)
+
 	end
+
 end
 
 for _, LootTable in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
@@ -149,7 +161,7 @@ end
 --//Events
 
 workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
-	local LootTable = Bag:WaitForChild("LootTable")
+	local LootTable = Bag:WaitForChild("LootTable",5)
 
 	LootTable.ChildAdded:Connect(function(Item)
 		ItemAdded(Item)
@@ -230,6 +242,32 @@ QualityOfLive:AddToggle('AutoLockpickToggle', {
     Tooltip = 'AutoLockpicks when starting the minigame',
 })
 
+QualityOfLive:AddToggle('NoHD', {
+    Text = 'Insta interact',
+    Default = false, --false
+    Tooltip = 'Sets all Proximity Prompts hold duration to 0',
+})
+
+function II_C()
+
+	if Toggles.NoHD.Value then
+		for _,HPrompt in pairs(ProxPrompts) do
+			HPrompt.HoldDuration = 0
+		end
+	else
+		for _,HPrompt in pairs(ProxPrompts) do
+			HPrompt.HoldDuration = HPrompt:GetAttribute("_Original_HoldTime")
+		end
+	end
+
+end
+
+Toggles.NoHD:OnChanged(function()
+	II_C()
+end)
+
+II_C()
+
 --/#
 
 --// Notify Items
@@ -254,20 +292,7 @@ Notificate:AddDropdown('NotificateItemsFilter', {
     Tooltip = 'Allowed types to notificate',
 })
 
-PlayerGui.Minigames.MinigameState.Changed:Connect(function()
 
-	if Toggles.AutoLockpickToggle.Value then
-
-		for _,LootFolder in pairs(LootAreas) do
-			local ToLoot = LootFolder
-			for __, OBJ in pairs(ToLoot:GetChildren()) do
-				LockPick(OBJ, true)
-			end
-		end
-		
-	end
-
-end)
 
 --/#
 
