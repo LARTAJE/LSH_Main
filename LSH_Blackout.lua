@@ -25,156 +25,6 @@ local gameId = game.GameId;
 local jobId, placeId = game.JobId, game.PlaceId;
 local userId = game.Players.LocalPlayer.UserId;
 
---// Locals
-
-local ItemsTypes = {
-	["Energy Bar"] = "Food",
-	["Energy Drink"] = "Food",
-	["Soda"] = "Food",
-	["Medkit"] = "Healing",
-	["Trauma Pad"] = "Healing",
-	["Lockpick"] = "Misc",
-	["Tactical Leggings"] = "Armour",
-}
-
-local GuiLoaded
-local LocalPlayer = game.Players.LocalPlayer
-local PlayerGui = game.Players.LocalPlayer.PlayerGui
-local Character = LocalPlayer.Character
-local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
-local LootTables = {}
-local PlayerDeathBagsLootTable = {}
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Events = ReplicatedStorage:WaitForChild("Events")
-local Map = workspace:WaitForChild("Map")
-local NPCs = workspace:WaitForChild("NPCs")
-local Other_NPCs = NPCs:WaitForChild("Other")
-local NotifItems = false
-local ProxPrompts = {}
-local ToLoot
---/#
-
---// Services
-
-local RunService = game:GetService("RunService")
---/#
-
---// Events
-
-local PickUpEvent = Events:WaitForChild("Loot"):WaitForChild("LootObject")
-local StartTask = Events:WaitForChild("Stations"):WaitForChild("StartTask")
-local MinigameResult = Events:WaitForChild("Loot"):WaitForChild("MinigameResult")
---/#
-
---// Functions 
-
-local function PickUpItem(LootTable,Item,Method)
-	PickUpEvent:FireServer(LootTable,Item,Method)
-end
-
-local function LockPick(Target,Method)
-	MinigameResult:FireServer(Target,Method)
-	keypress("e")
-end
-
-local function ItemAdded(Item,Method)
-	
-	if NotifItems then
-		Library:Notify("Item ".. Item.Name.. " Spawned", 25)
-	end
-
-end
-
-local function StartMission(Mission, TPBack)
-	local BrokerRootPart = Other_NPCs:FindFirstChild("Broker"):WaitForChild("HumanoidRootPart")
-	
-	if TPBack then
-		local OriginalPos = CharacterRoot.CFrame
-		CharacterRoot.CFrame = BrokerRootPart.CFrame
-		task.delay(0.15,function()
-			CharacterRoot.CFrame = OriginalPos
-		end)
-	else
-		CharacterRoot.CFrame = BrokerRootPart.CFrame
-	end
-
-	task.wait(.1)
-
-	StartTask:FireServer(BrokerRootPart, Mission)
-	
-end
-
---/#
-
---// Setup Connections
-
-for _, ProxPrompt in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
-	
-	if ProxPrompt:IsA("ProximityPrompt") then
-		table.insert(ProxPrompts,ProxPrompt)
-		ProxPrompt:SetAttribute("_Original_HoldTime", ProxPrompt.HoldDuration)
-
-		ProxPrompt.Triggered:Connect(function()
-
-			if ProxPrompt.Name == "LockMinigame" then
-				task.wait(1)
-				LockPick(ProxPrompt.Parent.Parent.Parent,true)
-			end
-
-		end)
-
-	end
-
-end
-
-for _, LootTable in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
-	if LootTable.Name == "LootTable" then
-		table.insert(LootTables, LootTable)
-		
-		LootTable.ChildAdded:Connect(function(Item)
-			ItemAdded(Item)
-		end)
-
-		for __,Item in(LootTable:GetChildren()) do
-			ItemAdded(Item)
-		end
-
-	end
-end
-
-for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
-	if PlrDeathBLootTable.Name == "LootTable" then
-
-		PlrDeathBLootTable.ChildAdded:Connect(function(Item)
-			ItemAdded(Item)
-		end)
-
-		for __,Item in(PlrDeathBLootTable:GetChildren()) do
-			ItemAdded(Item)
-		end
-
-	end
-end
-
---/#
-
---//Events
-
-workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
-	local LootTable = Bag:WaitForChild("LootTable",5)
-
-	LootTable.ChildAdded:Connect(function(Item)
-		ItemAdded(Item)
-	end)
-
-	for __,Item in(LootTable:GetChildren()) do
-		ItemAdded(Item)
-	end
-
-end)
-
---/#
-
 --// Ui lib
 
 local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
@@ -248,26 +98,6 @@ QualityOfLive:AddToggle('NoHD', {
     Tooltip = 'Sets all Proximity Prompts hold duration to 0',
 })
 
-function II_C()
-
-	if Toggles.NoHD.Value then
-		for _,HPrompt in pairs(ProxPrompts) do
-			HPrompt.HoldDuration = 0
-		end
-	else
-		for _,HPrompt in pairs(ProxPrompts) do
-			HPrompt.HoldDuration = HPrompt:GetAttribute("_Original_HoldTime")
-		end
-	end
-
-end
-
-Toggles.NoHD:OnChanged(function()
-	II_C()
-end)
-
-II_C()
-
 --/#
 
 --// Notify Items
@@ -278,12 +108,6 @@ Notificate:AddToggle('NotificateItemsToggle', {
     Tooltip = 'Notificates when a selected item spawns',
 })
 
-NotifItems = Toggles.NotificateItemsToggle.Value
-
-Toggles.NotificateItemsToggle:OnChanged(function()
-	NotifItems = Toggles.NotificateItemsToggle.Value
-end)
-
 Notificate:AddDropdown('NotificateItemsFilter', {
     Values = { 'Food','Healing','Misc','Melees', 'Guns', 'Armors', 'Keycards'},
     Default = 1,
@@ -291,8 +115,6 @@ Notificate:AddDropdown('NotificateItemsFilter', {
     Text = 'Notification Filter',
     Tooltip = 'Allowed types to notificate',
 })
-
-
 
 --/#
 
@@ -342,6 +164,190 @@ ThemeManager:ApplyToTab(Tabs['UI Settings'])
 --/#
 
 --/#
+
+--// Locals
+
+local ItemsTypes = {
+	["Energy Bar"] = "Food",
+	["Energy Drink"] = "Food",
+	["Soda"] = "Food",
+	["Medkit"] = "Healing",
+	["Trauma Pad"] = "Healing",
+	["Lockpick"] = "Misc",
+	["Tactical Leggings"] = "Armour",
+}
+
+local GuiLoaded
+local LocalPlayer = game.Players.LocalPlayer
+local PlayerGui = game.Players.LocalPlayer.PlayerGui
+local Character = LocalPlayer.Character
+local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
+local LootTables = {}
+local PlayerDeathBagsLootTable = {}
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Events = ReplicatedStorage:WaitForChild("Events")
+local Map = workspace:WaitForChild("Map")
+local NPCs = workspace:WaitForChild("NPCs")
+local Other_NPCs = NPCs:WaitForChild("Other")
+local AutoLootLOLOLL = false
+local AutoLockPikcLOLO = false
+local NotifItems = false
+local ProxPrompts = {}
+local ToLoot
+--/#
+
+--// Services
+
+local RunService = game:GetService("RunService")
+--/#
+
+--// Events
+
+local PickUpEvent = Events:WaitForChild("Loot"):WaitForChild("LootObject")
+local StartTask = Events:WaitForChild("Stations"):WaitForChild("StartTask")
+local MinigameResult = Events:WaitForChild("Loot"):WaitForChild("MinigameResult")
+--/#
+
+--// Functions 
+
+local function PickUpItem(LootTable,Item,Method)
+	PickUpEvent:FireServer(LootTable,Item,Method)
+end
+
+local function LockPick(Target,Method)
+	MinigameResult:FireServer(Target,Method)
+end
+
+local function ItemAdded(Item,Method)
+	
+	if Toggles.NotificateItemsToggle.Value == true then
+		Library:Notify("Item ".. Item.Name.. " Spawned", 25)
+	end
+
+end
+
+local function StartMission(Mission, TPBack)
+	local BrokerRootPart = Other_NPCs:FindFirstChild("Broker"):WaitForChild("HumanoidRootPart")
+	
+	if TPBack then
+		local OriginalPos = CharacterRoot.CFrame
+		CharacterRoot.CFrame = BrokerRootPart.CFrame
+		task.delay(0.3,function()
+			CharacterRoot.CFrame = OriginalPos
+		end)
+	else
+		CharacterRoot.CFrame = BrokerRootPart.CFrame
+	end
+
+	task.wait(.1)
+
+	StartTask:FireServer(BrokerRootPart, Mission)
+	
+end
+
+function II_C()
+
+	if Toggles.NoHD.Value then
+		for _,HPrompt in pairs(ProxPrompts) do
+			HPrompt.HoldDuration = 0
+		end
+	else
+		for _,HPrompt in pairs(ProxPrompts) do
+			HPrompt.HoldDuration = HPrompt:GetAttribute("_Original_HoldTime")
+		end
+	end
+
+end
+
+--/#
+
+--// Setup Connections
+
+for _, ProxPrompt in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+	
+	if ProxPrompt:IsA("ProximityPrompt") then
+		table.insert(ProxPrompts,ProxPrompt)
+		ProxPrompt:SetAttribute("_Original_HoldTime", ProxPrompt.HoldDuration)
+
+		ProxPrompt.Triggered:Connect(function()
+
+			if ProxPrompt.Name == "LockMinigame" then
+
+				if Toggles.AutoLockpickToggle.Value == true then
+					task.wait(1)
+					LockPick(ProxPrompt.Parent.Parent.Parent,true)
+				end
+
+			elseif ProxPrompt.Name == "OpenLootTable" then
+
+				if Toggles.AutoLootToggle.Value == true then
+					PickUpItem(ProxPrompt.Parent:FindFirstChild("LootTable"),"Cash",nil)
+					PickUpItem(ProxPrompt.Parent:FindFirstChild("LootTable"),"Valuables",nil)
+				end
+
+			end
+
+		end)
+
+	end
+
+end
+
+for _, LootTable in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+	if LootTable.Name == "LootTable" then
+		table.insert(LootTables, LootTable)
+		
+		LootTable.ChildAdded:Connect(function(Item)
+			ItemAdded(Item)
+		end)
+
+		for __,Item in(LootTable:GetChildren()) do
+			ItemAdded(Item)
+		end
+
+	end
+end
+
+for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
+	if PlrDeathBLootTable.Name == "LootTable" then
+
+		PlrDeathBLootTable.ChildAdded:Connect(function(Item)
+			ItemAdded(Item)
+		end)
+
+		for __,Item in(PlrDeathBLootTable:GetChildren()) do
+			ItemAdded(Item)
+		end
+
+	end
+end
+
+--/#
+
+--//Events
+
+workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
+	local LootTable = Bag:WaitForChild("LootTable",5)
+	if not LootTable then return end
+
+	LootTable.ChildAdded:Connect(function(Item)
+		ItemAdded(Item)
+	end)
+
+	for __,Item in(LootTable:GetChildren()) do
+		ItemAdded(Item)
+	end
+
+end)
+
+Toggles.NoHD:OnChanged(function()
+	II_C()
+end)
+
+II_C()
+
+--/#
+
 
 Library:Notify("Loaded UI", 5)
 Library:Notify("Script loaded in ".. (tick() - Started), 5)
