@@ -13,272 +13,10 @@ until getthreadidentity() == 8;
 local AvalibleKeys = {
 "EuAmoODivisãoKarreta"
 }
-print("hi")
+
 if not table.find(AvalibleKeys, Key) then game.Players.LocalPlayer:Kick("Invalid key") end
-
-local sharedRequires = {};
-
-sharedRequires['994cce94d8c7c390545164e0f4f18747359a151bc8bbe449db36b0efa3f0f4e6'] = (function()
-	
-	local Services = {};
-	local vim = getvirtualinputmanager and getvirtualinputmanager();
-	
-	function Services:Get(...)
-	    local allServices = {};
-	
-	    for _, service in next, {...} do
-	        table.insert(allServices, self[service]);
-	    end
-	
-	    return unpack(allServices);
-	end;
-	
-	setmetatable(Services, {
-	    __index = function(self, p)
-	        if (p == 'VirtualInputManager' and vim) then
-	            return vim;
-	        end;
-	
-	        local service = game:GetService(p);
-	        if (p == 'VirtualInputManager') then
-	            service.Name = "VirtualInputManager ";
-	        end;
-	
-	        rawset(self, p, service);
-	        return rawget(self, p);
-	    end,
-	});
-	
-	return Services;
-end)();
-
-sharedRequires['a5aab7a81f59849e7c2e50d0ecd43092d80b0aaa025889a2d0219df4023d863d'] = (function()
-	local Services = sharedRequires['994cce94d8c7c390545164e0f4f18747359a151bc8bbe449db36b0efa3f0f4e6'];
-	local ContextActionService, HttpService = Services:Get('ContextActionService', 'HttpService');
-	
-	local ControlModule = {};
-	
-	do
-	    ControlModule.__index = ControlModule
-	
-	    function ControlModule.new()
-	        local self = {
-	            forwardValue = 0,
-	            backwardValue = 0,
-	            leftValue = 0,
-	            rightValue = 0
-	        }
-	
-	        setmetatable(self, ControlModule)
-	        self:init()
-	        return self
-	    end
-	
-	    function ControlModule:init()
-	        local handleMoveForward = function(actionName, inputState, inputObject)
-	            self.forwardValue = (inputState == Enum.UserInputState.Begin) and -1 or 0
-	            return Enum.ContextActionResult.Pass
-	        end
-	
-	        local handleMoveBackward = function(actionName, inputState, inputObject)
-	            self.backwardValue = (inputState == Enum.UserInputState.Begin) and 1 or 0
-	            return Enum.ContextActionResult.Pass
-	        end
-	
-	        local handleMoveLeft = function(actionName, inputState, inputObject)
-	            self.leftValue = (inputState == Enum.UserInputState.Begin) and -1 or 0
-	            return Enum.ContextActionResult.Pass
-	        end
-	
-	        local handleMoveRight = function(actionName, inputState, inputObject)
-	            self.rightValue = (inputState == Enum.UserInputState.Begin) and 1 or 0
-	            return Enum.ContextActionResult.Pass
-	        end
-	
-	        ContextActionService:BindAction(HttpService:GenerateGUID(false), handleMoveForward, false, Enum.KeyCode.W);
-	        ContextActionService:BindAction(HttpService:GenerateGUID(false), handleMoveBackward, false, Enum.KeyCode.S);
-	        ContextActionService:BindAction(HttpService:GenerateGUID(false), handleMoveLeft, false, Enum.KeyCode.A);
-	        ContextActionService:BindAction(HttpService:GenerateGUID(false), handleMoveRight, false, Enum.KeyCode.D);
-	    end
-	
-	    function ControlModule:GetMoveVector()
-	        return Vector3.new(self.leftValue + self.rightValue, 0, self.forwardValue + self.backwardValue)
-	    end
-	end
-	
-	return ControlModule.new();
-end)();
-
-sharedRequires['1131354b3faa476e8cf67a829e7e64a41ecd461a3859adfe16af08354df80d2b'] = (function()
-	local Signal = {}
-	Signal.__index = Signal
-	Signal.ClassName = "Signal"
-	
-	function Signal.new()
-		local self = setmetatable({}, Signal)
-	
-		self._bindableEvent = Instance.new("BindableEvent")
-		self._argData = nil
-		self._argCount = nil
-	
-		return self
-	end
-	
-	function Signal.isSignal(object)
-		return typeof(object) == 'table' and getmetatable(object) == Signal;
-	end;
-
-	function Signal:Fire(...)
-		self._argData = {...}
-		self._argCount = select("#", ...)
-		self._bindableEvent:Fire()
-		self._argData = nil
-		self._argCount = nil
-	end
-
-	function Signal:Connect(handler)
-		if not self._bindableEvent then return error("Signal has been destroyed"); end --Fixes an error while respawning with the UI injected
-	
-		if not (type(handler) == "function") then
-			error(("connect(%s)"):format(typeof(handler)), 2)
-		end
-	
-		return self._bindableEvent.Event:Connect(function()
-			handler(unpack(self._argData, 1, self._argCount))
-		end)
-	end
-
-	function Signal:Wait()
-		self._bindableEvent.Event:Wait()
-		assert(self._argData, "Missing arg data, likely due to :TweenSize/Position corrupting threadrefs.")
-		return unpack(self._argData, 1, self._argCount)
-	end
-	
-	function Signal:Destroy()
-		if self._bindableEvent then
-			self._bindableEvent:Destroy()
-			self._bindableEvent = nil
-		end
-	
-		self._argData = nil
-		self._argCount = nil
-	end
-	
-	return Signal
-end)();
-
-sharedRequires['4d7f148d62e823289507e5c67c750b9ae0f8b93e49fbe590feb421847617de2f'] = (function()
-
-	local Signal = sharedRequires['1131354b3faa476e8cf67a829e7e64a41ecd461a3859adfe16af08354df80d2b'];
-	local tableStr = "table";
-	local classNameStr = "Maid";
-	local funcStr = "function";
-	local threadStr = "thread";
-	
-	local Maid = {}
-	Maid.ClassName = "Maid"
-
-	function Maid.new()
-		return setmetatable({
-			_tasks = {}
-		}, Maid)
-	end
-	
-	function Maid.isMaid(value)
-		return type(value) == tableStr and value.ClassName == classNameStr
-	end
-
-	function Maid.__index(self, index)
-		if Maid[index] then
-			return Maid[index]
-		else
-			return self._tasks[index]
-		end
-	end
-                           it is destroyed.
-	function Maid:__newindex(index, newTask)
-		if Maid[index] ~= nil then
-			error(("'%s' is reserved"):format(tostring(index)), 2)
-		end
-	
-		local tasks = self._tasks
-		local oldTask = tasks[index]
-	
-		if oldTask == newTask then
-			return
-		end
-	
-		tasks[index] = newTask
-	
-		if oldTask then
-			if type(oldTask) == "function" then
-				oldTask()
-			elseif typeof(oldTask) == "RBXScriptConnection" then
-				oldTask:Disconnect();
-			elseif typeof(oldTask) == 'table' then
-				oldTask:Remove();
-			elseif (Signal.isSignal(oldTask)) then
-				oldTask:Destroy();
-			elseif (typeof(oldTask) == 'thread') then
-				task.cancel(oldTask);
-			elseif oldTask.Destroy then
-				oldTask:Destroy();
-			end
-		end
-	end
-
-	function Maid:GiveTask(task)
-		if not task then
-			error("Task cannot be false or nil", 2)
-		end
-	
-		local taskId = #self._tasks+1
-		self[taskId] = task
-	
-		return taskId
-	end
-
-	function Maid:DoCleaning()
-		local tasks = self._tasks
-	
-		for index, task in pairs(tasks) do
-			if typeof(task) == "RBXScriptConnection" then
-				tasks[index] = nil
-				task:Disconnect()
-			end
-		end
-
-		local index, taskData = next(tasks)
-		while taskData ~= nil do
-			tasks[index] = nil
-			if type(taskData) == funcStr then
-				taskData()
-			elseif typeof(taskData) == "RBXScriptConnection" then
-				taskData:Disconnect()
-			elseif (Signal.isSignal(taskData)) then
-				taskData:Destroy();
-			elseif typeof(taskData) == tableStr then
-				taskData:Remove();
-			elseif (typeof(taskData) == threadStr) then
-				task.cancel(taskData);
-			elseif taskData.Destroy then
-				taskData:Destroy()
-			end
-			index, taskData = next(tasks)
-		end
-	end
-	
-	Maid.Destroy = Maid.DoCleaning
-	
-	return Maid;
-end)();
-
 --/#
 
-local Maid = sharedRequires['4d7f148d62e823289507e5c67c750b9ae0f8b93e49fbe590feb421847617de2f'];
-local ControlModule = sharedRequires['a5aab7a81f59849e7c2e50d0ecd43092d80b0aaa025889a2d0219df4023d863d'];
-
-local maid = Maid.new();
 local Started = tick()
 local is_synapse_function = isexecutorclosure
 
@@ -295,6 +33,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 local VirtualInputManager = Instance.new("VirtualInputManager")
+
 local Events = ReplicatedStorage:WaitForChild("Events")
 local Map = workspace:WaitForChild("Map")
 local Bunker_LootAutoFarmPath = Map.Special.Bunker.Streaming
@@ -309,9 +48,11 @@ local PlayerDeathBagsLootTable = {}
 local BunkerLoot = {}
 local ProxPrompts = {}
 local LootTables = {}
+local InstancessLol = {}
 
 local GuiLoaded
 local ToLoot
+
 --/#
 
 --// Ui lib
@@ -470,31 +211,31 @@ end)
 
 Toggles.SpeedToggle:OnChanged(function()
 	if (not Toggles.SpeedToggle.Value) then
-		 maid.speedHack = nil;
-		 maid.speedHackBv = nil;
+		InstancessLol.speedHack = nil;
+		InstancessLol.speedHackBv = nil;
 	
 		 return;
 	end;
 	
-	  maid.speedHack = RunService.Heartbeat:Connect(function()
+	InstancessLol.speedHack = RunService.Heartbeat:Connect(function()
 		local humanoid, rootPart = Character.Humanoid, Character.PrimaryPart;
 
 		if (not humanoid or not rootPart) then return end;
 	
 		if (Toggles.FlyToggle.Value) then
-			maid.speedHackBv = nil;
+			InstancessLol.speedHackBv = nil;
 			return;
 		end;
 	
-		maid.speedHackBv = maid.speedHackBv or Instance.new('BodyVelocity');
-		maid.speedHackBv.MaxForce = Vector3.new(100000, 0, 100000);
+		InstancessLol.speedHackBv = InstancessLol.speedHackBv or Instance.new('BodyVelocity');
+		InstancessLol.speedHackBv.MaxForce = Vector3.new(100000, 0, 100000);
 	
-		if (not CollectionService:HasTag(maid.speedHackBv, 'AllowedBM')) then
-			CollectionService:AddTag(maid.speedHackBv, 'AllowedBM');
+		if (not CollectionService:HasTag(InstancessLol.speedHackBv, 'AllowedBM')) then
+			CollectionService:AddTag(InstancessLol.speedHackBv, 'AllowedBM');
 		end;
 	
-		maid.speedHackBv.Parent = not Toggles.FlyToggle.Value and rootPart or nil;
-	    maid.speedHackBv.Velocity = (humanoid.MoveDirection.Magnitude ~= 0 and humanoid.MoveDirection or gethiddenproperty(humanoid, 'WalkDirection')) * Options.SpeedhackSlider.Value;
+		InstancessLol.speedHackBv.Parent = not Toggles.FlyToggle.Value and rootPart or nil;
+	    InstancessLol.speedHackBv.Velocity = (humanoid.MoveDirection.Magnitude ~= 0 and humanoid.MoveDirection or gethiddenproperty(humanoid, 'WalkDirection')) * Options.SpeedhackSlider.Value;
 	end);
 
 end)u
@@ -502,25 +243,25 @@ end)u
 Toggles.FlyToggle:OnChanged(function()
 	
 	if (not Toggles.FlyToggle.Value) then
-		maid.flyHack = nil;
-		maid.flyBv = nil;
+		InstancessLol.flyHack = nil;
+		InstancessLol.flyBv = nil;
 
 		return;
 	end;
 
-	maid.flyBv = Instance.new('BodyVelocity');
-	maid.flyBv.MaxForce = Vector3.new(math.huge, math.huge, math.huge);
+	InstancessLol.flyBv = Instance.new('BodyVelocity');
+	InstancessLol.flyBv.MaxForce = Vector3.new(math.huge, math.huge, math.huge);
 
-	maid.flyHack = RunService.Heartbeat:Connect(function()
+	InstancessLol.flyHack = RunService.Heartbeat:Connect(function()
 		local rootPart, camera = CharacterRoot, workspace.CurrentCamera;
 		if (not rootPart or not camera) then return end;
 
-		if (not CollectionService:HasTag(maid.flyBv, 'AllowedBM')) then
-			CollectionService:AddTag(maid.flyBv, 'AllowedBM');
+		if (not CollectionService:HasTag(InstancessLol.flyBv, 'AllowedBM')) then
+			CollectionService:AddTag(InstancessLol.flyBv, 'AllowedBM');
 		end;
 
-		maid.flyBv.Parent = rootPart;
-		maid.flyBv.Velocity = camera.CFrame:VectorToWorldSpace(ControlModule:GetMoveVector() * Options.FlySpeed.Value);
+		InstancessLol.flyBv.Parent = rootPart;
+	    InstancessLol.flyBv.Velocity = camera.CFrame:VectorToWorldSpace(ControlModule:GetMoveVector() * Options.FlySpeed.Value);
 	end);
 	
 end)
