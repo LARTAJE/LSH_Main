@@ -74,6 +74,8 @@ end
 
 local function LockPick(Target,Method)
 	MinigameResult:FireServer(Target,Method)
+	task.wait()
+	MinigameResult:FireServer(Target)
 end
 
 local function ItemAdded(Item,Method)
@@ -105,13 +107,11 @@ end
 
 --/#
 
-Library:Notify("Loaded functions", 3)
-
 --// Setup Connections
 
 for _, LootArea in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
 	if LootArea.Name == "Loot" then
-		table.insert(LootAreas, LootTable)
+		table.insert(LootAreas, LootArea)
 	end
 end
 
@@ -144,7 +144,6 @@ for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 	end
 end
 
-Library:Notify("Loaded Connections", 3)
 --/#
 
 --//Events
@@ -162,7 +161,6 @@ workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
 
 end)
 
-Library:Notify("Loaded events", 3)
 --/#
 
 --// Ui lib
@@ -260,10 +258,10 @@ PlayerGui.Minigames.MinigameState.Changed:Connect(function()
 
 	if Toggles.AutoLockpickToggle.Value then
 
-		for _,Instance in pairs(LootAreas) do
-			print(Instance)
-			for __, Target in pairs(Instance:GetChildren) do
-				LockPick(Target,true)
+		for _,LootFolder in pairs(LootAreas) do
+			local ToLoot = LootFolder
+			for __, OBJ in pairs(ToLoot:GetChildren()) do
+				LockPick(OBJ, true)
 			end
 		end
 		
