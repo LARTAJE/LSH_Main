@@ -13,10 +13,101 @@ until getthreadidentity() == 8;
 local AvalibleKeys = {
 "EuAmoODivisãoKarreta"
 }
-
+print("hi")
 if not table.find(AvalibleKeys, Key) then game.Players.LocalPlayer:Kick("Invalid key") end
 
 local sharedRequires = {};
+
+sharedRequires['994cce94d8c7c390545164e0f4f18747359a151bc8bbe449db36b0efa3f0f4e6'] = (function()
+	
+	local Services = {};
+	local vim = getvirtualinputmanager and getvirtualinputmanager();
+	
+	function Services:Get(...)
+	    local allServices = {};
+	
+	    for _, service in next, {...} do
+	        table.insert(allServices, self[service]);
+	    end
+	
+	    return unpack(allServices);
+	end;
+	
+	setmetatable(Services, {
+	    __index = function(self, p)
+	        if (p == 'VirtualInputManager' and vim) then
+	            return vim;
+	        end;
+	
+	        local service = game:GetService(p);
+	        if (p == 'VirtualInputManager') then
+	            service.Name = "VirtualInputManager ";
+	        end;
+	
+	        rawset(self, p, service);
+	        return rawget(self, p);
+	    end,
+	});
+	
+	return Services;
+end)();
+
+sharedRequires['a5aab7a81f59849e7c2e50d0ecd43092d80b0aaa025889a2d0219df4023d863d'] = (function()
+	local Services = sharedRequires['994cce94d8c7c390545164e0f4f18747359a151bc8bbe449db36b0efa3f0f4e6'];
+	local ContextActionService, HttpService = Services:Get('ContextActionService', 'HttpService');
+	
+	local ControlModule = {};
+	
+	do
+	    ControlModule.__index = ControlModule
+	
+	    function ControlModule.new()
+	        local self = {
+	            forwardValue = 0,
+	            backwardValue = 0,
+	            leftValue = 0,
+	            rightValue = 0
+	        }
+	
+	        setmetatable(self, ControlModule)
+	        self:init()
+	        return self
+	    end
+	
+	    function ControlModule:init()
+	        local handleMoveForward = function(actionName, inputState, inputObject)
+	            self.forwardValue = (inputState == Enum.UserInputState.Begin) and -1 or 0
+	            return Enum.ContextActionResult.Pass
+	        end
+	
+	        local handleMoveBackward = function(actionName, inputState, inputObject)
+	            self.backwardValue = (inputState == Enum.UserInputState.Begin) and 1 or 0
+	            return Enum.ContextActionResult.Pass
+	        end
+	
+	        local handleMoveLeft = function(actionName, inputState, inputObject)
+	            self.leftValue = (inputState == Enum.UserInputState.Begin) and -1 or 0
+	            return Enum.ContextActionResult.Pass
+	        end
+	
+	        local handleMoveRight = function(actionName, inputState, inputObject)
+	            self.rightValue = (inputState == Enum.UserInputState.Begin) and 1 or 0
+	            return Enum.ContextActionResult.Pass
+	        end
+	
+	        ContextActionService:BindAction(HttpService:GenerateGUID(false), handleMoveForward, false, Enum.KeyCode.W);
+	        ContextActionService:BindAction(HttpService:GenerateGUID(false), handleMoveBackward, false, Enum.KeyCode.S);
+	        ContextActionService:BindAction(HttpService:GenerateGUID(false), handleMoveLeft, false, Enum.KeyCode.A);
+	        ContextActionService:BindAction(HttpService:GenerateGUID(false), handleMoveRight, false, Enum.KeyCode.D);
+	    end
+	
+	    function ControlModule:GetMoveVector()
+	        return Vector3.new(self.leftValue + self.rightValue, 0, self.forwardValue + self.backwardValue)
+	    end
+	end
+	
+	return ControlModule.new();
+end)();
 
 sharedRequires['1131354b3faa476e8cf67a829e7e64a41ecd461a3859adfe16af08354df80d2b'] = (function()
 	local Signal = {}
@@ -185,6 +276,8 @@ end)();
 --/#
 
 local Maid = sharedRequires['4d7f148d62e823289507e5c67c750b9ae0f8b93e49fbe590feb421847617de2f'];
+local ControlModule = sharedRequires['a5aab7a81f59849e7c2e50d0ecd43092d80b0aaa025889a2d0219df4023d863d'];
+
 local maid = Maid.new();
 local Started = tick()
 local is_synapse_function = isexecutorclosure
@@ -192,6 +285,34 @@ local is_synapse_function = isexecutorclosure
 local gameId = game.GameId;
 local jobId, placeId = game.JobId, game.PlaceId;
 local userId = game.Players.LocalPlayer.UserId;
+
+local LocalPlayer = game.Players.LocalPlayer
+local PlayerGui = game.Players.LocalPlayer.PlayerGui
+local Character = LocalPlayer.Character
+
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
+local VirtualInputManager = Instance.new("VirtualInputManager")
+local Events = ReplicatedStorage:WaitForChild("Events")
+local Map = workspace:WaitForChild("Map")
+local Bunker_LootAutoFarmPath = Map.Special.Bunker.Streaming
+local NPCs = workspace:WaitForChild("NPCs")
+local Other_NPCs = NPCs:WaitForChild("Other")
+
+local AutoLootLOLOLL = false
+local AutoLockPikcLOLO = false
+local NotifItems = false
+
+local PlayerDeathBagsLootTable = {}
+local BunkerLoot = {}
+local ProxPrompts = {}
+local LootTables = {}
+
+local GuiLoaded
+local ToLoot
+--/#
 
 --// Ui lib
 
@@ -248,6 +369,23 @@ Movement:AddToggle('FlyToggle', {
 
 Movement:AddSlider('FlySpeed', {
     Text = 'Fly Speed',
+
+    Default = 15,
+    Min = 0,
+    Max = 100,
+    Rounding = 1,
+
+    Compact = false,
+})
+
+Movement:AddToggle('SpeedToggle', {
+    Text = 'Speed Hack',
+    Default = false,
+    Tooltip = 'Enables speed hack.',
+})
+
+Movement:AddSlider('SpeedhackSlider', {
+    Text = 'Speed',
 
     Default = 15,
     Min = 0,
@@ -330,33 +468,59 @@ Options.AutoLootFilter:OnChanged(function()
 --]]
 end)
 
-Toggles.FlyToggle:OnChanged(function()
+Toggles.SpeedToggle:OnChanged(function()
+	if (not Toggles.SpeedToggle.Value) then
+		 maid.speedHack = nil;
+		 maid.speedHackBv = nil;
 	
-	if (not Toggles.FlyToggle.Value) then
-		maid.speedHack = nil
-		maid.speedHackBv = nil
-		return
-	end
-
-	maid.speedHack = RunService.Heartbeat:Connect(function()
+		 return;
+	end;
+	
+	  maid.speedHack = RunService.Heartbeat:Connect(function()
 		local humanoid, rootPart = Character.Humanoid, Character.PrimaryPart;
 
 		if (not humanoid or not rootPart) then return end;
-
-		if (library.flags.fly) then
+	
+		if (Toggles.FlyToggle.Value) then
 			maid.speedHackBv = nil;
 			return;
 		end;
-
+	
 		maid.speedHackBv = maid.speedHackBv or Instance.new('BodyVelocity');
 		maid.speedHackBv.MaxForce = Vector3.new(100000, 0, 100000);
-
+	
 		if (not CollectionService:HasTag(maid.speedHackBv, 'AllowedBM')) then
 			CollectionService:AddTag(maid.speedHackBv, 'AllowedBM');
 		end;
+	
+		maid.speedHackBv.Parent = not Toggles.FlyToggle.Value and rootPart or nil;
+	    maid.speedHackBv.Velocity = (humanoid.MoveDirection.Magnitude ~= 0 and humanoid.MoveDirection or gethiddenproperty(humanoid, 'WalkDirection')) * Options.SpeedhackSlider.Value;
+	end);
 
-		maid.speedHackBv.Parent = not library.flags.fly and rootPart or nil;
-		maid.speedHackBv.Velocity = (humanoid.MoveDirection.Magnitude ~= 0 and humanoid.MoveDirection or gethiddenproperty(humanoid, 'WalkDirection')) * Options.FlySpeed.Value;
+end)u
+
+Toggles.FlyToggle:OnChanged(function()
+	
+	if (not Toggles.FlyToggle.Value) then
+		maid.flyHack = nil;
+		maid.flyBv = nil;
+
+		return;
+	end;
+
+	maid.flyBv = Instance.new('BodyVelocity');
+	maid.flyBv.MaxForce = Vector3.new(math.huge, math.huge, math.huge);
+
+	maid.flyHack = RunService.Heartbeat:Connect(function()
+		local rootPart, camera = CharacterRoot, workspace.CurrentCamera;
+		if (not rootPart or not camera) then return end;
+
+		if (not CollectionService:HasTag(maid.flyBv, 'AllowedBM')) then
+			CollectionService:AddTag(maid.flyBv, 'AllowedBM');
+		end;
+
+		maid.flyBv.Parent = rootPart;
+		maid.flyBv.Velocity = camera.CFrame:VectorToWorldSpace(ControlModule:GetMoveVector() * Options.FlySpeed.Value);
 	end);
 	
 end)
@@ -408,33 +572,6 @@ local ItemsTypes = {
 	["Lockpick"] = "Misc",
 	["Tactical Leggings"] = "Armour",
 }
-
-local GuiLoaded
-local LocalPlayer = game.Players.LocalPlayer
-local PlayerGui = game.Players.LocalPlayer.PlayerGui
-local Character = LocalPlayer.Character
-local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
-local LootTables = {}
-local PlayerDeathBagsLootTable = {}
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualInputManager = Instance.new("VirtualInputManager")
-local Events = ReplicatedStorage:WaitForChild("Events")
-local Map = workspace:WaitForChild("Map")
-local Bunker_LootAutoFarmPath = Map.Special.Bunker.Streaming
-local BunkerLoot = {}
-local NPCs = workspace:WaitForChild("NPCs")
-local Other_NPCs = NPCs:WaitForChild("Other")
-local AutoLootLOLOLL = false
-local AutoLockPikcLOLO = false
-local NotifItems = false
-local ProxPrompts = {}
-local ToLoot
---/#
-
---// Services
-
-local RunService = game:GetService("RunService")
---/#
 
 --// Events
 
