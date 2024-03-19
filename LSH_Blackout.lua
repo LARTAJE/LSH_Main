@@ -185,6 +185,7 @@ local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 local LootTables = {}
 local PlayerDeathBagsLootTable = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService('VirtualInputManager')
 local Events = ReplicatedStorage:WaitForChild("Events")
 local Map = workspace:WaitForChild("Map")
 local NPCs = workspace:WaitForChild("NPCs")
@@ -210,12 +211,27 @@ local MinigameResult = Events:WaitForChild("Loot"):WaitForChild("MinigameResult"
 
 --// Functions 
 
+local function PressKey(KeyToPress,HoldDuration)
+
+	if HoldDuration ~= 0 and HoldDuration ~= nil()
+	   VirtualInputManager:SendKeyEvent(true, KeyToPress, false, nil)
+	   task.wait(time)
+	   VirtualInputManager:SendKeyEvent(false, KeyToPress, false, nil)
+	else
+	   VirtualInputManager:SendKeyEvent(true, KeyToPress, false, nil)
+	   task.wait(0.005)
+	   VirtualInputManager:SendKeyEvent(false, KeyToPress, false, nil)
+	end
+   
+ end
+
 local function PickUpItem(LootTable,Item,Method)
 	PickUpEvent:FireServer(LootTable,Item,Method)
 end
 
 local function LockPick(Target,Method)
 	MinigameResult:FireServer(Target,Method)
+	PressKey(Enum.Keycode.E,0)
 end
 
 local function ItemAdded(Item,Method)
