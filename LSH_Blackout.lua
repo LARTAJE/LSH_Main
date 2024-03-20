@@ -51,12 +51,13 @@ local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 local VirtualInputManager = Instance.new("VirtualInputManager")
 
 local Cam = workspace.CurrentCamera
-local GetPartsObscuringTarget = Camera.GetPartsObscuringTarget
+local GetPartsObscuringTarget = Cam.GetPartsObscuringTarget
 
 local Events = ReplicatedStorage:WaitForChild("Events")
 local Map = workspace:WaitForChild("Map")
 local Bunker_LootAutoFarmPath = Map.Special.Bunker.Streaming
 local NPCs = workspace:WaitForChild("NPCs")
+local Hostile_NPCs = NPCs:WaitForChild("Hostile")
 local Other_NPCs = NPCs:WaitForChild("Other")
 
 local AutoLootLOLOLL = false
@@ -86,8 +87,11 @@ local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 
 local GetChildren = game.GetChildren
 local GetPlayers = Players.GetPlayers
+
 local WorldToScreen = Cam.WorldToScreenPoint
 local WorldToViewportPoint = Cam.WorldToViewportPoint
+local GetPartsObscuringTarget = Cam.GetPartsObscuringTarget
+
 local FindFirstChild = game.FindFirstChild
 local RenderStepped = RunService.RenderStepped
 local GuiInset = GuiService.GetGuiInset
@@ -100,7 +104,7 @@ mouse_box.Visible = true
 mouse_box.ZIndex = 999 
 mouse_box.Color = Color3.fromRGB(255, 0, 0)
 mouse_box.Thickness = 20 
-mouse_box.Size = Vector2.new(20, 20)
+mouse_box.Size = Vector2.new(10,10)
 mouse_box.Filled = true 
 
 
@@ -112,7 +116,7 @@ SilentAIMFov.Filled = false
 SilentAIMFov.Visible = false
 SilentAIMFov.ZIndex = 999
 SilentAIMFov.Transparency = 1
-SilentAIMFov.Color = Color3.fromRGB(255,0,0)
+SilentAIMFov.Color = Color3.fromRGB(255,255,255)
 
 
 --]]
@@ -476,7 +480,7 @@ local RagdollEvent = Events:WaitForChild("Player"):WaitForChild("Ragdoll")
 --// Functions
 
 local function getPositionOnScreen(Vector)
-    local Vec3, OnScreen = WorldToScreen(Camera, Vector)
+    local Vec3, OnScreen = WorldToScreen(Cam, Vector)
     return Vector2.new(Vec3.X, Vec3.Y), OnScreen
 end
 
@@ -580,7 +584,7 @@ local function TPtoLootAndPickUp(PartToTp, TPBack)
 end
 
 local function IsPlayerVisible(Player)
-    local PlayerCharacter = Player.Character
+    local PlayerCharacter = Player
     local LocalPlayerCharacter = LocalPlayer.Character
     
     if not (PlayerCharacter or LocalPlayerCharacter) then return end 
@@ -590,7 +594,7 @@ local function IsPlayerVisible(Player)
     if not PlayerRoot then return end 
     
     local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
-    local ObscuringObjects = #Cam.GetPartsObscuringTarget(Camera, CastPoints, IgnoreList)
+    local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
     
     return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
 end
@@ -618,27 +622,44 @@ local function getClosestPlayer()
     if not Options.TargetPart.Value then return end
     local Closest
     local DistanceToMouse
-    for _, Player in next, GetPlayers(Players) do
-        if Player == LocalPlayer then continue end
 
-        local Character = Player.Character
-        if not Character then continue end
+	local Chars = {}
+
+	for _, Player in next, GetPlayers(Players) do
+		table.insert(Chars,Player.Character)
+	end
+
+	for _, NPCs in next, Hostile_NPCs:GetChildren() do
+		table.insert(Chars,NPCs)
+	end
+
+    for _, __Character in next, Chars do
+        if __Character == Character then continue end
+
+        local _Character = __Character
+       
+		if not _Character then continue end
         
-        --if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+        if Toggles.VisibleCheck.Value and not IsPlayerVisible(_Character) then continue end
 
-        local HumanoidRootPart = FindFirstChild(Character, "HumanoidRootPart")
-        local Humanoid = FindFirstChild(Character, "Humanoid")
-        if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
+        local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
+        local Humanoid = FindFirstChild(_Character, "Humanoid")
+       
+		if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
 
         local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
-        if not OnScreen then continue end
+        
+		if not OnScreen then continue end
 
         local Distance = (getMousePosition() - ScreenPosition).Magnitude
-        if Distance <= (DistanceToMouse or Options.SilentAimFovSlider.Value or 2000) then
-            Closest = ((Options.TargetPart.Value == "Random" and Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or Character[Options.TargetPart.Value])
+       
+		if Distance <= (DistanceToMouse or Options.SilentAimFovSlider.Value or 2000) then
+            Closest = ((Options.TargetPart.Value == "Random" and _Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or _Character[Options.TargetPart.Value])
             DistanceToMouse = Distance
         end
+
     end
+
 	print(Closest)
     return Closest
 end
@@ -888,15 +909,13 @@ local oldNamecall
 
 oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 	local Method = getnamecallmethod()
+	
 	if Method ~= "Raycast" or Toggles.SilentAimToggle.Value == false then
 		return oldNamecall(...)
 	end
 	
     local Arguments = {...}
     local self = Arguments[1]
-
-	print(self)
-	print(checkcaller())
 
     local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
 
@@ -908,7 +927,6 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 			local HitPart = getClosestPlayer()
 
 			if HitPart then
-				print(HitPart)
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
 				return oldNamecall(unpack(Arguments))
 			end
@@ -926,7 +944,9 @@ local autoFarmWaitTick = tick()
 
 RunService.Heartbeat:Connect(function()
 	task.wait()
-	
+
+	Cam = workspace.CurrentCamera
+
 	if Toggles.ShowFOV.Value then
 		SilentAIMFov.Visible = Toggles.ShowFOV.Value
 		SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
@@ -935,7 +955,7 @@ RunService.Heartbeat:Connect(function()
 
 	if getClosestPlayer() then 
 		local Root = getClosestPlayer().Parent.PrimaryPart or getClosestPlayer()
-		local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Camera, Root.Position);
+		local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
 
 		mouse_box.Visible = IsOnScreen
 		mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
