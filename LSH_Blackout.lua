@@ -575,6 +575,10 @@ RunService.Heartbeat:Connect(function()
 	if not LocalPlayer.Character:FindFirstChild("Humanoid") then return end
 	if LocalPlayer.Character.Humanoid.Health <= 0 then return end
 
+	if (not Toggles.FlyToggle.Value) then
+		LocalPlayer.Character.Humanoid.PlatformStand = false
+	end
+
 	if Toggles.BreakAI.Value == true then
 		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
 	end
