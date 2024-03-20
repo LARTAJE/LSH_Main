@@ -1,3 +1,10 @@
+--// Protect Gui
+
+if not syn or not protectgui then
+    getgenv().protectgui = function() end
+end
+
+--/#
 
 Key = "EuAmoODivisãoKarreta";
 
@@ -15,6 +22,7 @@ local AvalibleKeys = {
 }
 
 if not table.find(AvalibleKeys, Key) then game.Players.LocalPlayer:Kick("Invalid key") end
+--]]
 --/#
 
 local Started = tick()
@@ -29,11 +37,21 @@ local PlayerGui = game.Players.LocalPlayer.PlayerGui
 local Character = LocalPlayer.Character
 local mouse = LocalPlayer:GetMouse()
 
-local RunService = game:GetService("RunService")
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local GuiService = game:GetService("GuiService")
+local RunService = game:GetService("RunService")
+local GetPlayers = Players.GetPlayers
+
+local GetMouseLocation = UserInputService.GetMouseLocation
 
 local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 local VirtualInputManager = Instance.new("VirtualInputManager")
+
+local Cam = workspace.CurrentCamera
+local GetPartsObscuringTarget = Camera.GetPartsObscuringTarget
 
 local Events = ReplicatedStorage:WaitForChild("Events")
 local Map = workspace:WaitForChild("Map")
@@ -50,9 +68,54 @@ local BunkerLoot = {}
 local ProxPrompts = {}
 local LootTables = {}
 local InstancessLol = {}
+
+
+local ExpectedArguments = {
+    Raycast = {
+        ArgCountRequired = 3,
+        Args = {
+            "Instance", "Vector3", "Vector3", "RaycastParams"
+        }
+    }
+}
+--]]
+
+local ValidTargetParts = {"Head", "Torso"};
 local ctrl = {f = 0, b = 0, l = 0, r = 0}
 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 
+local GetChildren = game.GetChildren
+local GetPlayers = Players.GetPlayers
+local WorldToScreen = Cam.WorldToScreenPoint
+local WorldToViewportPoint = Cam.WorldToViewportPoint
+local FindFirstChild = game.FindFirstChild
+local RenderStepped = RunService.RenderStepped
+local GuiInset = GuiService.GetGuiInset
+
+local resume = coroutine.resume 
+local create = coroutine.create
+
+local mouse_box = Drawing.new("Square")
+mouse_box.Visible = true 
+mouse_box.ZIndex = 999 
+mouse_box.Color = Color3.fromRGB(255, 0, 0)
+mouse_box.Thickness = 20 
+mouse_box.Size = Vector2.new(20, 20)
+mouse_box.Filled = true 
+
+
+local SilentAIMFov = Drawing.new("Circle")
+SilentAIMFov.Thickness = 1
+SilentAIMFov.NumSides = 100
+SilentAIMFov.Radius = 360
+SilentAIMFov.Filled = false
+SilentAIMFov.Visible = false
+SilentAIMFov.ZIndex = 999
+SilentAIMFov.Transparency = 1
+SilentAIMFov.Color = Color3.fromRGB(255,0,0)
+
+
+--]]
 local GuiLoaded
 local ToLoot
 
@@ -93,6 +156,10 @@ local LeftSideTab2 = Tabs.Main:AddLeftTabbox()
 local LeftSideTab3 = Tabs.Main:AddLeftTabbox()
 local LeftSideTab4 = Tabs.Main:AddLeftTabbox()
 local LeftSideTab5 = Tabs.Main:AddLeftTabbox()
+
+local RightSideTab1 = Tabs.Main:AddRightTabbox()
+local RightSideTab2 = Tabs.Main:AddRightTabbox()
+
 --// Even more tabs
 
 local Movement = LeftSideTab1_:AddTab('Movement')
@@ -100,8 +167,71 @@ local AutoLoot = LeftSideTab1:AddTab('AutoLoot')
 local Notificate = LeftSideTab2:AddTab('Notify items')
 local QualityOfLive = LeftSideTab3:AddTab('Quality Of Live')
 local Missions = LeftSideTab4:AddTab('Missions')
+local SilentAim = RightSideTab1:AddTab('Silent Aim')
+local Misc = RightSideTab2:AddTab('Misc')
 local AutofarmTab = LeftSideTab5:AddTab('Auto farms')
 --//#
+
+--// SilentAim
+
+SilentAim:AddToggle('SilentAimToggle', {
+    Text = 'Enabled',
+    Default = false,
+    Tooltip = 'Enables Silent aim.',
+})
+
+SilentAim:AddDropdown('TargetPart', {
+    Values = {'Head', 'Torso','Random'},
+    Default = 1,
+    Multi = false,
+    Text = 'Silent Aim TargetParts',
+    Tooltip = 'Silent aim target parts',
+})
+
+
+SilentAim:AddToggle('VisibleCheck', {
+    Text = 'Visible Check',
+    Default = true,
+    Tooltip = 'Checks if target player is in vision.',
+})
+
+SilentAim:AddToggle('TargetNPCs', {
+    Text = 'Target npcs',
+    Default = false,
+    Tooltip = 'Silent aim targets npcs.',
+})
+
+SilentAim:AddToggle('ShowFOV', {
+    Text = 'Show FOV',
+    Default = false,
+    Tooltip = 'Draws a circle of the desired fov value.',
+})
+
+
+
+SilentAim:AddSlider('SilentAimFovSlider', {
+    Text = 'FOV',
+
+    Default = 100,
+    Min = 0,
+    Max = 300,
+    Rounding = 1,
+
+    Compact = false,
+})
+
+SilentAim:AddSlider('SilentAimHitChanceSlider', {
+    Text = 'Hit chance',
+
+    Default = 50,
+    Min = 0,
+    Max = 100,
+    Rounding = 1,
+
+    Compact = false,
+})
+
+--/#
 
 --// Movement
 
@@ -131,7 +261,7 @@ Movement:AddToggle('SpeedToggle', {
 Movement:AddSlider('SpeedhackSlider', {
     Text = 'Speed',
 
-    Default = 15,
+    Default = 20,
     Min = 0,
     Max = 100,
     Rounding = 1,
@@ -217,6 +347,7 @@ Library:SetWatermark('LackSkill Hub')
 Library:OnUnload(function()
     print('Unloaded!')
     Library.Unloaded = true
+	script:Destroy()
 end)
 
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
@@ -241,25 +372,121 @@ ThemeManager:ApplyToTab(Tabs['UI Settings'])
 --/#
 
 --// Locals
-
+--[[
 local ItemsTypes = {
-	["Energy Bar"] = "Food",
-	["Energy Drink"] = "Food",
-	["Soda"] = "Food",
-	["Medkit"] = "Healing",
-	["Trauma Pad"] = "Healing",
-	["Lockpick"] = "Misc",
-	["Tactical Leggings"] = "Armour",
-}
 
+	["Food"] = {
+		["Energy Bar"],
+		["Energy Drink"],
+		["Coffee"],
+		["Soda"],
+		["Canned Beans"],
+		["Canned Corn"],
+	},
+
+	["Healing"] = {
+		["Medkit"],
+		["Bandage"],
+		["Trauma Pad"],
+	},
+
+	["Misc"] = {
+		["Lockpick"],
+		["Bounty Card"],
+	},
+
+	["Melee"] = {
+		["Bat"],
+		["Tomahawk"],
+		["Spear"],
+		["Tactical Knife"],
+		["Greataxe"],
+		["Katana"],
+		["Sledgehammer"],
+	},
+
+	["Gun"] = {
+		["725"],
+		["M4A1"],
+		["AWM"],
+		["Crossbow"],
+		["FAMAS"],
+		["M1911"],
+		["MP5"],
+		["SCAR-17"],
+		["SCAR-20"],
+		["SPAS-12"],
+		["TAC-14"],
+		["G3"],
+		["G17"],
+		["G18"],
+		["MAC-11"],
+		["AK-47"],
+		["UZI"],
+		["M24"],
+		["Deagle"],
+	},
+
+	["Explosive"] = {
+		["GL-06"],
+	},
+
+	["Utility"] = {
+		["Ammo Box"],
+		["Flashbang"],
+		["Grenade"],
+		["Incendiary"],
+		["Smoke"],
+	},
+
+	["Armor"] = {
+		["Light Tactical Armor"],
+		["Heavy Tactical Armor"],
+		["Tactical Leggings"],
+	    ["Tactical Helmet"],
+		["Small Backpack"]
+		["Large Backpack"],
+		["Night-Vision Goggles"],
+		["Anti-Flash Goggles"],
+		["Gas Mask"],
+	},
+
+	["Keycard"] = {
+		["Purple Keycard"],
+		["Green Keycard"],
+		["Blue Keycard"],
+		["Red Keycard"],
+	},
+
+	["Flares"] = {
+		["Red Flare Gun"],
+	},
+
+}
+--]]
 --// Events
 
 local PickUpEvent = Events:WaitForChild("Loot"):WaitForChild("LootObject")
 local StartTask = Events:WaitForChild("Stations"):WaitForChild("StartTask")
 local MinigameResult = Events:WaitForChild("Loot"):WaitForChild("MinigameResult")
+local DamageEvent = Events:WaitForChild("Player"):WaitForChild("Damage")
+local RagdollEvent = Events:WaitForChild("Player"):WaitForChild("Ragdoll")
 --/#
 
---// Functions 
+--// Functions
+
+local function getPositionOnScreen(Vector)
+    local Vec3, OnScreen = WorldToScreen(Camera, Vector)
+    return Vector2.new(Vec3.X, Vec3.Y), OnScreen
+end
+
+local function getDirection(Origin, Position)
+    return (Position - Origin).Unit * 1000
+end
+
+local function getMousePosition()
+    return GetMouseLocation(UserInputService)
+end
 
 local function PickUpItem(LootTable,Item,Method)
 	PickUpEvent:FireServer(LootTable,Item,Method)
@@ -275,7 +502,7 @@ local function LockPick(Target,Method)
 end
 
 local function RagdollChar()
-	Events:WaitForChild("Player"):WaitForChild("Ragdoll"):FireServer()
+	RagdollEvent:FireServer()
 end
 
 local function ItemAdded(Item,Method)
@@ -287,6 +514,7 @@ local function ItemAdded(Item,Method)
 end
 
 local speed = Options.FlySpeed.Value
+
 local function Fly()
 	    local torso = Character.Torso
 		local bg = Instance.new("BodyGyro", torso)
@@ -326,6 +554,13 @@ local function Fly()
 		Character.Humanoid.PlatformStand = false
 end
 
+
+local function CalculateChance(Percentage)
+    Percentage = math.floor(Percentage)
+    local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
+    return chance <= Percentage / 100
+end
+
 local function TPtoLootAndPickUp(PartToTp, TPBack)
 
 	if TPBack then
@@ -343,6 +578,72 @@ local function TPtoLootAndPickUp(PartToTp, TPBack)
 	LockPick(PartToTp.Parent,true)
 	OpenLoot(PartToTp.Parent)
 end
+
+local function IsPlayerVisible(Player)
+    local PlayerCharacter = Player.Character
+    local LocalPlayerCharacter = LocalPlayer.Character
+    
+    if not (PlayerCharacter or LocalPlayerCharacter) then return end 
+    
+    local PlayerRoot = FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
+    
+    if not PlayerRoot then return end 
+    
+    local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
+    local ObscuringObjects = #Cam.GetPartsObscuringTarget(Camera, CastPoints, IgnoreList)
+    
+    return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
+end
+
+--game:GetService("ReplicatedStorage").GunStorage.Mods
+
+local function ValidateArguments(Args, RayMethod)
+    local Matches = 0
+    if #Args < RayMethod.ArgCountRequired then
+        return false
+    end
+    for Pos, Argument in next, Args do
+        if typeof(Argument) == RayMethod.Args[Pos] then
+            Matches = Matches + 1
+        end
+    end
+    return Matches >= RayMethod.ArgCountRequired
+end
+
+local function Vector2MousePosition()
+	return Vector2.new(mouse.X, mouse.Y)
+end
+
+local function getClosestPlayer()
+    if not Options.TargetPart.Value then return end
+    local Closest
+    local DistanceToMouse
+    for _, Player in next, GetPlayers(Players) do
+        if Player == LocalPlayer then continue end
+
+        local Character = Player.Character
+        if not Character then continue end
+        
+        --if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+
+        local HumanoidRootPart = FindFirstChild(Character, "HumanoidRootPart")
+        local Humanoid = FindFirstChild(Character, "Humanoid")
+        if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
+
+        local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
+        if not OnScreen then continue end
+
+        local Distance = (getMousePosition() - ScreenPosition).Magnitude
+        if Distance <= (DistanceToMouse or Options.SilentAimFovSlider.Value or 2000) then
+            Closest = ((Options.TargetPart.Value == "Random" and Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or Character[Options.TargetPart.Value])
+            DistanceToMouse = Distance
+        end
+    end
+	print(Closest)
+    return Closest
+end
+
+--]]
 
 local function StartMission(Mission, TPBack)
 	local BrokerRootPart = Other_NPCs:FindFirstChild("Broker"):WaitForChild("HumanoidRootPart")
@@ -363,20 +664,24 @@ local function StartMission(Mission, TPBack)
 	
 end
 
+local function Damage(Damage,LimbDamageTable)
+	DamageEvent:FireServer(Damage,LimbDamageTable)
+end
+
 local function CollectLootFromLootTable(LootTable)
 	local ItemsInLootTable = LootTable:GetChildren()
 	local CurrentItemIndex = 1
 
-	--[[
+	
 	for _, Item in pairs(ItemsInLootTable) do
 		PickUpItem(LootTable,Item,true)
 		task.wait(1)
 	end
     --]]
 
-	task.wait(1)
+	task.wait(0.6)
 	PickUpItem(LootTable,"Cash",nil)
-	task.wait(1)
+	task.wait(0.6)
 	PickUpItem(LootTable,"Valuables",nil)
 end
 
@@ -398,6 +703,14 @@ end
 
 Missions:AddButton('Start Cargo Ambush', function()
 	StartMission("StealCargo", true)
+end)
+
+Misc:AddButton('Suicide', function()
+	
+	Damage(1000,{
+		["Head"] = 1000
+	})
+
 end)
 
 --// More Toggles & stuff
@@ -441,7 +754,10 @@ for _, ProxPrompt in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
 		ProxPrompt.Triggered:Connect(function()
 
 			if ProxPrompt.Name == "LockMinigame" then
-
+				if ProxPrompt:GetAttribute("Unlocked") then
+					task.wait(0.5)
+					OpenLoot(ToLockPick)
+				end
 				if Toggles.AutoLockpickToggle.Value == true then
 					local ToLockPick = ProxPrompt.Parent.Parent.Parent
 					task.wait(1)
@@ -500,7 +816,7 @@ end
 
 for _,Lootinstancee in pairs(Bunker_LootAutoFarmPath:GetDescendants()) do
 	if Lootinstancee.Parent.Name == "Loot" then
-		table.insert(BunkerLoot,Lootinstancee)
+		table.insert(BunkerLoot, Lootinstancee)
 	end
 end
 
@@ -514,6 +830,7 @@ end)
 
 workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
 	local LootTable = Bag:WaitForChild("LootTable",5)
+
 	if not LootTable then return end
 
 	LootTable.ChildAdded:Connect(function(Item)
@@ -566,18 +883,77 @@ end)
 Library:Notify("Loaded UI", 5)
 Library:Notify("Script loaded in ".. (tick() - Started), 5)
 
+--// Hooks
+local oldNamecall
+
+oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
+	local Method = getnamecallmethod()
+	if Method ~= "Raycast" or Toggles.SilentAimToggle.Value == false then
+		return oldNamecall(...)
+	end
+	
+    local Arguments = {...}
+    local self = Arguments[1]
+
+	print(self)
+	print(checkcaller())
+
+    local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
+
+    if self == workspace and not checkcaller() and chance == true then
+
+        if ValidateArguments(Arguments, ExpectedArguments.Raycast) then
+			local A_Origin = Arguments[2]
+
+			local HitPart = getClosestPlayer()
+
+			if HitPart then
+				print(HitPart)
+				Arguments[3] = getDirection(A_Origin, HitPart.Position)
+				return oldNamecall(unpack(Arguments))
+			end
+
+		end
+		
+    end
+
+end))
+
+--/#
+
 local BunkerAutoFarmAt = 1
 local autoFarmWaitTick = tick()
 
 RunService.Heartbeat:Connect(function()
 	task.wait()
-
-	if not LocalPlayer.Character:FindFirstChild("Humanoid") then return end
-	if LocalPlayer.Character.Humanoid.Health <= 0 then return end
-
-	if (not Toggles.FlyToggle.Value) then
-		LocalPlayer.Character.Humanoid.PlatformStand = false
+	
+	if Toggles.ShowFOV.Value then
+		SilentAIMFov.Visible = Toggles.ShowFOV.Value
+		SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
+		SilentAIMFov.Position = Vector2MousePosition() + Vector2.new(0, 36)
 	end
+
+	if getClosestPlayer() then 
+		local Root = getClosestPlayer().Parent.PrimaryPart or getClosestPlayer()
+		local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Camera, Root.Position);
+
+		mouse_box.Visible = IsOnScreen
+		mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
+	else 
+		mouse_box.Visible = false 
+		mouse_box.Position = Vector2.new()
+	end
+	
+	--]]
+
+	if not Character:FindFirstChild("Humanoid") then return end
+	if Character.Humanoid.Health <= 0 then return end
+	
+	--[[
+	if (not Toggles.FlyToggle.Value) then
+		Character.Humanoid.PlatformStand = false
+	end
+    --]]
 
 	if Toggles.BreakAI.Value == true then
 		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
@@ -596,8 +972,6 @@ RunService.Heartbeat:Connect(function()
 		if BunkerAutoFarmAt >= #BunkerLoot then
 			BunkerAutoFarmAt = 1
 		end
-	else
-		CharacterRoot.Anchored = false
 	end
 
 end)
