@@ -27,6 +27,7 @@ local userId = game.Players.LocalPlayer.UserId;
 local LocalPlayer = game.Players.LocalPlayer
 local PlayerGui = game.Players.LocalPlayer.PlayerGui
 local Character = LocalPlayer.Character
+local mouse = LocalPlayer:GetMouse()
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -49,6 +50,8 @@ local BunkerLoot = {}
 local ProxPrompts = {}
 local LootTables = {}
 local InstancessLol = {}
+local ctrl = {f = 0, b = 0, l = 0, r = 0}
+local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 
 local GuiLoaded
 local ToLoot
@@ -201,71 +204,6 @@ Notificate:AddDropdown('NotificateItemsFilter', {
 
 --/#
 
-Options.AutoLootFilter:OnChanged(function()
---[[
-	for index, value in next, Options.AutoLootFilter.Value do
-        print(index, value)
-    end
---]]
-end)
-
-Toggles.SpeedToggle:OnChanged(function()
-	if (not Toggles.SpeedToggle.Value) then
-		InstancessLol.speedHack = nil;
-		InstancessLol.speedHackBv = nil;
-	
-		 return;
-	end;
-	
-	InstancessLol.speedHack = RunService.Heartbeat:Connect(function()
-		local humanoid, rootPart = Character.Humanoid, Character.PrimaryPart;
-
-		if (not humanoid or not rootPart) then return end;
-	
-		if (Toggles.FlyToggle.Value) then
-			InstancessLol.speedHackBv = nil;
-			return;
-		end;
-	
-		InstancessLol.speedHackBv = InstancessLol.speedHackBv or Instance.new('BodyVelocity');
-		InstancessLol.speedHackBv.MaxForce = Vector3.new(100000, 0, 100000);
-	
-		if (not CollectionService:HasTag(InstancessLol.speedHackBv, 'AllowedBM')) then
-			CollectionService:AddTag(InstancessLol.speedHackBv, 'AllowedBM');
-		end;
-	
-		InstancessLol.speedHackBv.Parent = not Toggles.FlyToggle.Value and rootPart or nil;
-	    InstancessLol.speedHackBv.Velocity = (humanoid.MoveDirection.Magnitude ~= 0 and humanoid.MoveDirection or gethiddenproperty(humanoid, 'WalkDirection')) * Options.SpeedhackSlider.Value;
-	end);
-
-end)u
-
-Toggles.FlyToggle:OnChanged(function()
-	
-	if (not Toggles.FlyToggle.Value) then
-		InstancessLol.flyHack = nil;
-		InstancessLol.flyBv = nil;
-
-		return;
-	end;
-
-	InstancessLol.flyBv = Instance.new('BodyVelocity');
-	InstancessLol.flyBv.MaxForce = Vector3.new(math.huge, math.huge, math.huge);
-
-	InstancessLol.flyHack = RunService.Heartbeat:Connect(function()
-		local rootPart, camera = CharacterRoot, workspace.CurrentCamera;
-		if (not rootPart or not camera) then return end;
-
-		if (not CollectionService:HasTag(InstancessLol.flyBv, 'AllowedBM')) then
-			CollectionService:AddTag(InstancessLol.flyBv, 'AllowedBM');
-		end;
-
-		InstancessLol.flyBv.Parent = rootPart;
-	    InstancessLol.flyBv.Velocity = camera.CFrame:VectorToWorldSpace(ControlModule:GetMoveVector() * Options.FlySpeed.Value);
-	end);
-	
-end)
-
 --// AutoFarm
 AutofarmTab:AddToggle('Bunker_AutoFarm', {
     Text = 'Bunker Auto-farm',
@@ -348,6 +286,46 @@ local function ItemAdded(Item,Method)
 
 end
 
+local speed = Options.FlySpeed.Value
+local function Fly()
+	    local torso = Character.Torso
+		local bg = Instance.new("BodyGyro", torso)
+		bg.P = 9e4
+		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+		bg.cframe = torso.CFrame
+		local bv = Instance.new("BodyVelocity", torso)
+		bv.velocity = Vector3.new(0,0.1,0)
+		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+		
+		repeat task.wait()
+			Character.Humanoid.PlatformStand = true
+			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+				speed = speed+.5
+			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+				speed = speed-1
+				if speed < 0 then
+					speed = 0
+				end
+			end
+			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+			else
+				bv.velocity = Vector3.new(0,0.1,0)
+			end
+			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/150),0,0)
+		until not Toggles.FlyToggle.Value
+
+		ctrl = {f = 0, b = 0, l = 0, r = 0}
+		lastctrl = {f = 0, b = 0, l = 0, r = 0}
+		speed = Options.FlySpeed.Value
+		bg:Destroy()
+		bv:Destroy()
+		Character.Humanoid.PlatformStand = false
+end
+
 local function TPtoLootAndPickUp(PartToTp, TPBack)
 
 	if TPBack then
@@ -385,7 +363,24 @@ local function StartMission(Mission, TPBack)
 	
 end
 
-function II_C()
+local function CollectLootFromLootTable(LootTable)
+	local ItemsInLootTable = LootTable:GetChildren()
+	local CurrentItemIndex = 1
+
+	--[[
+	for _, Item in pairs(ItemsInLootTable) do
+		PickUpItem(LootTable,Item,true)
+		task.wait(1)
+	end
+    --]]
+
+	task.wait(1)
+	PickUpItem(LootTable,"Cash",nil)
+	task.wait(1)
+	PickUpItem(LootTable,"Valuables",nil)
+end
+
+local function II_C()
 
 	if Toggles.NoHD.Value then
 		for _,HPrompt in pairs(ProxPrompts) do
@@ -403,6 +398,34 @@ end
 
 Missions:AddButton('Start Cargo Ambush', function()
 	StartMission("StealCargo", true)
+end)
+
+--// More Toggles & stuff
+Options.AutoLootFilter:OnChanged(function()
+--[[
+	for index, value in next, Options.AutoLootFilter.Value do
+        print(index, value)
+    end
+--]]
+end)
+
+Toggles.SpeedToggle:OnChanged(function()
+	if (not Toggles.SpeedToggle.Value) then
+	 Character.Humanoid.WalkSpeed = 16
+	 return;
+	end;
+
+	Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
+end)
+
+Toggles.FlyToggle:OnChanged(function()
+	
+	if (not Toggles.FlyToggle.Value) then
+		return;
+	end;
+
+	Fly()
+	
 end)
 
 --/#
@@ -431,12 +454,11 @@ for _, ProxPrompt in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
 				end
 
 			elseif ProxPrompt.Name == "OpenLootTable" then
+				local PromptLootTable = ProxPrompt.Parent:FindFirstChild("LootTable")
 
 				if Toggles.AutoLootToggle.Value == true then
-					task.wait(.6)
-					PickUpItem(ProxPrompt.Parent:FindFirstChild("LootTable"),"Cash",nil)
-					task.wait(.6)
-					PickUpItem(ProxPrompt.Parent:FindFirstChild("LootTable"),"Valuables",nil)
+					task.wait(0.6)
+					CollectLootFromLootTable(PromptLootTable)
 				end
 
 			end
@@ -486,6 +508,10 @@ end
 
 --//Events
 
+LocalPlayer.CharacterAdded:Connect(function()
+	Character = LocalPlayer.Character
+end)
+
 workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
 	local LootTable = Bag:WaitForChild("LootTable",5)
 	if not LootTable then return end
@@ -506,23 +532,58 @@ end)
 
 II_C()
 
+mouse.KeyDown:connect(function(keyY)
+
+	if keyY:lower() == "w" then
+		ctrl.f = 1
+	elseif keyY:lower() == "s" then
+		ctrl.b = -1
+	elseif keyY:lower() == "a" then
+		ctrl.l = -1
+	elseif keyY:lower() == "d" then
+		ctrl.r = 1
+	end
+
+end)
+
+mouse.KeyUp:connect(function(keyY)
+
+	if keyY:lower() == "w" then
+		ctrl.f = 0
+	elseif keyY:lower() == "s" then
+		ctrl.b = 0
+	elseif keyY:lower() == "a" then
+		ctrl.l = 0
+	elseif keyY:lower() == "d" then
+		ctrl.r = 0
+	end
+
+end)
+
 --/#
 
 
 Library:Notify("Loaded UI", 5)
 Library:Notify("Script loaded in ".. (tick() - Started), 5)
+
 local BunkerAutoFarmAt = 1
 local autoFarmWaitTick = tick()
 
 RunService.Heartbeat:Connect(function()
 	task.wait()
 
+	if not LocalPlayer.Character:FindFirstChild("Humanoid") then return end
+	if LocalPlayer.Character.Humanoid.Health <= 0 then return end
+
 	if Toggles.BreakAI.Value == true then
 		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
 	end
 
+	if Toggles.SpeedToggle.Value == true then
+		Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
+	end
+
     if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
-		CharacterRoot.Anchored = true
 		local LootModel = BunkerLoot[BunkerAutoFarmAt]
 		TPtoLootAndPickUp(LootModel.LootBase,false)
 		BunkerAutoFarmAt += 1
@@ -531,8 +592,6 @@ RunService.Heartbeat:Connect(function()
 		if BunkerAutoFarmAt >= #BunkerLoot then
 			BunkerAutoFarmAt = 1
 		end
-	elseif Toggles.Bunker_AutoFarm.Value == true then
-		CharacterRoot.Anchored = true
 	else
 		CharacterRoot.Anchored = false
 	end
