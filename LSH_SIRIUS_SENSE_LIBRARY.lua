@@ -660,14 +660,14 @@ function EspInterface.AddInstance(instance, options)
 	end
 	return cache[instance][1];
 end
-local function createObject(player)
+local function EspInterface.createObject(player)
 EspInterface._objectCache[player] = {
 	EspObject.new(player, EspInterface),
 	ChamObject.new(player, EspInterface)
 };
 end
 
-local function removeObject(player)
+local function EspInterface.removeObject(player)
 	local object = EspInterface._objectCache[player];
 	if object then
 		for i = 1, #object do
@@ -687,8 +687,8 @@ function EspInterface.Load()
 		end
 	end
 
-	EspInterface.playerAdded = players.PlayerAdded:Connect(createObject);
-	EspInterface.playerRemoving = players.PlayerRemoving:Connect(removeObject);
+	EspInterface.playerAdded = players.PlayerAdded:Connect(EspInterface.createObject);
+	EspInterface.playerRemoving = players.PlayerRemoving:Connect(EspInterface.removeObject);
 	EspInterface._hasLoaded = true;
 end
 
