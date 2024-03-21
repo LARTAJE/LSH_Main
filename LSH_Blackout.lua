@@ -60,7 +60,7 @@ local NPCs = workspace:WaitForChild("NPCs")
 local Hostile_NPCs = NPCs:WaitForChild("Hostile")
 local Other_NPCs = NPCs:WaitForChild("Other")
 
-local Sense = loadstring(game:HttpGet('https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/LSH_SIRIUS_SENSE_LIBRARY.lua'))()
+--local Sense = loadstring(game:HttpGet('https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/LSH_SIRIUS_SENSE_LIBRARY.lua'))()
 
 local AutoLootLOLOLL = false
 local AutoLockPikcLOLO = false
@@ -229,24 +229,24 @@ ESP_MAIN:AddToggle('TracerEsp', {
 --// Esp toggle settings
 
 Toggles.Esp:OnChanged(function(state)
-	Sense.teamSettings.enemy.enabled = state
+	--Sense.teamSettings.enemy.enabled = state
 end)
 
 Toggles.BoxEsp:OnChanged(function(state)
-	Sense.teamSettings.enemy.box = state
+	--Sense.teamSettings.enemy.box = state
 end)
 
 Toggles.NameEsp:OnChanged(function(state)
-	Sense.teamSettings.enemy.name = state
+	--Sense.teamSettings.enemy.name = state
 end)
 
 Toggles.TracerEsp:OnChanged(function(state)
-	Sense.teamSettings.enemy.distance = state
+	--Sense.teamSettings.enemy.distance = state
 end)
 
 Options.HighlightColor:OnChanged(function(state)
-	Sense.teamSettings.enemy.boxColor[1] = state
-	Sense.teamSettings.enemy.nameColor[1] = state
+	--Sense.teamSettings.enemy.boxColor[1] = state
+	--Sense.teamSettings.enemy.nameColor[1] = state
 end)
 
 --/#
@@ -765,11 +765,11 @@ local function Damage(Damage,LimbDamageTable)
 end
 
 local function NPCAdded(NPCChar)
-	Sense.EspInterface.createObject(NPCChar)
+	--Sense.EspInterface.createObject(NPCChar)
 end
 
 local function NPCRemoved(NPCChar)
-	Sense.EspInterface.removeObject(NPCChar)
+	--Sense.EspInterface.removeObject(NPCChar)
 end
 
 local function CollectLootFromLootTable(LootTable)
@@ -1083,4 +1083,4 @@ RunService.Heartbeat:Connect(function()
 
 end)
 
-Sense.Load()
+--Sense.Load()
