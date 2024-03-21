@@ -185,13 +185,23 @@ end
 
 function EspObject:Update()
 	local interface = self.interface;
-
-	self.options = interface.teamSettings[interface.isFriendly(self.player) and "friendly" or "enemy"];
-	self.character = interface.getCharacter(self.player);
+        local IsFriend
+	local character
+	
+	if typeof(self.player) == "" then
+	    character = self.player
+	    IsFriend = "enemy"
+	else
+	    character = interface.getCharacter(self.player);
+	    IsFriend = interface.isFriendly(self.player) and "friendly" or "enemy"
+	end
+	
+	self.options = IsFriend;
+	self.character = character;
 	self.health, self.maxHealth = interface.getHealth(self.character);
-	self.weapon = interface.getWeapon(self.player);
-	self.enabled = self.options.enabled and self.character and not
-		(#interface.whitelist > 0 and not find(interface.whitelist, self.player.UserId));
+	--self.weapon = interface.getWeapon(self.player);
+	
+	self.enabled = self.options.enabled and self.character
 
 	local head = self.enabled and findFirstChild(self.character, "Head");
 	if not head then
@@ -434,10 +444,20 @@ end
 function ChamObject:Update()
 	local highlight = self.highlight;
 	local interface = self.interface;
-	local character = interface.getCharacter(self.player);
-	local options = interface.teamSettings[interface.isFriendly(self.player) and "friendly" or "enemy"];
+	local IsFriend
+	local character
+	
+	if typeof(self.player) == "Model" then
+	    character = self.player
+	    IsFriend = "enemy"
+	else
+	    character = interface.getCharacter(self.player);
+	    IsFriend = interface.isFriendly(self.player) and "friendly" or "enemy"
+	end
+	
+	local options = interface.teamSettings[IsFriend];
 	local enabled = options.enabled and character and not
-		(#interface.whitelist > 0 and not find(interface.whitelist, self.player.UserId));
+	(#interface.whitelist > 0 and not find(interface.whitelist, self.player.UserId));
 
 	highlight.Enabled = enabled and options.chams;
 	if highlight.Enabled then
@@ -640,28 +660,27 @@ function EspInterface.AddInstance(instance, options)
 	end
 	return cache[instance][1];
 end
+local function createObject(player)
+EspInterface._objectCache[player] = {
+	EspObject.new(player, EspInterface),
+	ChamObject.new(player, EspInterface)
+};
+end
+
+local function removeObject(player)
+	local object = EspInterface._objectCache[player];
+	if object then
+		for i = 1, #object do
+				object[i]:Destruct();
+		end
+
+		EspInterface._objectCache[player] = nil;
+	end
+end
 
 function EspInterface.Load()
 	assert(not EspInterface._hasLoaded, "Esp has already been loaded.");
-
-	local function createObject(player)
-		EspInterface._objectCache[player] = {
-			EspObject.new(player, EspInterface),
-			ChamObject.new(player, EspInterface)
-		};
-	end
-
-	local function removeObject(player)
-		local object = EspInterface._objectCache[player];
-		if object then
-			for i = 1, #object do
-				object[i]:Destruct();
-			end
-
-			EspInterface._objectCache[player] = nil;
-		end
-	end
-
+	
 	for _, player in next, players:GetPlayers() do
 		if player ~= localPlayer then
 			createObject(player);
