@@ -60,6 +60,8 @@ local NPCs = workspace:WaitForChild("NPCs")
 local Hostile_NPCs = NPCs:WaitForChild("Hostile")
 local Other_NPCs = NPCs:WaitForChild("Other")
 
+local Sense = loadstring(game:HttpGet('https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/LSH_SIRIUS_SENSE_LIBRARY.lua'))()
+
 local AutoLootLOLOLL = false
 local AutoLockPikcLOLO = false
 local NotifItems = false
@@ -164,6 +166,10 @@ local LeftSideTab5 = Tabs.Main:AddLeftTabbox()
 local RightSideTab1 = Tabs.Main:AddRightTabbox()
 local RightSideTab2 = Tabs.Main:AddRightTabbox()
 
+--//ESP TABS
+
+local ESP_LeftSideTab1 = Tabs.ESP:AddLeftTabbox()
+
 --// Even more tabs
 
 local Movement = LeftSideTab1_:AddTab('Movement')
@@ -174,7 +180,76 @@ local Missions = LeftSideTab4:AddTab('Missions')
 local SilentAim = RightSideTab1:AddTab('Silent Aim')
 local Misc = RightSideTab2:AddTab('Misc')
 local AutofarmTab = LeftSideTab5:AddTab('Auto farms')
+
+--//ESPs
+local ESP_MAIN = ESP_LeftSideTab1:AddTab('ESP')
+
+ESP_MAIN:AddToggle('Esp', {
+    Text = 'Enabled',
+    Default = false,
+    Tooltip = 'ESP toggle.',
+})
+
+ESP_MAIN:AddToggle('BoxEsp', {
+    Text = 'Box ESP',
+    Default = false,
+    Tooltip = 'Show box esp toggle.',
+})
+
+ESP_MAIN:AddToggle("HighlightTarget",
+{ Text = "Player ESP color" }):AddColorPicker('HighlightColor',
+{ Default = Color3.new(255,1,1)});
+
+ESP_MAIN:AddToggle('NameEsp', {
+    Text = 'Show names',
+    Default = false,
+    Tooltip = 'Shows players names.',
+})
+
+ESP_MAIN:AddToggle('HealthBarESP', {
+    Text = 'Show health bars',
+    Default = false,
+    Tooltip = 'Enables health bars.',
+})
+
+ESP_MAIN:AddToggle('ShowDistanceESP', {
+    Text = 'Show distance',
+    Default = false,
+    Tooltip = 'Enables tracers.',
+})
+
+ESP_MAIN:AddToggle('TracerEsp', {
+    Text = 'Show tracers',
+    Default = false,
+    Tooltip = 'Enables tracers.',
+})
+
 --//#
+
+--// Esp toggle settings
+
+Toggles.Esp:OnChanged(function(state)
+	Sense.teamSettings.enemy.enabled = state
+end)
+
+Toggles.BoxEsp:OnChanged(function(state)
+	Sense.teamSettings.enemy.box = state
+end)
+
+Toggles.NameEsp:OnChanged(function(state)
+	Sense.teamSettings.enemy.name = state
+end)
+
+Toggles.TracerEsp:OnChanged(function(state)
+	Sense.teamSettings.enemy.distance = state
+end)
+
+Options.HighlightColor:OnChanged(function(state)
+	Sense.teamSettings.enemy.boxColor[1] = state
+	Sense.teamSettings.enemy.nameColor[1] = state
+end)
+
+--/#
 
 --// SilentAim
 
@@ -689,6 +764,14 @@ local function Damage(Damage,LimbDamageTable)
 	DamageEvent:FireServer(Damage,LimbDamageTable)
 end
 
+local function NPCAdded(NPCChar)
+	Sense.EspInterface.createObject(NPCChar)
+end
+
+local function NPCRemoved(NPCChar)
+	Sense.EspInterface.removeObject(NPCChar)
+end
+
 local function CollectLootFromLootTable(LootTable)
 	local ItemsInLootTable = LootTable:GetChildren()
 	local CurrentItemIndex = 1
@@ -845,6 +928,10 @@ end
 
 --//Events
 
+Hostile_NPCs.ChildAdded:Connect(NPCAdded)
+
+Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
+
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
 end)
@@ -995,3 +1082,5 @@ RunService.Heartbeat:Connect(function()
 	end
 
 end)
+
+Sense.Load()
