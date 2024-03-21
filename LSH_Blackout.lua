@@ -53,9 +53,21 @@ local VirtualInputManager = Instance.new("VirtualInputManager")
 local Cam = workspace.CurrentCamera
 local GetPartsObscuringTarget = Cam.GetPartsObscuringTarget
 
-local Events = ReplicatedStorage:WaitForChild("Events")
-local Map = workspace:WaitForChild("Map")
-local Bunker_LootAutoFarmPath = Map.Special.Bunker.Streaming
+local Events = ReplicatedStorage:WaitForChild("Events",5)
+local Tutorial = workspace:WaitForChild("Tutorial")
+
+local Map
+local Bunker_LootAutoFarmPath
+
+if Tutorial then
+	Map = Tutorial
+	Bunker_LootAutoFarmPath = Map
+else
+	Map = workspace:WaitForChild("Map",5)
+	Bunker_LootAutoFarmPath = Map.Special.Bunker.Streaming
+end
+
+
 local NPCs = workspace:WaitForChild("NPCs")
 local Hostile_NPCs = NPCs:WaitForChild("Hostile")
 local Other_NPCs = NPCs:WaitForChild("Other")
@@ -195,11 +207,11 @@ ESP_MAIN:AddToggle('BoxEsp', {
     Default = false,
     Tooltip = 'Show box esp toggle.',
 })
-
+--[[
 ESP_MAIN:AddToggle("HighlightTarget",
 { Text = "Player ESP color" }):AddColorPicker('HighlightColor',
 { Default = Color3.new(255,1,1)});
-
+--]]
 ESP_MAIN:AddToggle('NameEsp', {
     Text = 'Show names',
     Default = false,
@@ -227,28 +239,28 @@ ESP_MAIN:AddToggle('TracerEsp', {
 --//#
 
 --// Esp toggle settings
-
+--[[
 Toggles.Esp:OnChanged(function(state)
-	--Sense.teamSettings.enemy.enabled = state
+	Sense.teamSettings.enemy.enabled = state
 end)
 
 Toggles.BoxEsp:OnChanged(function(state)
-	--Sense.teamSettings.enemy.box = state
+	Sense.teamSettings.enemy.box = state
 end)
 
 Toggles.NameEsp:OnChanged(function(state)
-	--Sense.teamSettings.enemy.name = state
+	Sense.teamSettings.enemy.name = state
 end)
 
 Toggles.TracerEsp:OnChanged(function(state)
-	--Sense.teamSettings.enemy.distance = state
+	Sense.teamSettings.enemy.distance = state
 end)
 
 Options.HighlightColor:OnChanged(function(state)
-	--Sense.teamSettings.enemy.boxColor[1] = state
-	--Sense.teamSettings.enemy.nameColor[1] = state
+	Sense.teamSettings.enemy.boxColor[1] = state
+	Sense.teamSettings.enemy.nameColor[1] = state
 end)
-
+--]]
 --/#
 
 --// SilentAim
@@ -657,9 +669,16 @@ local function TPtoLootAndPickUp(PartToTp, TPBack)
 	LockPick(PartToTp.Parent,true)
 	OpenLoot(PartToTp.Parent)
 end
-
+--[[
 local function IsPlayerVisible(Player)
-    local PlayerCharacter = Player
+	local PlayerCharacter
+
+	if typeof(Player) == "Model" then
+		PlayerCharacter = Player
+	else
+		PlayerCharacter = Player.Character
+	end
+    
     local LocalPlayerCharacter = LocalPlayer.Character
     
     if not (PlayerCharacter or LocalPlayerCharacter) then return end 
@@ -673,7 +692,7 @@ local function IsPlayerVisible(Player)
     
     return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
 end
-
+--]]
 --game:GetService("ReplicatedStorage").GunStorage.Mods
 
 local function ValidateArguments(Args, RayMethod)
@@ -735,7 +754,6 @@ local function getClosestPlayer()
 
     end
 
-	print(Closest)
     return Closest
 end
 
@@ -849,7 +867,7 @@ end)
 
 --// Setup Connections
 
-for _, ProxPrompt in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+for _, ProxPrompt in pairs(Map:GetDescendants()) do
 	
 	if ProxPrompt:IsA("ProximityPrompt") then
 		table.insert(ProxPrompts,ProxPrompt)
@@ -889,7 +907,7 @@ for _, ProxPrompt in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
 
 end
 
-for _, LootTable in pairs(workspace:WaitForChild("Map"):GetDescendants()) do
+for _, LootTable in pairs(Map:GetDescendants()) do
 	if LootTable.Name == "LootTable" then
 		table.insert(LootTables, LootTable)
 		
@@ -1008,16 +1026,22 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
     if self == workspace and not checkcaller() and chance == true then
 
-        if ValidateArguments(Arguments, ExpectedArguments.Raycast) then
+        if ValidateArguments(Arguments, ExpectedArguments.Raycast)-- and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
+		 then
 			local A_Origin = Arguments[2]
 
 			local HitPart = getClosestPlayer()
 
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
-				return oldNamecall(unpack(Arguments))
-			end
 
+				return oldNamecall(unpack(Arguments))
+			else
+				return oldNamecall(...)
+			end
+			
+		else
+			return oldNamecall(...)
 		end
 		
     end
@@ -1028,6 +1052,14 @@ end))
 
 local BunkerAutoFarmAt = 1
 local autoFarmWaitTick = tick()
+
+if Tutorial then
+	Map.ChildAdded:Connect(function(Char)
+		if Char.Parent:FindFirstChildOfClass("Humanoid") then
+			Char.Parent = Hostile_NPCs --Client-sided but its only tutorial dud no one fucking cares
+		end
+	end)
+end
 
 RunService.Heartbeat:Connect(function()
 	task.wait()
@@ -1040,7 +1072,8 @@ RunService.Heartbeat:Connect(function()
 		SilentAIMFov.Position = Vector2MousePosition() + Vector2.new(0, 36)
 	end
 
-	if getClosestPlayer() then 
+	if getClosestPlayer() then
+		--print()
 		local Root = getClosestPlayer().Parent.PrimaryPart or getClosestPlayer()
 		local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
 
