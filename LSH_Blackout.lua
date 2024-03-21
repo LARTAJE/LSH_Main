@@ -54,7 +54,7 @@ local Cam = workspace.CurrentCamera
 local GetPartsObscuringTarget = Cam.GetPartsObscuringTarget
 
 local Events = ReplicatedStorage:WaitForChild("Events",5)
-local Tutorial = workspace:WaitForChild("Tutorial")
+local Tutorial = workspace:FindFirstChild("Tutorial")
 
 local Map
 local Bunker_LootAutoFarmPath
@@ -72,7 +72,8 @@ local NPCs = workspace:WaitForChild("NPCs")
 local Hostile_NPCs = NPCs:WaitForChild("Hostile")
 local Other_NPCs = NPCs:WaitForChild("Other")
 
---local Sense = loadstring(game:HttpGet('https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/LSH_SIRIUS_SENSE_LIBRARY.lua'))()
+local ESPFramework = loadstring(game:HttpGet("https://raw.githubusercontent.com/NougatBitz/Femware-Leak/main/ESP.lua", true))()
+--Aint creditin dis shit 💀
 
 local AutoLootLOLOLL = false
 local AutoLockPikcLOLO = false
@@ -86,6 +87,24 @@ local InstancessLol = {}
 
 
 local ExpectedArguments = {
+    FindPartOnRayWithIgnoreList = {
+        ArgCountRequired = 3,
+        Args = {
+            "Instance", "Ray", "table", "boolean", "boolean"
+        }
+    },
+    FindPartOnRayWithWhitelist = {
+        ArgCountRequired = 3,
+        Args = {
+            "Instance", "Ray", "table", "boolean"
+        }
+    },
+    FindPartOnRay = {
+        ArgCountRequired = 2,
+        Args = {
+            "Instance", "Ray", "Instance", "boolean", "boolean"
+        }
+    },
     Raycast = {
         ArgCountRequired = 3,
         Args = {
@@ -156,6 +175,8 @@ local Window = Library:CreateWindow({
 })
 
 --/#
+Library:Notify("Script loading", 5)
+task.wait(math.random(1,4)) --Fake loading lol (kinda since it crashes if it loads to fast)
 
 --// Tabs
 
@@ -181,7 +202,7 @@ local RightSideTab2 = Tabs.Main:AddRightTabbox()
 --//ESP TABS
 
 local ESP_LeftSideTab1 = Tabs.ESP:AddLeftTabbox()
-
+local ESP_LeftSideTab2 = Tabs.ESP:AddRightTabbox()
 --// Even more tabs
 
 local Movement = LeftSideTab1_:AddTab('Movement')
@@ -236,30 +257,94 @@ ESP_MAIN:AddToggle('TracerEsp', {
     Tooltip = 'Enables tracers.',
 })
 
+local ESP_SETTIGS = ESP_LeftSideTab2:AddTab('Settings')
+
+ESP_SETTIGS:AddToggle('Player_ESP', {
+    Text = 'Show Players',
+    Default = false,
+    Tooltip = 'Shows Players in esp.',
+})
+
+ESP_SETTIGS:AddToggle('NPC_ESP', {
+    Text = 'Show NPCs',
+    Default = false,
+    Tooltip = 'Shows NPCs in esp.',
+})
+
+ESP_SETTIGS:AddToggle('Merchant_ESP', {
+    Text = 'Show Merchants',
+    Default = false,
+    Tooltip = 'Shows Merchants in esp.',
+})
+
+ESP_SETTIGS:AddToggle('Broker_ESP', {
+    Text = 'Show Brokers',
+    Default = false,
+    Tooltip = 'Shows Brokers in esp.',
+})
+
+ESP_SETTIGS:AddToggle('Faction_Merchants_ESP', {
+    Text = 'Show Faction Merchants',
+    Default = false,
+    Tooltip = 'Shows Faction Merchants in esp.',
+})
+
 --//#
 
 --// Esp toggle settings
---[[
+
+Toggles.Player_ESP:OnChanged(function(state)
+	ESPFramework.Players = state
+end)
+
+Toggles.Merchant_ESP:OnChanged(function(state)
+	ESPFramework.Merchant_ESP = state
+end)
+
+Toggles.Broker_ESP:OnChanged(function(state)
+	ESPFramework.Broker_ESP = state
+end)
+
+Toggles.Faction_Merchants_ESP:OnChanged(function(state)
+	ESPFramework.Factions_Merchant_ESP = state
+end)
+
 Toggles.Esp:OnChanged(function(state)
-	Sense.teamSettings.enemy.enabled = state
+	ESPFramework.Color = Color3.fromRGB(255,255,255)
+	ESPFramework.FaceCamera = true
+	ESPFramework:Toggle(state)
+end)
+
+Toggles.NPC_ESP:OnChanged(function(state)
+	ESPFramework.NPC_ESP = state
 end)
 
 Toggles.BoxEsp:OnChanged(function(state)
-	Sense.teamSettings.enemy.box = state
+	ESPFramework.Boxes = state
 end)
 
 Toggles.NameEsp:OnChanged(function(state)
-	Sense.teamSettings.enemy.name = state
+	ESPFramework.Names = state
 end)
 
 Toggles.TracerEsp:OnChanged(function(state)
-	Sense.teamSettings.enemy.distance = state
+	ESPFramework.Tracers = state
 end)
 
-Options.HighlightColor:OnChanged(function(state)
-	Sense.teamSettings.enemy.boxColor[1] = state
-	Sense.teamSettings.enemy.nameColor[1] = state
+Toggles.ShowDistanceESP:OnChanged(function(state)
+	ESPFramework.Distance = state
 end)
+
+Toggles.HealthBarESP:OnChanged(function(state)
+	ESPFramework.Health = state
+end)
+
+--[[
+Options.HighlightColor:OnChanged(function(state)
+	ESPFramework.Boxes = state
+	ESPFramework.Names = state
+end)
+--]]
 --]]
 --/#
 
@@ -321,6 +406,18 @@ SilentAim:AddSlider('SilentAimHitChanceSlider', {
 
     Compact = false,
 })
+
+SilentAim:AddDropdown("Method",
+ {AllowNull = true,
+  Text = "Silent Aim Method",
+  Default = nil,
+  Values = {
+	"Raycast","FindPartOnRay",
+	"FindPartOnRayWithWhitelist",
+	"FindPartOnRayWithIgnoreList"
+}}):OnChanged(function() 
+	
+end)
 
 --/#
 
@@ -669,30 +766,7 @@ local function TPtoLootAndPickUp(PartToTp, TPBack)
 	LockPick(PartToTp.Parent,true)
 	OpenLoot(PartToTp.Parent)
 end
---[[
-local function IsPlayerVisible(Player)
-	local PlayerCharacter
 
-	if typeof(Player) == "Model" then
-		PlayerCharacter = Player
-	else
-		PlayerCharacter = Player.Character
-	end
-    
-    local LocalPlayerCharacter = LocalPlayer.Character
-    
-    if not (PlayerCharacter or LocalPlayerCharacter) then return end 
-    
-    local PlayerRoot = FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
-    
-    if not PlayerRoot then return end 
-    
-    local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
-    local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
-    
-    return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
-end
---]]
 --game:GetService("ReplicatedStorage").GunStorage.Mods
 
 local function ValidateArguments(Args, RayMethod)
@@ -712,38 +786,44 @@ local function Vector2MousePosition()
 	return Vector2.new(mouse.X, mouse.Y)
 end
 
+local function IsPlayerVisible(Player)
+    local PlayerCharacter = Player.Character
+    local LocalPlayerCharacter = LocalPlayer.Character
+    
+    if not (PlayerCharacter or LocalPlayerCharacter) then return end 
+    
+    local PlayerRoot = FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
+    
+    if not PlayerRoot then return end 
+    
+    local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
+    local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
+    
+    return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
+end
+
 local function getClosestPlayer()
     if not Options.TargetPart.Value then return end
     local Closest
     local DistanceToMouse
 
-	local Chars = {}
+    for _, Player in next, GetPlayers(Players) do
+        if Player == LocalPlayer then continue end
 
-	for _, Player in next, GetPlayers(Players) do
-		table.insert(Chars,Player.Character)
-	end
+        --if Toggles.TeamCheck.Value and Player.Team == LocalPlayer.Team then continue end
 
-	for _, NPCs in next, Hostile_NPCs:GetChildren() do
-		table.insert(Chars,NPCs)
-	end
-
-    for _, __Character in next, Chars do
-        if __Character == Character then continue end
-
-        local _Character = __Character
-       
-		if not _Character then continue end
+        local _Character = Player.Character
+        if not _Character then continue end
         
-        if Toggles.VisibleCheck.Value and not IsPlayerVisible(_Character) then continue end
+        if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
 
         local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
         local Humanoid = FindFirstChild(_Character, "Humanoid")
-       
-		if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
+
+        if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
 
         local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
-        
-		if not OnScreen then continue end
+        if not OnScreen then continue end
 
         local Distance = (getMousePosition() - ScreenPosition).Magnitude
        
@@ -783,11 +863,11 @@ local function Damage(Damage,LimbDamageTable)
 end
 
 local function NPCAdded(NPCChar)
-	--Sense.EspInterface.createObject(NPCChar)
+	--ESPFramework:AddObjectListener.createObject(NPCChar,)
 end
 
 local function NPCRemoved(NPCChar)
-	--Sense.EspInterface.removeObject(NPCChar)
+	--ESPFramework:AddObjectListener.removeObject(NPCChar,)
 end
 
 local function CollectLootFromLootTable(LootTable)
@@ -945,6 +1025,77 @@ end
 --/#
 
 --//Events
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
+    Name = "Military Scout",
+	Color = Color3.fromRGB(10,25,25),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
+    Name = "Military Guard",
+	Color = Color3.fromRGB(10,10,10),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+--
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
+    Name = "Vulture Scout",
+	Color = Color3.fromRGB(255,1,25),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
+    Name = "Vulture Guard",
+	Color = Color3.fromRGB(200,1,25),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+--
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
+    Name = "Rebel Scout",
+	Color = Color3.fromRGB(25,25,255),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
+    Name = "Rebel Guard",
+	Color = Color3.fromRGB(25,25,200),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+--
+ESPFramework:AddObjectListener(Other_NPCs,{ --Merchants
+    Name = "Merchant",
+	Color = Color3.fromRGB(25,200,0),
+	ColorDynamic = false,
+	IsEnabled = "Merchant_ESP",
+})
+
+ESPFramework:AddObjectListener(Other_NPCs,{ --Brokers
+    Name = "Broker",
+	Color = Color3.fromRGB(25,200,0),
+	ColorDynamic = false,
+	IsEnabled = "Broker_ESP",
+})
+--
+ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Rebel Merchants
+    Name = "Rebel Merchant",
+	Color = Color3.fromRGB(255,255,0),
+	ColorDynamic = false,
+	IsEnabled = "Factions_Merchant_ESP",
+})
+
+ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
+    Name = "Vulture Merchant",
+	Color = Color3.fromRGB(255,255,0),
+	ColorDynamic = false,
+	IsEnabled = "Factions_Merchant_ESP",
+})
 
 Hostile_NPCs.ChildAdded:Connect(NPCAdded)
 
@@ -1009,7 +1160,7 @@ end)
 Library:Notify("Loaded UI", 5)
 Library:Notify("Script loaded in ".. (tick() - Started), 5)
 
---// Hooks
+--// Hooks -- and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
 local oldNamecall
 
 oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
@@ -1026,7 +1177,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
     if self == workspace and not checkcaller() and chance == true then
 
-        if ValidateArguments(Arguments, ExpectedArguments.Raycast)-- and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
+        if ValidateArguments(Arguments, ExpectedArguments.Raycast)--and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
 		 then
 			local A_Origin = Arguments[2]
 
@@ -1034,7 +1185,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
-
+				print("how")
 				return oldNamecall(unpack(Arguments))
 			else
 				return oldNamecall(...)
@@ -1043,11 +1194,11 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 		else
 			return oldNamecall(...)
 		end
-		
+	else
+		return oldNamecall(...)
     end
 
 end))
-
 --/#
 
 local BunkerAutoFarmAt = 1
@@ -1115,5 +1266,3 @@ RunService.Heartbeat:Connect(function()
 	end
 
 end)
-
---Sense.Load()
