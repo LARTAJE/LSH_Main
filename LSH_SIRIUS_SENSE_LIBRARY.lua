@@ -99,7 +99,7 @@ local function rotateVector(vector, radians)
 	local c, s = cos(radians), sin(radians);
 	return Vector2.new(c*vector.X - s*vector.Y, s*vector.X + c*vector.Y);
 end
-
+print("1")
 -- esp object
 local EspObject = {};
 EspObject.__index = EspObject;
@@ -111,7 +111,7 @@ function EspObject.new(player, interface)
 	self:Construct();
 	return self;
 end
-
+print("2")
 function EspObject:Construct()
 	self.charCache = {};
 	self.childCount = 0;
