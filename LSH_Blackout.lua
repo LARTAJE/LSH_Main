@@ -407,18 +407,6 @@ SilentAim:AddSlider('SilentAimHitChanceSlider', {
     Compact = false,
 })
 
-SilentAim:AddDropdown("Method",
- {AllowNull = true,
-  Text = "Silent Aim Method",
-  Default = nil,
-  Values = {
-	"Raycast","FindPartOnRay",
-	"FindPartOnRayWithWhitelist",
-	"FindPartOnRayWithIgnoreList"
-}}):OnChanged(function() 
-	
-end)
-
 --/#
 
 --// Movement
@@ -468,8 +456,8 @@ AutoLoot:AddToggle('AutoLootToggle', {
 })
 
 AutoLoot:AddDropdown('AutoLootFilter', {
-    Values = {'Cash', 'Valuables', 'Food','Healing','Misc','Melees', 'Guns', 'Armors', 'Keycards'},
-    Default = 1,
+    Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melees', 'Guns', 'Explosive' , 'Armor', 'Keycards', 'Flares'},
+    Default = nil,
     Multi = true,
     Text = 'Loot Filter',
     Tooltip = 'Allowed types to auto pick up.',
@@ -508,13 +496,25 @@ QualityOfLive:AddToggle('NoHD', {
 
 Notificate:AddToggle('NotificateItemsToggle', {
     Text = 'Enabled',
-    Default = true, --false
+    Default = false, --false
     Tooltip = 'Notificates when a selected item spawns.',
 })
 
+Notificate:AddToggle('NotificateHightlightLoot', {
+    Text = 'Hightlight loot',
+    Default = false, --false
+    Tooltip = 'Hightlighs the loot that was notifyedd.',
+})
+
+Notificate:AddToggle('NotificateAddToESP', {
+    Text = 'ESP loot',
+    Default = false, --false
+    Tooltip = 'Shows loot in the ESP (Must have ESP enabled).',
+})
+
 Notificate:AddDropdown('NotificateItemsFilter', {
-    Values = { 'Food','Healing','Misc','Melees', 'Guns', 'Armors', 'Keycards'},
-    Default = 1,
+    Values = { 'Food','Healing','Misc','Melees', 'Guns', 'Armors', 'Keycards','Contraband'},
+    Default = nil,
     Multi = true,
     Text = 'Notification Filter',
     Tooltip = 'Allowed types to notificate.',
@@ -561,95 +561,354 @@ ThemeManager:ApplyToTab(Tabs['UI Settings'])
 
 --// Locals
 
-local ItemsTypes = {
-
-	["Food"] = {
-		["Energy Bar"],
-		["Energy Drink"],
-		["Coffee"],
-		["Soda"],
-		["Canned Beans"],
-		["Canned Corn"],
+local ItemStats = {
+	
+	--//# Food
+	
+	["Energy Bar"] = {
+		Type = "Food",
+		Contraband = false
+	},
+	
+	["Energy Drink"] = {
+		Type = "Food",
+		Contraband = false
+	},
+	
+	["Coffee"] = {
+		Type = "Food",
+		Contraband = false
+	},
+	
+	["Soda"] = {
+		Type = "Food",
+		Contraband = false
+	},
+	
+	["Canned Beans"] = {
+		Type = "Food",
+		Contraband = false
+	},
+	
+	["Canned Corn"] = {
+		Type = "Food",
+		Contraband = false
+	},
+	--/#
+	
+	--// Healing
+	
+	["Medkit"] = {
+		Type = "Healing",
+		Contraband = false
+	},
+	
+	["Bandage"] = {
+		Type = "Healing",
+		Contraband = false
+	},
+	
+	["Trauma Pad"] = {
+		Type = "Healing",
+		Contraband = false
+	},
+	--/#
+	
+	
+	--// Misc
+	
+	["Lockpick"] = {
+		Type = "Misc",
+		Contraband = false
+	},
+	
+	["Bounty Card"] = {
+		Type = "Misc",
+		Contraband = false
+	},
+	--/#
+	
+	--// Melees
+	
+	
+	["Bat"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+	
+	["Tomahawk"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+	
+	["Spear"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+	
+	["Tactical Knife"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+	
+	["Greataxe"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+	
+	["Katana"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+	
+	["Sledgehammer"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+	
+	["Photon Blades"] = {
+		Type = "Melee",
+		Contraband = true
+	},
+	
+	--// Guns
+	
+	
+	["725"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+	["M4A1"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["AWM"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+	["Crossbow"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+	["FAMAS"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+	["M1911"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["MP5"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["SCAR-17"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["SCAR-20"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["SPAS-12"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["TAC-14"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["G3"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["G17"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+	["G18"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+	["MAC-11"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+	["AK-47"] = {
+		Type = "Gun",
+		Contraband = false
 	},
 
-	["Healing"] = {
-		["Medkit"],
-		["Bandage"],
-		["Trauma Pad"],
+	["UZI"] = {
+		Type = "Gun",
+		Contraband = false
 	},
 
-	["Misc"] = {
-		["Lockpick"],
-		["Bounty Card"],
+	["M24"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+
+	["Deagle"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	
+	["Photon Accelerator"] = {
+		Type = "Gun",
+		Contraband = true
+	},
+	--/#
+	
+	
+	--// Explosives
+	
+	["GL-06"] = {
+		Type = "Explosive",
+		Contraband = false
+	},
+	
+	["RPG-18"] = {
+		Type = "Explosive",
+		Contraband = true
+	},
+	--/#
+	
+	--// Utility
+	
+	["Ammo Box"] = {
+		Type = "Utility",
+		Contraband = false
 	},
 
-	["Melee"] = {
-		["Bat"],
-		["Tomahawk"],
-		["Spear"],
-		["Tactical Knife"],
-		["Greataxe"],
-		["Katana"],
-		["Sledgehammer"],
+	["Flashbang"] = {
+		Type = "Utility",
+		Contraband = false
 	},
-
-	["Gun"] = {
-		["725"],
-		["M4A1"],
-		["AWM"],
-		["Crossbow"],
-		["FAMAS"],
-		["M1911"],
-		["MP5"],
-		["SCAR-17"],
-		["SCAR-20"],
-		["SPAS-12"],
-		["TAC-14"],
-		["G3"],
-		["G17"],
-		["G18"],
-		["MAC-11"],
-		["AK-47"],
-		["UZI"],
-		["M24"],
-		["Deagle"],
+	
+	["Grenade"] = {
+		Type = "Utility",
+		Contraband = false
 	},
-
-	["Explosive"] = {
-		["GL-06"],
+	
+	["Incendiary"] = {
+		Type = "Utility",
+		Contraband = false
 	},
-
-	["Utility"] = {
-		["Ammo Box"],
-		["Flashbang"],
-		["Grenade"],
-		["Incendiary"],
-		["Smoke"],
+	
+	["Smoke"] = {
+		Type = "Utility",
+		Contraband = false
 	},
-
-	["Armor"] = {
-		["Light Tactical Armor"],
-		["Heavy Tactical Armor"],
-		["Tactical Leggings"],
-	    ["Tactical Helmet"],
-		["Small Backpack"]
-		["Large Backpack"],
-		["Night-Vision Goggles"],
-		["Anti-Flash Goggles"],
-		["Gas Mask"],
+	
+	
+	--// Armor
+	
+	["Light Tactical Armor"] = {
+		Type = "Armor",
+		Contraband = false
 	},
-
-	["Keycard"] = {
-		["Purple Keycard"],
-		["Green Keycard"],
-		["Blue Keycard"],
-		["Red Keycard"],
+	
+	["Heavy Tactical Armor"] = {
+		Type = "Armor",
+		Contraband = false
 	},
-
-	["Flares"] = {
-		["Red Flare Gun"],
+	
+	["Operator Helmet"] = {
+		Type = "Armor",
+		Contraband = true
 	},
-
+	
+	["Operator Vest"] = {
+		Type = "Armor",
+		Contraband = true
+	},
+	
+	["Operator Leggings"] = {
+		Type = "Armor",
+		Contraband = true
+	},
+	
+	["Tactical Leggings"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	
+	["Tactical Helmet"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	
+	["Small Backpack"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	
+	["Large Backpack"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	
+	["Night-Vision Goggles"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	
+	["Anti-Flash Goggles"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	
+	["Gas Mask"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	--/#
+	
+	
+	--// Keycards
+	
+	["Purple Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+	
+	["Green Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+	
+	["Blue Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+	
+	["Red Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+	--/#
+	
+	--// Flares
+	
+	["Red Flare Gun"] = {
+		Type = "Flares",
+		Contraband = false
+	},
+	
+	["Green Flare Gun"] = {
+		Type = "Flares",
+		Contraband = false
+	},
+	
 }
 --]]
 --// Events
@@ -693,10 +952,37 @@ local function RagdollChar()
 	RagdollEvent:FireServer()
 end
 
+local function HightlightOBJ(OBJ,timeT)
+	local HL = Instance.new("Highlight")
+	HL.FillTransparency = 0.75
+	HL.Parent = OBJ
+	game:GetService("Debris"):AddItem(HL, timeT)
+end
+
 local function ItemAdded(Item,Method)
 	
 	if Toggles.NotificateItemsToggle.Value == true then
-		Library:Notify("Item ".. Item.Name.. " Dropped", 10)
+
+		local ItemStat = ItemStats[Item.Name]
+
+		if ItemStat and (Options.AutoLootFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.NotificateItemsFilter.Value[ItemStat.Contraband] == true) then
+			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
+
+			if Toggles.NotificateHightlightLoot.Value == true then
+				HightlightOBJ(Item.Parent.Parent.Parent,10)
+			end
+
+			if Toggles.NotificateAddToESP.Value == true then
+				ESPFramework:Add(Item.Parent.Parent,{
+					Name = Item.Parent.Parent.Parent.Name,
+					Color = Color3.fromRGB(255, 135, 239),
+					ColorDynamic = false,
+					IsEnabled = "Factions_Merchant_ESP",
+				})
+			end
+
+	    end
+
 	end
 
 end
@@ -874,17 +1160,28 @@ local function CollectLootFromLootTable(LootTable)
 	local ItemsInLootTable = LootTable:GetChildren()
 	local CurrentItemIndex = 1
 
-	--[[
+	
 	for _, Item in pairs(ItemsInLootTable) do
-		PickUpItem(LootTable,Item,true)
-		task.wait(0.5)
-	end
-    --]]
+		local ItemStat = ItemStats[Item.Name]
 
-	task.wait(0.5)
-	PickUpItem(LootTable,"Cash",nil)
-	task.wait(0.5)
-	PickUpItem(LootTable,"Valuables",nil)
+		if ItemStat and Options.AutoLootFilter.Value[ItemStat.Type] == true then
+			PickUpItem(LootTable,Item,true)
+			task.wait(0.5)
+	    end
+	
+	end
+    
+
+	if Options.AutoLootFilter.Value["Cash"] == true then
+		task.wait(0.5)
+		PickUpItem(LootTable,"Cash",nil)
+	end
+
+	if Options.AutoLootFilter.Value["Valuables"] == true then
+		task.wait(0.5)
+		PickUpItem(LootTable,"Valuables",nil)
+	end
+
 end
 
 local function II_C()
