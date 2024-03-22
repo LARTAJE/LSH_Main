@@ -309,10 +309,6 @@ Toggles.Faction_Merchants_ESP:OnChanged(function(state)
 	ESPFramework.Factions_Merchant_ESP = state
 end)
 
-Toggles.NotificateAddToESP:OnChanged(function(state)
-	ESPFramework.Notificate_Items = state
-end)
-
 Toggles.Esp:OnChanged(function(state)
 	ESPFramework.Color = Color3.fromRGB(255,255,255)
 	ESPFramework.FaceCamera = true
@@ -523,6 +519,10 @@ Notificate:AddDropdown('NotificateItemsFilter', {
     Text = 'Notification Filter',
     Tooltip = 'Allowed types to notificate.',
 })
+
+Toggles.NotificateAddToESP:OnChanged(function(state)
+	ESPFramework.Notificate_Items = state
+end)
 
 --/#
 
