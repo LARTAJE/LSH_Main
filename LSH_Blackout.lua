@@ -309,6 +309,10 @@ Toggles.Faction_Merchants_ESP:OnChanged(function(state)
 	ESPFramework.Factions_Merchant_ESP = state
 end)
 
+Toggles.NotificateAddToESP:OnChanged(function(state)
+	ESPFramework.Notificate_Items = state
+end)
+
 Toggles.Esp:OnChanged(function(state)
 	ESPFramework.Color = Color3.fromRGB(255,255,255)
 	ESPFramework.FaceCamera = true
@@ -965,7 +969,7 @@ local function ItemAdded(Item,Method)
 
 		local ItemStat = ItemStats[Item.Name]
 
-		if ItemStat and (Options.AutoLootFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.NotificateItemsFilter.Value[ItemStat.Contraband] == true) then
+		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.NotificateItemsFilter.Value[ItemStat.Contraband] == true) then
 			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
 
 			if Toggles.NotificateHightlightLoot.Value == true then
@@ -977,7 +981,7 @@ local function ItemAdded(Item,Method)
 					Name = Item.Parent.Parent.Parent.Name,
 					Color = Color3.fromRGB(255, 135, 239),
 					ColorDynamic = false,
-					IsEnabled = "Factions_Merchant_ESP",
+					IsEnabled = "Notificate_Items",
 				})
 			end
 
