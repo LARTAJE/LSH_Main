@@ -457,7 +457,7 @@ AutoLoot:AddToggle('AutoLootToggle', {
 
 AutoLoot:AddDropdown('AutoLootFilter', {
     Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melees', 'Guns', 'Explosive' , 'Armor', 'Keycards', 'Flares'},
-    Default = nil,
+    Default = 1,
     Multi = true,
     Text = 'Loot Filter',
     Tooltip = 'Allowed types to auto pick up.',
@@ -514,7 +514,7 @@ Notificate:AddToggle('NotificateAddToESP', {
 
 Notificate:AddDropdown('NotificateItemsFilter', {
     Values = { 'Food','Healing','Misc','Melees', 'Guns', 'Armors', 'Keycards','Contraband'},
-    Default = nil,
+    Default = 1,
     Multi = true,
     Text = 'Notification Filter',
     Tooltip = 'Allowed types to notificate.',
