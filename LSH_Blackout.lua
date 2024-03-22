@@ -456,7 +456,7 @@ AutoLoot:AddToggle('AutoLootToggle', {
 })
 
 AutoLoot:AddDropdown('AutoLootFilter', {
-    Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melees', 'Guns', 'Explosive' , 'Armor', 'Keycards', 'Flares'},
+	Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melee', 'Gun', 'Explosive' , 'Armor', 'Keycard', 'Flare','Contraband'},
     Default = 1,
     Multi = true,
     Text = 'Loot Filter',
@@ -513,7 +513,7 @@ Notificate:AddToggle('NotificateAddToESP', {
 })
 
 Notificate:AddDropdown('NotificateItemsFilter', {
-    Values = { 'Food','Healing','Misc','Melees', 'Guns', 'Armors', 'Keycards','Contraband'},
+	Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melee', 'Gun', 'Explosive' , 'Armor', 'Keycard', 'Flare','Contraband'},
     Default = 1,
     Multi = true,
     Text = 'Notification Filter',
@@ -973,7 +973,7 @@ local function ItemAdded(Item,Method)
 			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
 
 			if Toggles.NotificateHightlightLoot.Value == true then
-				HightlightOBJ(Item.Parent.Parent.Parent,10)
+				HightlightOBJ(Item.Parent.Parent,10)
 			end
 
 			if Toggles.NotificateAddToESP.Value == true then
@@ -983,6 +983,13 @@ local function ItemAdded(Item,Method)
 					ColorDynamic = false,
 					IsEnabled = "Notificate_Items",
 				})
+				
+				task.delay(30,function()
+					local S = Item.Parent.Parent
+					Item.Parent.Parent.Parent = workspace
+					Item.Parent.Parent.Parent = S
+				end)
+
 			end
 
 	    end
@@ -1168,7 +1175,7 @@ local function CollectLootFromLootTable(LootTable)
 	for _, Item in pairs(ItemsInLootTable) do
 		local ItemStat = ItemStats[Item.Name]
 
-		if ItemStat and Options.AutoLootFilter.Value[ItemStat.Type] == true then
+		if ItemStat and (Options.AutoLootFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.AutoLootFilter.Value[ItemStat.Contraband] == true) then
 			PickUpItem(LootTable,Item,true)
 			task.wait(0.5)
 	    end
