@@ -560,7 +560,7 @@ ThemeManager:ApplyToTab(Tabs['UI Settings'])
 --/#
 
 --// Locals
---[[
+
 local ItemsTypes = {
 
 	["Food"] = {
@@ -874,16 +874,16 @@ local function CollectLootFromLootTable(LootTable)
 	local ItemsInLootTable = LootTable:GetChildren()
 	local CurrentItemIndex = 1
 
-	
+	--[[
 	for _, Item in pairs(ItemsInLootTable) do
 		PickUpItem(LootTable,Item,true)
-		task.wait(1)
+		task.wait(0.5)
 	end
     --]]
 
-	task.wait(0.6)
+	task.wait(0.5)
 	PickUpItem(LootTable,"Cash",nil)
-	task.wait(0.6)
+	task.wait(0.5)
 	PickUpItem(LootTable,"Valuables",nil)
 end
 
@@ -1177,7 +1177,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
     if self == workspace and not checkcaller() and chance == true then
 
-        if ValidateArguments(Arguments, ExpectedArguments.Raycast)--and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
+        if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
 		 then
 			local A_Origin = Arguments[2]
 
@@ -1185,7 +1185,6 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
-				print("how")
 				return oldNamecall(unpack(Arguments))
 			else
 				return oldNamecall(...)
@@ -1266,3 +1265,5 @@ RunService.Heartbeat:Connect(function()
 	end
 
 end)
+
+--Sense.Load()
