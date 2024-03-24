@@ -57,6 +57,7 @@ local GetPartsObscuringTarget = Cam.GetPartsObscuringTarget
 local Events = ReplicatedStorage:WaitForChild("Events",5)
 local Tutorial = workspace:FindFirstChild("Tutorial")
 local Arena = game.Workspace:WaitForChild("Arena")
+local waveSurvival_m = game.Workspace:WaitForChild("WaveSurvival").NPCs
 local MeleeStorage = game:GetService("ReplicatedStorage"):WaitForChild("MeleeStorage")
 
 local Map
@@ -216,7 +217,7 @@ local QualityOfLive = LeftSideTab3:AddTab('Quality Of Live')
 local Missions = LeftSideTab4:AddTab('Missions')
 local SilentAim = RightSideTab1:AddTab('Silent Aim')
 local Misc = RightSideTab2:AddTab('Misc')
-local Teleport = RightSideTab2:AddTab('Teleport')
+local Teleport = RightSideTab3:AddTab('Teleport')
 local AutofarmTab = LeftSideTab5:AddTab('Auto farms')
 
 --//ESPs
@@ -560,6 +561,12 @@ AutofarmTab:AddToggle('Arena_AutoFarm', {
     Text = 'Arena Auto-farm',
     Default = false, --false
     Tooltip = 'Auto do Arenas',
+})
+
+AutofarmTab:AddToggle('RedRaid_AutoFarm', {
+    Text = 'Wave survival Auto-farm',
+    Default = false, --false
+    Tooltip = 'Auto do Red Raids',
 })
 
 Library:SetWatermarkVisibility(true)
@@ -1298,6 +1305,18 @@ local function II_C()
 end
 
 local function ArenaInstanceAdded(INNNSTANCE)
+    if Toggles.RedRaid_AutoFarm.Value == true then
+
+		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
+			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
+            Hit(INNNSTANCE)
+            task.wait(0.05) 
+        end
+
+    end
+end
+
+local function RedRaidInstanceAdded(INNNSTANCE)
     if Toggles.Arena_AutoFarm.Value == true then
 
 		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
@@ -1327,7 +1346,7 @@ Teleport:AddButton('TeleportToPlayer', function()
 	local TargetRoot = PlayersInServer.Character:FindFirstChild("HumanoidRootPart")
 	
 	if TargetRoot then
-		CharacterRoot.CFrame = TargetRoot.C
+		CharacterRoot.CFrame = TargetRoot.CFrame
 	end
 
 end)
@@ -1595,36 +1614,27 @@ end)
 Library:Notify("Loaded UI", 5)
 Library:Notify("Script loaded in ".. (tick() - Started), 5)
 
---// Hooks -- and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
+--// Hooks
 local oldNamecall
 
 oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 	local Method = getnamecallmethod()
-	
-	if Method ~= "Raycast" or Toggles.SilentAimToggle.Value == false then
-		return oldNamecall(...)
-	end
 	
     local Arguments = {...}
     local self = Arguments[1]
 
     local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
 
-    if self == workspace and not checkcaller() and chance == true then
-
-        if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
-		 then
+    if self == workspace and not checkcaller() and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
+        if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
 			local A_Origin = Arguments[2]
-
 			local HitPart = getClosestPlayer()
-
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
 				return oldNamecall(unpack(Arguments))
 			else
 				return oldNamecall(...)
 			end
-			
 		else
 			return oldNamecall(...)
 		end
@@ -1632,6 +1642,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 		return oldNamecall(...)
     end
 
+	return oldNamecall(...)
 end))
 --/#
 
@@ -1683,11 +1694,22 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if Toggles.Arena_AutoFarm.Value == true then
-		for _,Instances in pairs(Arena:GetChildren()) do
+		for _,Instances in pairs(waveSurvival_m:GetChildren()) do
 			local Hum = Instances:FindFirstChild("Humanoid")
 
 			if Hum and Hum.Health > 1 then
 				ArenaInstanceAdded(Instances)
+			end
+
+		end
+	end
+
+	if Toggles.RedRaid_AutoFarm.Value == true then
+		for _,Instances in pairs(WaveSurvival:GetChildren()) do
+			local Hum = Instances:FindFirstChild("Humanoid")
+
+			if Hum and Hum.Health > 1 then
+				RedRaidInstanceAdded(Instances)
 			end
 
 		end
