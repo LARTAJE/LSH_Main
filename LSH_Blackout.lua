@@ -1612,7 +1612,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
     if self == workspace and not checkcaller() and chance == true then
 
-        if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Character:FindFirstChild("ServerGunModel") and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
+        if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
 		 then
 			local A_Origin = Arguments[2]
 
