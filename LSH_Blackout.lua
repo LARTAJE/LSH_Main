@@ -43,6 +43,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
+local Lighting = game.Lighting
 local GetPlayers = Players.GetPlayers
 
 local GetMouseLocation = UserInputService.GetMouseLocation
@@ -55,6 +56,8 @@ local GetPartsObscuringTarget = Cam.GetPartsObscuringTarget
 
 local Events = ReplicatedStorage:WaitForChild("Events",5)
 local Tutorial = workspace:FindFirstChild("Tutorial")
+local Arena = game.Workspace:WaitForChild("Arena")
+local MeleeStorage = game:GetService("ReplicatedStorage"):WaitForChild("MeleeStorage")
 
 local Map
 local Bunker_LootAutoFarmPath
@@ -84,7 +87,7 @@ local BunkerLoot = {}
 local ProxPrompts = {}
 local LootTables = {}
 local InstancessLol = {}
-
+local PlayersInServer = {}
 
 local ExpectedArguments = {
     FindPartOnRayWithIgnoreList = {
@@ -198,6 +201,7 @@ local LeftSideTab5 = Tabs.Main:AddLeftTabbox()
 
 local RightSideTab1 = Tabs.Main:AddRightTabbox()
 local RightSideTab2 = Tabs.Main:AddRightTabbox()
+local RightSideTab3 = Tabs.Main:AddRightTabbox()
 
 --//ESP TABS
 
@@ -212,6 +216,7 @@ local QualityOfLive = LeftSideTab3:AddTab('Quality Of Live')
 local Missions = LeftSideTab4:AddTab('Missions')
 local SilentAim = RightSideTab1:AddTab('Silent Aim')
 local Misc = RightSideTab2:AddTab('Misc')
+local Teleport = RightSideTab2:AddTab('Teleport')
 local AutofarmTab = LeftSideTab5:AddTab('Auto farms')
 
 --//ESPs
@@ -372,9 +377,15 @@ SilentAim:AddToggle('VisibleCheck', {
 })
 
 SilentAim:AddToggle('TargetNPCs', {
-    Text = 'Target npcs',
+    Text = 'Target NPCs',
     Default = false,
     Tooltip = 'Silent aim targets npcs.',
+})
+
+SilentAim:AddToggle('IgnoreFriends', {
+    Text = 'Ignore friends',
+    Default = false,
+    Tooltip = 'Filters people youre friends with.',
 })
 
 SilentAim:AddToggle('ShowFOV', {
@@ -383,7 +394,11 @@ SilentAim:AddToggle('ShowFOV', {
     Tooltip = 'Draws a circle of the desired fov value.',
 })
 
-
+SilentAim:AddToggle('ShowSilentTarget', {
+    Text = 'Show Silent Aim target',
+    Default = false,
+    Tooltip = 'Shows the silent aim current target (can cause fps loss on low end pcs).',
+})
 
 SilentAim:AddSlider('SilentAimFovSlider', {
     Text = 'FOV',
@@ -484,6 +499,12 @@ QualityOfLive:AddToggle('BreakAI', {
     Tooltip = 'Breaks the mob AI lol.',
 })
 
+QualityOfLive:AddToggle('Fullbright', {
+    Text = 'Fullbright',
+    Default = false, --false
+    Tooltip = 'Breaks the mob AI lol.',
+})
+
 QualityOfLive:AddToggle('NoHD', {
     Text = 'Insta interact',
     Default = false, --false
@@ -513,12 +534,14 @@ Notificate:AddToggle('NotificateAddToESP', {
 })
 
 Notificate:AddDropdown('NotificateItemsFilter', {
-	Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melee', 'Gun', 'Explosive' , 'Armor', 'Keycard', 'Flare','Contraband'},
+	Values = {'Food','Healing', 'Utility' ,'Misc','Melee', 'Gun', 'Explosive' , 'Armor', 'Keycard', 'Flare','Contraband'},
     Default = 1,
     Multi = true,
     Text = 'Notification Filter',
     Tooltip = 'Allowed types to notificate.',
 })
+
+
 
 Toggles.NotificateAddToESP:OnChanged(function(state)
 	ESPFramework.Notificate_Items = state
@@ -531,6 +554,12 @@ AutofarmTab:AddToggle('Bunker_AutoFarm', {
     Text = 'Bunker Auto-farm',
     Default = false, --false
     Tooltip = 'Auto Loots all of bunker',
+})
+
+AutofarmTab:AddToggle('Arena_AutoFarm', {
+    Text = 'Arena Auto-farm',
+    Default = false, --false
+    Tooltip = 'Auto do Arenas',
 })
 
 Library:SetWatermarkVisibility(true)
@@ -922,6 +951,16 @@ local StartTask = Events:WaitForChild("Stations"):WaitForChild("StartTask")
 local MinigameResult = Events:WaitForChild("Loot"):WaitForChild("MinigameResult")
 local DamageEvent = Events:WaitForChild("Player"):WaitForChild("Damage")
 local RagdollEvent = Events:WaitForChild("Player"):WaitForChild("Ragdoll")
+local HitEvent = MeleeStorage:WaitForChild("Events"):WaitForChild("Hit")
+local SwingEvent = MeleeStorage:WaitForChild("Events"):WaitForChild("Swing")
+--/#
+
+--// Admin detector sound
+
+local AdminSound = Instance.new('Sound')
+AdminSound.Volume = 2
+AdminSound.Parent = CoreGui
+AdminSound.SoundId = 'rbxassetid://225320558'
 --/#
 
 --// Functions
@@ -963,6 +1002,52 @@ local function HightlightOBJ(OBJ,timeT)
 	game:GetService("Debris"):AddItem(HL, timeT)
 end
 
+local function OnPlayerDisconnect()
+	table.remove(PlayersInServer,table.find(Plr))
+end
+
+local OnAdminJoined = function(Plr)
+	table.insert(PlayersInServer,Plr)
+	local IsInGroup = function(Plr, Id)
+		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
+		if Success then 
+			return Response 
+		end
+		return false
+	end
+
+	local GetRoleInGroup = function(Plr, Id)
+		local Success, Response = pcall(Plr.GetRoleInGroup, Plr, Id)
+		if Success then
+			return Response
+		end
+		return false
+	end
+
+	local GroupStates = { 
+		["CrimAdminGroup"] = IsInGroup(Plr, 10911475),
+		["Blackout"] = IsInGroup(Plr, 6568965),
+	}
+
+	if GroupStates.Criminality or GroupStates.Blackout then
+		local Role = GetRoleInGroup(Plr, 6568965)
+	
+		if Role ~= "Member" or GroupStates.CrimAdminGroup then
+			
+			if Toggles.AdminDetector.Value then
+				Player:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
+				return
+			end
+
+
+			AdminSound:Play()
+			Library:Notify("An Admin/Contributor is within this server, please be careful!")
+		end
+
+	end
+end
+
+
 local function ItemAdded(Item,Method)
 	
 	if Toggles.NotificateItemsToggle.Value == true then
@@ -977,18 +1062,13 @@ local function ItemAdded(Item,Method)
 			end
 
 			if Toggles.NotificateAddToESP.Value == true then
+				
 				ESPFramework:Add(Item.Parent.Parent,{
 					Name = Item.Parent.Parent.Parent.Name,
 					Color = Color3.fromRGB(255, 135, 239),
 					ColorDynamic = false,
 					IsEnabled = "Notificate_Items",
 				})
-				
-				task.delay(30,function()
-					local S = Item.Parent.Parent
-					Item.Parent.Parent.Parent = workspace
-					Item.Parent.Parent.Parent = S
-				end)
 
 			end
 
@@ -1044,6 +1124,15 @@ local function CalculateChance(Percentage)
     Percentage = math.floor(Percentage)
     local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
     return chance <= Percentage / 100
+end
+
+local function Hit(__ZCharacter,PartToHit)
+	SwingEvent:InvokeServer()
+    local args = {
+        [1] = __ZCharacter["Head"],
+        [2] = __ZCharacter["Head"].Position
+    }
+    HitEvent:FireServer(unpack(args))
 end
 
 local function TPtoLootAndPickUp(PartToTp, TPBack)
@@ -1107,12 +1196,11 @@ local function getClosestPlayer()
     for _, Player in next, GetPlayers(Players) do
         if Player == LocalPlayer then continue end
 
-        --if Toggles.TeamCheck.Value and Player.Team == LocalPlayer.Team then continue end
-
         local _Character = Player.Character
         if not _Character then continue end
         
         if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+		if typeof(Player) == "Player" and Toggles.IgnoreFriends.Value and not Player:IsFriendsWith(LocalPlayer.UserId) then continue end
 
         local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
         local Humanoid = FindFirstChild(_Character, "Humanoid")
@@ -1209,10 +1297,39 @@ local function II_C()
 
 end
 
+local function ArenaInstanceAdded(INNNSTANCE)
+    if Toggles.Arena_AutoFarm.Value == true then
+
+		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
+			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0)) + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
+            Hit(INNNSTANCE)
+            task.wait(0.05) 
+        end
+
+    end
+end
+
 --// Start Missions
 
 Missions:AddButton('Start Cargo Ambush', function()
 	StartMission("StealCargo", true)
+end)
+
+Teleport:AddDropdown('DropDownTeleport', {
+	Values = PlayersInServer,
+    Default = 1,
+    Multi = false,
+    Text = 'Players',
+    Tooltip = 'Teleport to selected player.',
+})
+
+Teleport:AddButton('TeleportToPlayer', function()
+	local TargetRoot = PlayersInServer.Character:FindFirstChild("HumanoidRootPart")
+	
+	if TargetRoot then
+		CharacterRoot.CFrame = TargetRoot.C
+	end
+
 end)
 
 Misc:AddButton('Suicide', function()
@@ -1241,6 +1358,10 @@ Toggles.SpeedToggle:OnChanged(function()
 	Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
 end)
 
+Toggles.Fullbright:OnChanged(function()
+	--Lighting.Ambient = Color3.new(201, 129, 123)
+end)
+
 Toggles.FlyToggle:OnChanged(function()
 	
 	if (not Toggles.FlyToggle.Value) then
@@ -1264,10 +1385,12 @@ for _, ProxPrompt in pairs(Map:GetDescendants()) do
 		ProxPrompt.Triggered:Connect(function()
 
 			if ProxPrompt.Name == "LockMinigame" then
+
 				if ProxPrompt:GetAttribute("Unlocked") then
 					task.wait(0.5)
 					OpenLoot(ToLockPick)
 				end
+
 				if Toggles.AutoLockpickToggle.Value == true then
 					local ToLockPick = ProxPrompt.Parent.Parent.Parent
 					task.wait(1)
@@ -1296,6 +1419,7 @@ for _, ProxPrompt in pairs(Map:GetDescendants()) do
 end
 
 for _, LootTable in pairs(Map:GetDescendants()) do
+
 	if LootTable.Name == "LootTable" then
 		table.insert(LootTables, LootTable)
 		
@@ -1308,6 +1432,7 @@ for _, LootTable in pairs(Map:GetDescendants()) do
 		end
 
 	end
+
 end
 
 for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
@@ -1325,9 +1450,11 @@ for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 end
 
 for _,Lootinstancee in pairs(Bunker_LootAutoFarmPath:GetDescendants()) do
+
 	if Lootinstancee.Parent.Name == "Loot" then
 		table.insert(BunkerLoot, Lootinstancee)
 	end
+
 end
 
 --/#
@@ -1485,7 +1612,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
     if self == workspace and not checkcaller() and chance == true then
 
-        if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
+        if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Character:FindFirstChild("ServerGunModel") and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character-- and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris
 		 then
 			local A_Origin = Arguments[2]
 
@@ -1513,45 +1640,73 @@ local autoFarmWaitTick = tick()
 
 if Tutorial then
 	Map.ChildAdded:Connect(function(Char)
-		if Char.Parent:FindFirstChildOfClass("Humanoid") then
+		if Char:FindFirstChildOfClass("Humanoid") then
 			Char.Parent = Hostile_NPCs --Client-sided but its only tutorial dud no one fucking cares
 		end
 	end)
 end
+
+--// Admin detection connection
+Players.PlayerAdded:Connect(OnAdminJoined)
+Players.PlayerRemoving:Connect(OnPlayerDisconnect)
+
+for _,v in pairs(Players:GetPlayers()) do
+	if v == Player then continue end
+	table.insert(PlayersInServer,v)
+	task.spawn(OnAdminJoined, v)
+end
+--/#
+
+--// Fullbright
+
+Lighting:GetPropertyChangedSignal("Ambient"):Connect(function()
+	if Toggles.Fullbright.Value then
+		--Lighting.Ambient = Color3.new(1,1,1)
+	end
+end)
+--/#
 
 RunService.Heartbeat:Connect(function()
 	task.wait()
 
 	Cam = workspace.CurrentCamera
 
+	if not Character:FindFirstChild("Humanoid") then return end
+	if Character.Humanoid.Health <= 0 then return end
+
 	if Toggles.ShowFOV.Value then
 		SilentAIMFov.Visible = Toggles.ShowFOV.Value
 		SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
 		SilentAIMFov.Position = Vector2MousePosition() + Vector2.new(0, 36)
+	else
+		SilentAIMFov.Visible = false
 	end
 
-	if getClosestPlayer() then
-		--print()
-		local Root = getClosestPlayer().Parent.PrimaryPart or getClosestPlayer()
-		local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
+	if Toggles.Arena_AutoFarm.Value == true then
+		for _,Instances in pairs(Arena:GetChildren()) do
+			local Hum = Instances:FindFirstChild("Humanoid")
 
-		mouse_box.Visible = IsOnScreen
-		mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
-	else 
-		mouse_box.Visible = false 
-		mouse_box.Position = Vector2.new()
+			if Hum and Hum.Health > 1 then
+				ArenaInstanceAdded(Instances)
+			end
+
+		end
 	end
+
+	if Toggles.ShowSilentTarget.Value == true then
+		
+		if getClosestPlayer() then
+			local Root = getClosestPlayer().Parent.PrimaryPart or getClosestPlayer()
+			local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
 	
-	--]]
+			mouse_box.Visible = IsOnScreen
+			mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
+		else 
+			mouse_box.Visible = false 
+			mouse_box.Position = Vector2.new()
+		end
 
-	if not Character:FindFirstChild("Humanoid") then return end
-	if Character.Humanoid.Health <= 0 then return end
-	
-	--[[
-	if (not Toggles.FlyToggle.Value) then
-		Character.Humanoid.PlatformStand = false
 	end
-    --]]
 
 	if Toggles.BreakAI.Value == true then
 		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
@@ -1570,8 +1725,7 @@ RunService.Heartbeat:Connect(function()
 		if BunkerAutoFarmAt >= #BunkerLoot then
 			BunkerAutoFarmAt = 1
 		end
+		
 	end
 
 end)
-
---Sense.Load()
