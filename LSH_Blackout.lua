@@ -1301,7 +1301,7 @@ local function ArenaInstanceAdded(INNNSTANCE)
     if Toggles.Arena_AutoFarm.Value == true then
 
 		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
-			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0)) + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
+			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
             Hit(INNNSTANCE)
             task.wait(0.05) 
         end
