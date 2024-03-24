@@ -461,6 +461,18 @@ Movement:AddSlider('SpeedhackSlider', {
     Compact = false,
 })
 
+Movement:AddToggle('Noclip', {
+    Text = 'Noclip',
+    Default = false,
+    Tooltip = 'Noclip.',
+})
+
+Movement:AddToggle('StopNoclipOnRagdoll', {
+    Text = 'Stop Noclip on ragdoll',
+    Default = false,
+    Tooltip = 'Stops noclipping when ragdolled.',
+})
+
 --/#
 
 --// AutoLoot Stuff
@@ -1009,8 +1021,8 @@ local function HightlightOBJ(OBJ,timeT)
 	game:GetService("Debris"):AddItem(HL, timeT)
 end
 
-local function OnPlayerDisconnect()
-	table.remove(PlayersInServer,table.find(Plr))
+local function OnPlayerDisconnect(Plr)
+	table.remove(PlayersInServer,table.find(PlayersInServer,Plr))
 end
 
 local OnAdminJoined = function(Plr)
@@ -1061,7 +1073,7 @@ local function ItemAdded(Item,Method)
 
 		local ItemStat = ItemStats[Item.Name]
 
-		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.NotificateItemsFilter.Value[ItemStat.Contraband] == true) then
+		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.NotificateItemsFilter.Value["Contraband"] == true) then
 			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
 
 			if Toggles.NotificateHightlightLoot.Value == true then
@@ -1305,7 +1317,7 @@ local function II_C()
 end
 
 local function ArenaInstanceAdded(INNNSTANCE)
-    if Toggles.RedRaid_AutoFarm.Value == true then
+    if Toggles.Arena_AutoFarm.Value == true then
 
 		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
 			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
@@ -1317,7 +1329,7 @@ local function ArenaInstanceAdded(INNNSTANCE)
 end
 
 local function RedRaidInstanceAdded(INNNSTANCE)
-    if Toggles.Arena_AutoFarm.Value == true then
+    if Toggles.RedRaid_AutoFarm.Value == true then
 
 		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
 			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
@@ -1693,28 +1705,6 @@ RunService.Heartbeat:Connect(function()
 		SilentAIMFov.Visible = false
 	end
 
-	if Toggles.Arena_AutoFarm.Value == true then
-		for _,Instances in pairs(waveSurvival_m:GetChildren()) do
-			local Hum = Instances:FindFirstChild("Humanoid")
-
-			if Hum and Hum.Health > 1 then
-				ArenaInstanceAdded(Instances)
-			end
-
-		end
-	end
-
-	if Toggles.RedRaid_AutoFarm.Value == true then
-		for _,Instances in pairs(WaveSurvival:GetChildren()) do
-			local Hum = Instances:FindFirstChild("Humanoid")
-
-			if Hum and Hum.Health > 1 then
-				RedRaidInstanceAdded(Instances)
-			end
-
-		end
-	end
-
 	if Toggles.ShowSilentTarget.Value == true then
 		
 		if getClosestPlayer() then
@@ -1748,6 +1738,31 @@ RunService.Heartbeat:Connect(function()
 			BunkerAutoFarmAt = 1
 		end
 		
+	end
+
+	if Toggles.Arena_AutoFarm.Value == true then
+		for _,Instances in pairs(Arena:GetChildren()) do
+			local Hum = Instances:FindFirstChild("Humanoid")
+
+			if Hum and Hum.Health > 1 then
+				ArenaInstanceAdded(Instances)
+				return
+			end
+
+		end
+	end
+
+	if Toggles.RedRaid_AutoFarm.Value == true then
+		for _,Instances in pairs(waveSurvival_m:GetChildren()) do
+			local Hum = Instances:FindFirstChild("Humanoid")
+
+			if Hum and Hum.Health > 1 then
+				print(Instances)
+				RedRaidInstanceAdded(Instances)
+				return
+			end
+
+		end
 	end
 
 end)
