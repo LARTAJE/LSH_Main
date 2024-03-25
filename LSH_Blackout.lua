@@ -609,8 +609,6 @@ ThemeManager:ApplyToTab(Tabs['UI Settings'])
 
 --/#
 
---/#
-
 --// Locals
 
 local ItemStats = {
@@ -1219,7 +1217,7 @@ local function getClosestPlayer()
         if not _Character then continue end
         
         if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
-		if typeof(Player) == "Player" and Toggles.IgnoreFriends.Value and not Player:IsFriendsWith(LocalPlayer.UserId) then continue end
+		if Toggles.IgnoreFriends.Value and not Player:IsFriendsWith(LocalPlayer.UserId) then continue end
 
         local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
         local Humanoid = FindFirstChild(_Character, "Humanoid")
@@ -1627,6 +1625,7 @@ Library:Notify("Loaded UI", 5)
 Library:Notify("Script loaded in ".. (tick() - Started), 5)
 
 --// Hooks
+
 local oldNamecall
 
 oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
@@ -1641,6 +1640,25 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
         if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
+			--[[
+			if Toggles.ShowSilentTarget.Value == true then
+		
+				if HitPart then
+					local Root = HitPart.Parent.PrimaryPart or HitPart
+					local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
+			
+					mouse_box.Visible = IsOnScreen
+					mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
+				else 
+					mouse_box.Visible = false 
+					mouse_box.Position = Vector2.new()
+				end--]]
+
+			else
+				mouse_box.Visible = false 
+				mouse_box.Position = Vector2.new()
+			end
+
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
 				return oldNamecall(unpack(Arguments))
@@ -1705,21 +1723,6 @@ RunService.Heartbeat:Connect(function()
 		SilentAIMFov.Visible = false
 	end
 
-	if Toggles.ShowSilentTarget.Value == true then
-		
-		if getClosestPlayer() then
-			local Root = getClosestPlayer().Parent.PrimaryPart or getClosestPlayer()
-			local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
-	
-			mouse_box.Visible = IsOnScreen
-			mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
-		else 
-			mouse_box.Visible = false 
-			mouse_box.Position = Vector2.new()
-		end
-
-	end
-
 	if Toggles.BreakAI.Value == true then
 		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
 	end
@@ -1753,16 +1756,17 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if Toggles.RedRaid_AutoFarm.Value == true then
+
 		for _,Instances in pairs(waveSurvival_m:GetChildren()) do
 			local Hum = Instances:FindFirstChild("Humanoid")
 
 			if Hum and Hum.Health > 1 then
-				print(Instances)
 				RedRaidInstanceAdded(Instances)
 				return
 			end
 
 		end
+
 	end
 
 end)
