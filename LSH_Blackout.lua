@@ -345,15 +345,6 @@ Toggles.HealthBarESP:OnChanged(function(state)
 	ESPFramework.Health = state
 end)
 
---[[
-Options.HighlightColor:OnChanged(function(state)
-	ESPFramework.Boxes = state
-	ESPFramework.Names = state
-end)
---]]
---]]
---/#
-
 --// SilentAim
 
 SilentAim:AddToggle('SilentAimToggle', {
@@ -1025,6 +1016,15 @@ end
 
 local OnAdminJoined = function(Plr)
 	table.insert(PlayersInServer,Plr)
+
+	Teleport:AddDropdown('DropDownTeleport', {
+		Values = PlayersInServer,
+		Default = 1,
+		Multi = false,
+		Text = 'Players',
+		Tooltip = 'Teleport to selected player.',
+	})
+
 	local IsInGroup = function(Plr, Id)
 		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
 		if Success then 
@@ -1058,7 +1058,10 @@ local OnAdminJoined = function(Plr)
 
 
 			AdminSound:Play()
-			Library:Notify("An Admin/Contributor is within this server, please be careful!")
+			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
+		else
+			AdminSound:Play()
+			Library:Notify(Plr.Name.." Joined, be careful!")
 		end
 
 	end
@@ -1338,6 +1341,56 @@ local function RedRaidInstanceAdded(INNNSTANCE)
     end
 end
 
+local function SetUpLootTables(_LootTable)
+	table.insert(LootTables, _LootTable)
+		
+	_LootTable.ChildAdded:Connect(function(Item)
+		ItemAdded(Item)
+	end)
+
+	for __,Item in(_LootTable:GetChildren()) do
+		ItemAdded(Item)
+	end
+end
+
+local function PromptSetUp(ProxPrompt)
+	table.insert(ProxPrompts,ProxPrompt)
+	ProxPrompt:SetAttribute("_Original_HoldTime", ProxPrompt.HoldDuration)
+	II_C()
+	ProxPrompt.Triggered:Connect(function()
+
+		if ProxPrompt.Name == "LockMinigame" then
+
+			if ProxPrompt:GetAttribute("Unlocked") then
+				task.wait(0.5)
+				OpenLoot(ToLockPick)
+			end
+
+			if Toggles.AutoLockpickToggle.Value == true then
+				local ToLockPick = ProxPrompt.Parent.Parent.Parent
+				task.wait(1)
+				LockPick(ToLockPick,true)
+				
+				if Toggles.OpenlootOnLockpick.Value == true then
+					OpenLoot(ToLockPick)
+				end
+
+			end
+
+		elseif ProxPrompt.Name == "OpenLootTable" then
+			local PromptLootTable = ProxPrompt.Parent:FindFirstChild("LootTable")
+
+			if Toggles.AutoLootToggle.Value == true then
+				task.wait(0.6)
+				CollectLootFromLootTable(PromptLootTable)
+			end
+
+		end
+
+	end)
+end
+end
+
 --// Start Missions
 
 Missions:AddButton('Start Cargo Ambush', function()
@@ -1408,41 +1461,7 @@ end)
 for _, ProxPrompt in pairs(Map:GetDescendants()) do
 	
 	if ProxPrompt:IsA("ProximityPrompt") then
-		table.insert(ProxPrompts,ProxPrompt)
-		ProxPrompt:SetAttribute("_Original_HoldTime", ProxPrompt.HoldDuration)
-
-		ProxPrompt.Triggered:Connect(function()
-
-			if ProxPrompt.Name == "LockMinigame" then
-
-				if ProxPrompt:GetAttribute("Unlocked") then
-					task.wait(0.5)
-					OpenLoot(ToLockPick)
-				end
-
-				if Toggles.AutoLockpickToggle.Value == true then
-					local ToLockPick = ProxPrompt.Parent.Parent.Parent
-					task.wait(1)
-					LockPick(ToLockPick,true)
-					
-					if Toggles.OpenlootOnLockpick.Value == true then
-						OpenLoot(ToLockPick)
-					end
-
-				end
-
-			elseif ProxPrompt.Name == "OpenLootTable" then
-				local PromptLootTable = ProxPrompt.Parent:FindFirstChild("LootTable")
-
-				if Toggles.AutoLootToggle.Value == true then
-					task.wait(0.6)
-					CollectLootFromLootTable(PromptLootTable)
-				end
-
-			end
-
-		end)
-
+		PromptSetUp(ProxPrompt)
 	end
 
 end
@@ -1450,35 +1469,18 @@ end
 for _, LootTable in pairs(Map:GetDescendants()) do
 
 	if LootTable.Name == "LootTable" then
-		table.insert(LootTables, LootTable)
-		
-		LootTable.ChildAdded:Connect(function(Item)
-			ItemAdded(Item)
-		end)
-
-		for __,Item in(LootTable:GetChildren()) do
-			ItemAdded(Item)
-		end
-
+		SetUpLootTables(LootTable)
 	end
 
 end
 
 for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 	if PlrDeathBLootTable.Name == "LootTable" then
-
-		PlrDeathBLootTable.ChildAdded:Connect(function(Item)
-			ItemAdded(Item)
-		end)
-
-		for __,Item in(PlrDeathBLootTable:GetChildren()) do
-			ItemAdded(Item)
-		end
-
+		SetUpLootTables(PlrDeathBLootTable)
 	end
 end
 
-for _,Lootinstancee in pairs(Bunker_LootAutoFarmPath:GetDescendants()) do
+for _, Lootinstancee in pairs(Bunker_LootAutoFarmPath:GetDescendants()) do
 
 	if Lootinstancee.Parent.Name == "Loot" then
 		table.insert(BunkerLoot, Lootinstancee)
@@ -1561,27 +1563,25 @@ ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
 	IsEnabled = "Factions_Merchant_ESP",
 })
 
+game.DescendantAdded:Connect(function(OBJa)
+	if OBJ:IsA("ProximityPrompt") then
+		PromptSetUp(OBJ)
+	elseif OBJ.Name == "LootTable" then
+		table.insert(LootTables, OBJ)
+
+		OBJ.ChildAdded:Connect(function(Item)
+			ItemAdded(Item)
+		end)
+
+	end
+end)
+
 Hostile_NPCs.ChildAdded:Connect(NPCAdded)
 
 Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
-end)
-
-workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
-	local LootTable = Bag:WaitForChild("LootTable",5)
-
-	if not LootTable then return end
-
-	LootTable.ChildAdded:Connect(function(Item)
-		ItemAdded(Item)
-	end)
-
-	for __,Item in(LootTable:GetChildren()) do
-		ItemAdded(Item)
-	end
-
 end)
 
 Toggles.NoHD:OnChanged(function()
@@ -1641,6 +1641,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
 
+			--[[
 			if Toggles.ShowSilentTarget.Value == true then
 		
 				if HitPart then
@@ -1656,10 +1657,11 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 			else
 				mouse_box.Visible = false 
 				mouse_box.Position = Vector2.new()
-			end
+			end--]]
 
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
+
 				return oldNamecall(unpack(Arguments))
 			else
 				return oldNamecall(...)
