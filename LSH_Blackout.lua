@@ -1640,7 +1640,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
         if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
-			--[[
+
 			if Toggles.ShowSilentTarget.Value == true then
 		
 				if HitPart then
@@ -1652,8 +1652,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 				else 
 					mouse_box.Visible = false 
 					mouse_box.Position = Vector2.new()
-				end--]]
-
+				end
 			else
 				mouse_box.Visible = false 
 				mouse_box.Position = Vector2.new()
