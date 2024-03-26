@@ -1017,13 +1017,7 @@ end
 local OnAdminJoined = function(Plr)
 	table.insert(PlayersInServer,Plr)
 
-	Teleport:AddDropdown('DropDownTeleport', {
-		Values = PlayersInServer,
-		Default = 1,
-		Multi = false,
-		Text = 'Players',
-		Tooltip = 'Teleport to selected player.',
-	})
+	Options.DropDownTeleport.Values = PlayersInServer
 
 	local IsInGroup = function(Plr, Id)
 		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
