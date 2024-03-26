@@ -1017,8 +1017,6 @@ end
 local OnAdminJoined = function(Plr)
 	table.insert(PlayersInServer,Plr)
 
-	Options.DropDownTeleport.Values = PlayersInServer
-
 	local IsInGroup = function(Plr, Id)
 		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
 		if Success then 
@@ -1390,7 +1388,7 @@ end
 Missions:AddButton('Start Cargo Ambush', function()
 	StartMission("StealCargo", true)
 end)
-
+--[[
 Teleport:AddDropdown('DropDownTeleport', {
 	Values = PlayersInServer,
 	Default = 1,
@@ -1407,7 +1405,7 @@ Teleport:AddButton('TeleportToPlayer', function()
 	end
 
 end)
-
+--]]
 Misc:AddButton('Suicide', function()
 
 	Damage(1000,{
@@ -1452,7 +1450,7 @@ end)
 
 --// Setup Connections
 
-for _, ProxPrompt in pairs(Map:GetDescendants()) do
+for _, ProxPrompt in pairs(game:GetDescendants()) do
 
 	if ProxPrompt:IsA("ProximityPrompt") then
 		PromptSetUp(ProxPrompt)
@@ -1460,7 +1458,7 @@ for _, ProxPrompt in pairs(Map:GetDescendants()) do
 
 end
 
-for _, LootTable in pairs(Map:GetDescendants()) do
+for _, LootTable in pairs(game:GetDescendants()) do
 
 	if LootTable.Name == "LootTable" then
 		SetUpLootTables(LootTable)
@@ -1474,7 +1472,7 @@ for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 	end
 end
 
-for _, Lootinstancee in pairs(Bunker_LootAutoFarmPath:GetDescendants()) do
+for _, Lootinstancee in pairs(game:GetDescendants()) do
 
 	if Lootinstancee.Parent.Name == "Loot" then
 		table.insert(BunkerLoot, Lootinstancee)
@@ -1557,6 +1555,13 @@ ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
 	IsEnabled = "Factions_Merchant_ESP",
 })
 
+workspace.Debris.Loot.ChildAdded:Connect(function(LootBag)
+	local LoooottableeOMG = LootBag:FindFirstChild("LootTable", true)
+	table.insert(LootTables, LoooottableeOMG)
+	SetUpLootTables(LoooottableeOMG)
+end)
+
+--[[
 game.DescendantAdded:Connect(function(OBJa)
 	if OBJ:IsA("ProximityPrompt") then
 		PromptSetUp(OBJ)
@@ -1569,7 +1574,7 @@ game.DescendantAdded:Connect(function(OBJa)
 
 	end
 end)
-
+--]]
 Hostile_NPCs.ChildAdded:Connect(NPCAdded)
 
 Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
