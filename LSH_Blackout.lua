@@ -1,7 +1,7 @@
 --// Protect Gui
 
 if not syn or not protectgui then
-    getgenv().protectgui = function() end
+	getgenv().protectgui = function() end
 end
 
 --/#
@@ -11,14 +11,14 @@ Key = "EuAmoODivisãoKarreta";
 repeat task.wait() until game:IsLoaded();
 
 repeat
-    setthreadidentity(8);
-    task.wait();
+	setthreadidentity(8);
+	task.wait();
 until getthreadidentity() == 8;
 
 --// Keys System
 
 local AvalibleKeys = {
-"EuAmoODivisãoKarreta"
+	"EuAmoODivisãoKarreta"
 }
 
 if not table.find(AvalibleKeys, Key) then game.Players.LocalPlayer:Kick("Invalid key") end
@@ -91,30 +91,30 @@ local InstancessLol = {}
 local PlayersInServer = {}
 
 local ExpectedArguments = {
-    FindPartOnRayWithIgnoreList = {
-        ArgCountRequired = 3,
-        Args = {
-            "Instance", "Ray", "table", "boolean", "boolean"
-        }
-    },
-    FindPartOnRayWithWhitelist = {
-        ArgCountRequired = 3,
-        Args = {
-            "Instance", "Ray", "table", "boolean"
-        }
-    },
-    FindPartOnRay = {
-        ArgCountRequired = 2,
-        Args = {
-            "Instance", "Ray", "Instance", "boolean", "boolean"
-        }
-    },
-    Raycast = {
-        ArgCountRequired = 3,
-        Args = {
-            "Instance", "Vector3", "Vector3", "RaycastParams"
-        }
-    }
+	FindPartOnRayWithIgnoreList = {
+		ArgCountRequired = 3,
+		Args = {
+			"Instance", "Ray", "table", "boolean", "boolean"
+		}
+	},
+	FindPartOnRayWithWhitelist = {
+		ArgCountRequired = 3,
+		Args = {
+			"Instance", "Ray", "table", "boolean"
+		}
+	},
+	FindPartOnRay = {
+		ArgCountRequired = 2,
+		Args = {
+			"Instance", "Ray", "Instance", "boolean", "boolean"
+		}
+	},
+	Raycast = {
+		ArgCountRequired = 3,
+		Args = {
+			"Instance", "Vector3", "Vector3", "RaycastParams"
+		}
+	}
 }
 --]]
 
@@ -171,11 +171,11 @@ local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))
 local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 
 local Window = Library:CreateWindow({
-    Title = 'LackSkill Hub',
-    Center = true,
-    AutoShow = true,
-    TabPadding = 8,
-    MenuFadeTime = 0.2
+	Title = 'LackSkill Hub',
+	Center = true,
+	AutoShow = true,
+	TabPadding = 8,
+	MenuFadeTime = 0.2
 })
 
 --/#
@@ -185,8 +185,8 @@ task.wait(math.random(1,4)) --Fake loading lol (kinda since it crashes if it loa
 --// Tabs
 
 local Tabs = {
-    Main = Window:AddTab('Main'), 
-    ESP = Window:AddTab('ESP'),
+	Main = Window:AddTab('Main'), 
+	ESP = Window:AddTab('ESP'),
 	['UI Settings'] = Window:AddTab('UI Settings'),
 }
 --/#
@@ -224,15 +224,15 @@ local AutofarmTab = LeftSideTab5:AddTab('Auto farms')
 local ESP_MAIN = ESP_LeftSideTab1:AddTab('ESP')
 
 ESP_MAIN:AddToggle('Esp', {
-    Text = 'Enabled',
-    Default = false,
-    Tooltip = 'ESP toggle.',
+	Text = 'Enabled',
+	Default = false,
+	Tooltip = 'ESP toggle.',
 })
 
 ESP_MAIN:AddToggle('BoxEsp', {
-    Text = 'Box ESP',
-    Default = false,
-    Tooltip = 'Show box esp toggle.',
+	Text = 'Box ESP',
+	Default = false,
+	Tooltip = 'Show box esp toggle.',
 })
 --[[
 ESP_MAIN:AddToggle("HighlightTarget",
@@ -240,59 +240,59 @@ ESP_MAIN:AddToggle("HighlightTarget",
 { Default = Color3.new(255,1,1)});
 --]]
 ESP_MAIN:AddToggle('NameEsp', {
-    Text = 'Show names',
-    Default = false,
-    Tooltip = 'Shows players names.',
+	Text = 'Show names',
+	Default = false,
+	Tooltip = 'Shows players names.',
 })
 
 ESP_MAIN:AddToggle('HealthBarESP', {
-    Text = 'Show health bars',
-    Default = false,
-    Tooltip = 'Enables health bars.',
+	Text = 'Show health bars',
+	Default = false,
+	Tooltip = 'Enables health bars.',
 })
 
 ESP_MAIN:AddToggle('ShowDistanceESP', {
-    Text = 'Show distance',
-    Default = false,
-    Tooltip = 'Enables tracers.',
+	Text = 'Show distance',
+	Default = false,
+	Tooltip = 'Enables tracers.',
 })
 
 ESP_MAIN:AddToggle('TracerEsp', {
-    Text = 'Show tracers',
-    Default = false,
-    Tooltip = 'Enables tracers.',
+	Text = 'Show tracers',
+	Default = false,
+	Tooltip = 'Enables tracers.',
 })
 
 local ESP_SETTIGS = ESP_LeftSideTab2:AddTab('Settings')
 
 ESP_SETTIGS:AddToggle('Player_ESP', {
-    Text = 'Show Players',
-    Default = false,
-    Tooltip = 'Shows Players in esp.',
+	Text = 'Show Players',
+	Default = false,
+	Tooltip = 'Shows Players in esp.',
 })
 
 ESP_SETTIGS:AddToggle('NPC_ESP', {
-    Text = 'Show NPCs',
-    Default = false,
-    Tooltip = 'Shows NPCs in esp.',
+	Text = 'Show NPCs',
+	Default = false,
+	Tooltip = 'Shows NPCs in esp.',
 })
 
 ESP_SETTIGS:AddToggle('Merchant_ESP', {
-    Text = 'Show Merchants',
-    Default = false,
-    Tooltip = 'Shows Merchants in esp.',
+	Text = 'Show Merchants',
+	Default = false,
+	Tooltip = 'Shows Merchants in esp.',
 })
 
 ESP_SETTIGS:AddToggle('Broker_ESP', {
-    Text = 'Show Brokers',
-    Default = false,
-    Tooltip = 'Shows Brokers in esp.',
+	Text = 'Show Brokers',
+	Default = false,
+	Tooltip = 'Shows Brokers in esp.',
 })
 
 ESP_SETTIGS:AddToggle('Faction_Merchants_ESP', {
-    Text = 'Show Faction Merchants',
-    Default = false,
-    Tooltip = 'Shows Faction Merchants in esp.',
+	Text = 'Show Faction Merchants',
+	Default = false,
+	Tooltip = 'Shows Faction Merchants in esp.',
 })
 
 --//#
@@ -348,64 +348,70 @@ end)
 --// SilentAim
 
 SilentAim:AddToggle('SilentAimToggle', {
-    Text = 'Enabled',
-    Default = false,
-    Tooltip = 'Enables Silent aim.',
+	Text = 'Enabled',
+	Default = false,
+	Tooltip = 'Enables Silent aim.',
 })
 
 SilentAim:AddDropdown('TargetPart', {
-    Values = {'Head', 'Torso','Random'},
-    Default = 1,
-    Multi = false,
-    Text = 'Silent Aim TargetParts',
-    Tooltip = 'Silent aim target parts',
+	Values = {'Head', 'Torso','Random'},
+	Default = 1,
+	Multi = false,
+	Text = 'Silent Aim TargetParts',
+	Tooltip = 'Silent aim target parts',
 })
 
 
 SilentAim:AddToggle('VisibleCheck', {
-    Text = 'Visible Check',
-    Default = true,
-    Tooltip = 'Checks if target player is in vision.',
+	Text = 'Visible Check',
+	Default = true,
+	Tooltip = 'Checks if target player is in vision.',
 })
 
 SilentAim:AddToggle('TargetNPCs', {
-    Text = 'Target NPCs',
-    Default = false,
-    Tooltip = 'Silent aim targets npcs.',
+	Text = 'Target NPCs',
+	Default = false,
+	Tooltip = 'Silent aim targets npcs.',
 })
 
 SilentAim:AddToggle('IgnoreFriends', {
-    Text = 'Ignore friends',
-    Default = false,
-    Tooltip = 'Filters people youre friends with.',
+	Text = 'Ignore friends',
+	Default = false,
+	Tooltip = 'Filters people youre friends with.',
 })
 
 SilentAim:AddToggle('ShowFOV', {
-    Text = 'Show FOV',
-    Default = false,
-    Tooltip = 'Draws a circle of the desired fov value.',
+	Text = 'Show FOV',
+	Default = false,
+	Tooltip = 'Draws a circle of the desired fov value.',
+})
+
+SilentAim:AddToggle('ShowSilentTarget', {
+	Text = 'Show Silent Aim target',
+	Default = false,
+	Tooltip = 'Shows the silent aim current target (can cause fps loss on low end pcs).',
 })
 
 SilentAim:AddSlider('SilentAimFovSlider', {
-    Text = 'FOV',
+	Text = 'FOV',
 
-    Default = 100,
-    Min = 0,
-    Max = 300,
-    Rounding = 1,
+	Default = 100,
+	Min = 0,
+	Max = 300,
+	Rounding = 1,
 
-    Compact = false,
+	Compact = false,
 })
 
 SilentAim:AddSlider('SilentAimHitChanceSlider', {
-    Text = 'Hit chance',
+	Text = 'Hit chance',
 
-    Default = 50,
-    Min = 0,
-    Max = 100,
-    Rounding = 1,
+	Default = 50,
+	Min = 0,
+	Max = 100,
+	Rounding = 1,
 
-    Compact = false,
+	Compact = false,
 })
 
 --/#
@@ -413,49 +419,49 @@ SilentAim:AddSlider('SilentAimHitChanceSlider', {
 --// Movement
 
 Movement:AddToggle('FlyToggle', {
-    Text = 'Fly',
-    Default = false,
-    Tooltip = 'Enables fly.',
+	Text = 'Fly',
+	Default = false,
+	Tooltip = 'Enables fly.',
 })
 
 Movement:AddSlider('FlySpeed', {
-    Text = 'Fly Speed',
+	Text = 'Fly Speed',
 
-    Default = 15,
-    Min = 0,
-    Max = 100,
-    Rounding = 1,
+	Default = 15,
+	Min = 0,
+	Max = 100,
+	Rounding = 1,
 
-    Compact = false,
+	Compact = false,
 })
 
 Movement:AddToggle('SpeedToggle', {
-    Text = 'Speed Hack',
-    Default = false,
-    Tooltip = 'Enables speed hack.',
+	Text = 'Speed Hack',
+	Default = false,
+	Tooltip = 'Enables speed hack.',
 })
 
 Movement:AddSlider('SpeedhackSlider', {
-    Text = 'Speed',
+	Text = 'Speed',
 
-    Default = 20,
-    Min = 0,
-    Max = 100,
-    Rounding = 1,
+	Default = 20,
+	Min = 0,
+	Max = 100,
+	Rounding = 1,
 
-    Compact = false,
+	Compact = false,
 })
 
 Movement:AddToggle('Noclip', {
-    Text = 'Noclip',
-    Default = false,
-    Tooltip = 'Noclip.',
+	Text = 'Noclip',
+	Default = false,
+	Tooltip = 'Noclip.',
 })
 
 Movement:AddToggle('StopNoclipOnRagdoll', {
-    Text = 'Stop Noclip on ragdoll',
-    Default = false,
-    Tooltip = 'Stops noclipping when ragdolled.',
+	Text = 'Stop Noclip on ragdoll',
+	Default = false,
+	Tooltip = 'Stops noclipping when ragdolled.',
 })
 
 --/#
@@ -463,50 +469,50 @@ Movement:AddToggle('StopNoclipOnRagdoll', {
 --// AutoLoot Stuff
 
 AutoLoot:AddToggle('AutoLootToggle', {
-    Text = 'Enabled',
-    Default = false,
-    Tooltip = 'Enables auto lotting.',
+	Text = 'Enabled',
+	Default = false,
+	Tooltip = 'Enables auto lotting.',
 })
 
 AutoLoot:AddDropdown('AutoLootFilter', {
 	Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melee', 'Gun', 'Explosive' , 'Armor', 'Keycard', 'Flare','Contraband'},
-    Default = 1,
-    Multi = true,
-    Text = 'Loot Filter',
-    Tooltip = 'Allowed types to auto pick up.',
+	Default = 1,
+	Multi = true,
+	Text = 'Loot Filter',
+	Tooltip = 'Allowed types to auto pick up.',
 })
 --/#
 
 --// QoL
 
 QualityOfLive:AddToggle('AutoLockpickToggle', {
-    Text = 'Auto lockpick',
-    Default = false, --false
-    Tooltip = 'AutoLockpicks when starting the minigame.',
+	Text = 'Auto lockpick',
+	Default = false, --false
+	Tooltip = 'AutoLockpicks when starting the minigame.',
 })
 
 QualityOfLive:AddToggle('OpenlootOnLockpick', {
-    Text = 'Open loot On Lockpick',
-    Default = false, --false
-    Tooltip = 'when lockpicking is done auto opens loot gui.',
+	Text = 'Open loot On Lockpick',
+	Default = false, --false
+	Tooltip = 'when lockpicking is done auto opens loot gui.',
 })
 
 QualityOfLive:AddToggle('BreakAI', {
-    Text = 'Break AI',
-    Default = false, --false
-    Tooltip = 'Breaks the mob AI lol.',
+	Text = 'Break AI',
+	Default = false, --false
+	Tooltip = 'Breaks the mob AI lol.',
 })
 
 QualityOfLive:AddToggle('Fullbright', {
-    Text = 'Fullbright',
-    Default = false, --false
-    Tooltip = 'Breaks the mob AI lol.',
+	Text = 'Fullbright',
+	Default = false, --false
+	Tooltip = 'Breaks the mob AI lol.',
 })
 
 QualityOfLive:AddToggle('NoHD', {
-    Text = 'Insta interact',
-    Default = false, --false
-    Tooltip = 'Sets all Proximity Prompts hold duration to 0.',
+	Text = 'Insta interact',
+	Default = false, --false
+	Tooltip = 'Sets all Proximity Prompts hold duration to 0.',
 })
 
 --/#
@@ -514,29 +520,29 @@ QualityOfLive:AddToggle('NoHD', {
 --// Notify Items
 
 Notificate:AddToggle('NotificateItemsToggle', {
-    Text = 'Enabled',
-    Default = false, --false
-    Tooltip = 'Notificates when a selected item spawns.',
+	Text = 'Enabled',
+	Default = false, --false
+	Tooltip = 'Notificates when a selected item spawns.',
 })
 
 Notificate:AddToggle('NotificateHightlightLoot', {
-    Text = 'Hightlight loot',
-    Default = false, --false
-    Tooltip = 'Hightlighs the loot that was notifyedd.',
+	Text = 'Hightlight loot',
+	Default = false, --false
+	Tooltip = 'Hightlighs the loot that was notifyedd.',
 })
 
 Notificate:AddToggle('NotificateAddToESP', {
-    Text = 'ESP loot',
-    Default = false, --false
-    Tooltip = 'Shows loot in the ESP (Must have ESP enabled).',
+	Text = 'ESP loot',
+	Default = false, --false
+	Tooltip = 'Shows loot in the ESP (Must have ESP enabled).',
 })
 
 Notificate:AddDropdown('NotificateItemsFilter', {
 	Values = {'Food','Healing', 'Utility' ,'Misc','Melee', 'Gun', 'Explosive' , 'Armor', 'Keycard', 'Flare','Contraband'},
-    Default = 1,
-    Multi = true,
-    Text = 'Notification Filter',
-    Tooltip = 'Allowed types to notificate.',
+	Default = 1,
+	Multi = true,
+	Text = 'Notification Filter',
+	Tooltip = 'Allowed types to notificate.',
 })
 
 
@@ -549,29 +555,29 @@ end)
 
 --// AutoFarm
 AutofarmTab:AddToggle('Bunker_AutoFarm', {
-    Text = 'Bunker Auto-farm',
-    Default = false, --false
-    Tooltip = 'Auto Loots all of bunker',
+	Text = 'Bunker Auto-farm',
+	Default = false, --false
+	Tooltip = 'Auto Loots all of bunker',
 })
 
 AutofarmTab:AddToggle('Arena_AutoFarm', {
-    Text = 'Arena Auto-farm',
-    Default = false, --false
-    Tooltip = 'Auto do Arenas',
+	Text = 'Arena Auto-farm',
+	Default = false, --false
+	Tooltip = 'Auto do Arenas',
 })
 
 AutofarmTab:AddToggle('RedRaid_AutoFarm', {
-    Text = 'Wave survival Auto-farm',
-    Default = false, --false
-    Tooltip = 'Auto do Red Raids',
+	Text = 'Wave survival Auto-farm',
+	Default = false, --false
+	Tooltip = 'Auto do Red Raids',
 })
 
 Library:SetWatermarkVisibility(true)
 Library:SetWatermark('LackSkill Hub')
 
 Library:OnUnload(function()
-    print('Unloaded!')
-    Library.Unloaded = true
+	print('Unloaded!')
+	Library.Unloaded = true
 	script:Destroy()
 end)
 
@@ -597,123 +603,123 @@ ThemeManager:ApplyToTab(Tabs['UI Settings'])
 --// Locals
 
 local ItemStats = {
-	
+
 	--//# Food
-	
+
 	["Energy Bar"] = {
 		Type = "Food",
 		Contraband = false
 	},
-	
+
 	["Energy Drink"] = {
 		Type = "Food",
 		Contraband = false
 	},
-	
+
 	["Coffee"] = {
 		Type = "Food",
 		Contraband = false
 	},
-	
+
 	["Soda"] = {
 		Type = "Food",
 		Contraband = false
 	},
-	
+
 	["Canned Beans"] = {
 		Type = "Food",
 		Contraband = false
 	},
-	
+
 	["Canned Corn"] = {
 		Type = "Food",
 		Contraband = false
 	},
 	--/#
-	
+
 	--// Healing
-	
+
 	["Medkit"] = {
 		Type = "Healing",
 		Contraband = false
 	},
-	
+
 	["Bandage"] = {
 		Type = "Healing",
 		Contraband = false
 	},
-	
+
 	["Trauma Pad"] = {
 		Type = "Healing",
 		Contraband = false
 	},
 	--/#
-	
-	
+
+
 	--// Misc
-	
+
 	["Lockpick"] = {
 		Type = "Misc",
 		Contraband = false
 	},
-	
+
 	["Bounty Card"] = {
 		Type = "Misc",
 		Contraband = false
 	},
 	--/#
-	
+
 	--// Melees
-	
-	
+
+
 	["Bat"] = {
 		Type = "Melee",
 		Contraband = false
 	},
-	
+
 	["Tomahawk"] = {
 		Type = "Melee",
 		Contraband = false
 	},
-	
+
 	["Spear"] = {
 		Type = "Melee",
 		Contraband = false
 	},
-	
+
 	["Tactical Knife"] = {
 		Type = "Melee",
 		Contraband = false
 	},
-	
+
 	["Greataxe"] = {
 		Type = "Melee",
 		Contraband = false
 	},
-	
+
 	["Katana"] = {
 		Type = "Melee",
 		Contraband = false
 	},
-	
+
 	["Sledgehammer"] = {
 		Type = "Melee",
 		Contraband = false
 	},
-	
+
 	["Photon Blades"] = {
 		Type = "Melee",
 		Contraband = true
 	},
-	
+
 	--// Guns
-	
-	
+
+
 	["725"] = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 	["M4A1"] = {
 		Type = "Gun",
 		Contraband = false
@@ -722,17 +728,17 @@ local ItemStats = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 	["Crossbow"] = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 	["FAMAS"] = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 	["M1911"] = {
 		Type = "Gun",
 		Contraband = false
@@ -765,17 +771,17 @@ local ItemStats = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 	["G18"] = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 	["MAC-11"] = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 	["AK-47"] = {
 		Type = "Gun",
 		Contraband = false
@@ -790,35 +796,35 @@ local ItemStats = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 
 	["Deagle"] = {
 		Type = "Gun",
 		Contraband = false
 	},
-	
+
 	["Photon Accelerator"] = {
 		Type = "Gun",
 		Contraband = true
 	},
 	--/#
-	
-	
+
+
 	--// Explosives
-	
+
 	["GL-06"] = {
 		Type = "Explosive",
 		Contraband = false
 	},
-	
+
 	["RPG-18"] = {
 		Type = "Explosive",
 		Contraband = true
 	},
 	--/#
-	
+
 	--// Utility
-	
+
 	["Ammo Box"] = {
 		Type = "Utility",
 		Contraband = false
@@ -828,122 +834,122 @@ local ItemStats = {
 		Type = "Utility",
 		Contraband = false
 	},
-	
+
 	["Grenade"] = {
 		Type = "Utility",
 		Contraband = false
 	},
-	
+
 	["Incendiary"] = {
 		Type = "Utility",
 		Contraband = false
 	},
-	
+
 	["Smoke"] = {
 		Type = "Utility",
 		Contraband = false
 	},
-	
-	
+
+
 	--// Armor
-	
+
 	["Light Tactical Armor"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Heavy Tactical Armor"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Operator Helmet"] = {
 		Type = "Armor",
 		Contraband = true
 	},
-	
+
 	["Operator Vest"] = {
 		Type = "Armor",
 		Contraband = true
 	},
-	
+
 	["Operator Leggings"] = {
 		Type = "Armor",
 		Contraband = true
 	},
-	
+
 	["Tactical Leggings"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Tactical Helmet"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Small Backpack"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Large Backpack"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Night-Vision Goggles"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Anti-Flash Goggles"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Gas Mask"] = {
 		Type = "Armor",
 		Contraband = false
 	},
 	--/#
-	
-	
+
+
 	--// Keycards
-	
+
 	["Purple Keycard"] = {
 		Type = "Keycard",
 		Contraband = false
 	},
-	
+
 	["Green Keycard"] = {
 		Type = "Keycard",
 		Contraband = false
 	},
-	
+
 	["Blue Keycard"] = {
 		Type = "Keycard",
 		Contraband = false
 	},
-	
+
 	["Red Keycard"] = {
 		Type = "Keycard",
 		Contraband = false
 	},
 	--/#
-	
+
 	--// Flares
-	
+
 	["Red Flare Gun"] = {
 		Type = "Flares",
 		Contraband = false
 	},
-	
+
 	["Green Flare Gun"] = {
 		Type = "Flares",
 		Contraband = false
 	},
-	
+
 }
 --]]
 --// Events
@@ -968,16 +974,16 @@ AdminSound.SoundId = 'rbxassetid://225320558'
 --// Functions
 
 local function getPositionOnScreen(Vector)
-    local Vec3, OnScreen = WorldToScreen(Cam, Vector)
-    return Vector2.new(Vec3.X, Vec3.Y), OnScreen
+	local Vec3, OnScreen = WorldToScreen(Cam, Vector)
+	return Vector2.new(Vec3.X, Vec3.Y), OnScreen
 end
 
 local function getDirection(Origin, Position)
-    return (Position - Origin).Unit * 1000
+	return (Position - Origin).Unit * 1000
 end
 
 local function getMousePosition()
-    return GetMouseLocation(UserInputService)
+	return GetMouseLocation(UserInputService)
 end
 
 local function PickUpItem(LootTable,Item,Method)
@@ -1042,9 +1048,9 @@ local OnAdminJoined = function(Plr)
 
 	if GroupStates.Criminality or GroupStates.Blackout then
 		local Role = GetRoleInGroup(Plr, 6568965)
-	
+
 		if Role ~= "Member" or GroupStates.CrimAdminGroup then
-			
+
 			if Toggles.AdminDetector.Value then
 				Player:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
 				return
@@ -1063,7 +1069,7 @@ end
 
 
 local function ItemAdded(Item,Method)
-	
+
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
@@ -1076,7 +1082,7 @@ local function ItemAdded(Item,Method)
 			end
 
 			if Toggles.NotificateAddToESP.Value == true then
-				
+
 				ESPFramework:Add(Item.Parent.Parent,{
 					Name = Item.Parent.Parent.Parent.Name,
 					Color = Color3.fromRGB(255, 135, 239),
@@ -1086,7 +1092,7 @@ local function ItemAdded(Item,Method)
 
 			end
 
-	    end
+		end
 
 	end
 
@@ -1095,58 +1101,58 @@ end
 local speed = Options.FlySpeed.Value
 
 local function Fly()
-	    local torso = Character.Torso
-		local bg = Instance.new("BodyGyro", torso)
-		bg.P = 9e4
-		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-		bg.cframe = torso.CFrame
-		local bv = Instance.new("BodyVelocity", torso)
-		bv.velocity = Vector3.new(0,0.1,0)
-		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-		
-		repeat task.wait()
-			Character.Humanoid.PlatformStand = true
-			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-				speed = speed+.5
-			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-				speed = speed-1
-				if speed < 0 then
-					speed = 0
-				end
-			end
-			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-			else
-				bv.velocity = Vector3.new(0,0.1,0)
-			end
-			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/150),0,0)
-		until not Toggles.FlyToggle.Value
+	local torso = Character.Torso
+	local bg = Instance.new("BodyGyro", torso)
+	bg.P = 9e4
+	bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+	bg.cframe = torso.CFrame
+	local bv = Instance.new("BodyVelocity", torso)
+	bv.velocity = Vector3.new(0,0.1,0)
+	bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
 
-		ctrl = {f = 0, b = 0, l = 0, r = 0}
-		lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		speed = Options.FlySpeed.Value
-		bg:Destroy()
-		bv:Destroy()
-		Character.Humanoid.PlatformStand = false
+	repeat task.wait()
+		Character.Humanoid.PlatformStand = true
+		if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+			speed = speed+.5
+		elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+			speed = speed-1
+			if speed < 0 then
+				speed = 0
+			end
+		end
+		if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+			lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+		elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+		else
+			bv.velocity = Vector3.new(0,0.1,0)
+		end
+		bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/150),0,0)
+	until not Toggles.FlyToggle.Value
+
+	ctrl = {f = 0, b = 0, l = 0, r = 0}
+	lastctrl = {f = 0, b = 0, l = 0, r = 0}
+	speed = Options.FlySpeed.Value
+	bg:Destroy()
+	bv:Destroy()
+	Character.Humanoid.PlatformStand = false
 end
 
 
 local function CalculateChance(Percentage)
-    Percentage = math.floor(Percentage)
-    local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
-    return chance <= Percentage / 100
+	Percentage = math.floor(Percentage)
+	local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
+	return chance <= Percentage / 100
 end
 
 local function Hit(__ZCharacter,PartToHit)
 	SwingEvent:InvokeServer()
-    local args = {
-        [1] = __ZCharacter["Head"],
-        [2] = __ZCharacter["Head"].Position
-    }
-    HitEvent:FireServer(unpack(args))
+	local args = {
+		[1] = __ZCharacter["Head"],
+		[2] = __ZCharacter["Head"].Position
+	}
+	HitEvent:FireServer(unpack(args))
 end
 
 local function TPtoLootAndPickUp(PartToTp, TPBack)
@@ -1170,16 +1176,16 @@ end
 --game:GetService("ReplicatedStorage").GunStorage.Mods
 
 local function ValidateArguments(Args, RayMethod)
-    local Matches = 0
-    if #Args < RayMethod.ArgCountRequired then
-        return false
-    end
-    for Pos, Argument in next, Args do
-        if typeof(Argument) == RayMethod.Args[Pos] then
-            Matches = Matches + 1
-        end
-    end
-    return Matches >= RayMethod.ArgCountRequired
+	local Matches = 0
+	if #Args < RayMethod.ArgCountRequired then
+		return false
+	end
+	for Pos, Argument in next, Args do
+		if typeof(Argument) == RayMethod.Args[Pos] then
+			Matches = Matches + 1
+		end
+	end
+	return Matches >= RayMethod.ArgCountRequired
 end
 
 local function Vector2MousePosition()
@@ -1187,60 +1193,60 @@ local function Vector2MousePosition()
 end
 
 local function IsPlayerVisible(Player)
-    local PlayerCharacter = Player.Character
-    local LocalPlayerCharacter = LocalPlayer.Character
-    
-    if not (PlayerCharacter or LocalPlayerCharacter) then return end 
-    
-    local PlayerRoot = FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
-    
-    if not PlayerRoot then return end 
-    
-    local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
-    local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
-    
-    return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
+	local PlayerCharacter = Player.Character
+	local LocalPlayerCharacter = LocalPlayer.Character
+
+	if not (PlayerCharacter or LocalPlayerCharacter) then return end 
+
+	local PlayerRoot = FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
+
+	if not PlayerRoot then return end 
+
+	local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
+	local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
+
+	return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
 end
 
 local function getClosestPlayer()
-    if not Options.TargetPart.Value then return end
-    local Closest
-    local DistanceToMouse
+	if not Options.TargetPart.Value then return end
+	local Closest
+	local DistanceToMouse
 
-    for _, Player in next, GetPlayers(Players) do
-        if Player == LocalPlayer then continue end
+	for _, Player in next, GetPlayers(Players) do
+		if Player == LocalPlayer then continue end
 
-        local _Character = Player.Character
-        if not _Character then continue end
-        
-        if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+		local _Character = Player.Character
+		if not _Character then continue end
+
+		if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
 		if Toggles.IgnoreFriends.Value and not Player:IsFriendsWith(LocalPlayer.UserId) then continue end
 
-        local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
-        local Humanoid = FindFirstChild(_Character, "Humanoid")
+		local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
+		local Humanoid = FindFirstChild(_Character, "Humanoid")
 
-        if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
+		if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
 
-        local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
-        if not OnScreen then continue end
+		local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
+		if not OnScreen then continue end
 
-        local Distance = (getMousePosition() - ScreenPosition).Magnitude
-       
+		local Distance = (getMousePosition() - ScreenPosition).Magnitude
+
 		if Distance <= (DistanceToMouse or Options.SilentAimFovSlider.Value or 2000) then
-            Closest = ((Options.TargetPart.Value == "Random" and _Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or _Character[Options.TargetPart.Value])
-            DistanceToMouse = Distance
-        end
+			Closest = ((Options.TargetPart.Value == "Random" and _Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or _Character[Options.TargetPart.Value])
+			DistanceToMouse = Distance
+		end
 
-    end
+	end
 
-    return Closest
+	return Closest
 end
 
 --]]
 
 local function StartMission(Mission, TPBack)
 	local BrokerRootPart = Other_NPCs:FindFirstChild("Broker"):WaitForChild("HumanoidRootPart")
-	
+
 	if TPBack then
 		local OriginalPos = CharacterRoot.CFrame
 		CharacterRoot.CFrame = BrokerRootPart.CFrame
@@ -1254,7 +1260,7 @@ local function StartMission(Mission, TPBack)
 	--task.wait(.2)
 
 	StartTask:FireServer(BrokerRootPart, Mission)
-	
+
 end
 
 local function Damage(Damage,LimbDamageTable)
@@ -1273,17 +1279,17 @@ local function CollectLootFromLootTable(LootTable)
 	local ItemsInLootTable = LootTable:GetChildren()
 	local CurrentItemIndex = 1
 
-	
+
 	for _, Item in pairs(ItemsInLootTable) do
 		local ItemStat = ItemStats[Item.Name]
 
 		if ItemStat and (Options.AutoLootFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.AutoLootFilter.Value[ItemStat.Contraband] == true) then
 			PickUpItem(LootTable,Item,true)
 			task.wait(0.5)
-	    end
-	
+		end
+
 	end
-    
+
 
 	if Options.AutoLootFilter.Value["Cash"] == true then
 		task.wait(0.5)
@@ -1312,32 +1318,32 @@ local function II_C()
 end
 
 local function ArenaInstanceAdded(INNNSTANCE)
-    if Toggles.Arena_AutoFarm.Value == true then
+	if Toggles.Arena_AutoFarm.Value == true then
 
 		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
 			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
-            Hit(INNNSTANCE)
-            task.wait(0.05) 
-        end
+			Hit(INNNSTANCE)
+			task.wait(0.05) 
+		end
 
-    end
+	end
 end
 
 local function RedRaidInstanceAdded(INNNSTANCE)
-    if Toggles.RedRaid_AutoFarm.Value == true then
+	if Toggles.RedRaid_AutoFarm.Value == true then
 
 		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
 			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
-            Hit(INNNSTANCE)
-            task.wait(0.05) 
-        end
+			Hit(INNNSTANCE)
+			task.wait(0.05) 
+		end
 
-    end
+	end
 end
 
 local function SetUpLootTables(_LootTable)
 	table.insert(LootTables, _LootTable)
-		
+
 	_LootTable.ChildAdded:Connect(function(Item)
 		ItemAdded(Item)
 	end)
@@ -1364,7 +1370,7 @@ local function PromptSetUp(ProxPrompt)
 				local ToLockPick = ProxPrompt.Parent.Parent.Parent
 				task.wait(1)
 				LockPick(ToLockPick,true)
-				
+
 				if Toggles.OpenlootOnLockpick.Value == true then
 					OpenLoot(ToLockPick)
 				end
@@ -1382,7 +1388,7 @@ local function PromptSetUp(ProxPrompt)
 		end
 
 	end)
-end
+
 end
 
 --// Start Missions
@@ -1393,15 +1399,15 @@ end)
 
 Teleport:AddDropdown('DropDownTeleport', {
 	Values = PlayersInServer,
-    Default = 1,
-    Multi = false,
-    Text = 'Players',
-    Tooltip = 'Teleport to selected player.',
+	Default = 1,
+	Multi = false,
+	Text = 'Players',
+	Tooltip = 'Teleport to selected player.',
 })
 
 Teleport:AddButton('TeleportToPlayer', function()
 	local TargetRoot = PlayersInServer.Character:FindFirstChild("HumanoidRootPart")
-	
+
 	if TargetRoot then
 		CharacterRoot.CFrame = TargetRoot.CFrame
 	end
@@ -1409,7 +1415,7 @@ Teleport:AddButton('TeleportToPlayer', function()
 end)
 
 Misc:AddButton('Suicide', function()
-	
+
 	Damage(1000,{
 		["Head"] = 1000
 	})
@@ -1427,8 +1433,8 @@ end)
 
 Toggles.SpeedToggle:OnChanged(function()
 	if (not Toggles.SpeedToggle.Value) then
-	 Character.Humanoid.WalkSpeed = 16
-	 return;
+		Character.Humanoid.WalkSpeed = 16
+		return;
 	end;
 
 	Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
@@ -1439,13 +1445,13 @@ Toggles.Fullbright:OnChanged(function()
 end)
 
 Toggles.FlyToggle:OnChanged(function()
-	
+
 	if (not Toggles.FlyToggle.Value) then
 		return;
 	end;
 
 	Fly()
-	
+
 end)
 
 --/#
@@ -1453,7 +1459,7 @@ end)
 --// Setup Connections
 
 for _, ProxPrompt in pairs(Map:GetDescendants()) do
-	
+
 	if ProxPrompt:IsA("ProximityPrompt") then
 		PromptSetUp(ProxPrompt)
 	end
@@ -1486,14 +1492,14 @@ end
 
 --//Events
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
-    Name = "Military Scout",
+	Name = "Military Scout",
 	Color = Color3.fromRGB(10,25,25),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
 
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
-    Name = "Military Guard",
+	Name = "Military Guard",
 	Color = Color3.fromRGB(10,10,10),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
@@ -1501,14 +1507,14 @@ ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
 
 --
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
-    Name = "Vulture Scout",
+	Name = "Vulture Scout",
 	Color = Color3.fromRGB(255,1,25),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
 
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
-    Name = "Vulture Guard",
+	Name = "Vulture Guard",
 	Color = Color3.fromRGB(200,1,25),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
@@ -1516,42 +1522,42 @@ ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
 
 --
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
-    Name = "Rebel Scout",
+	Name = "Rebel Scout",
 	Color = Color3.fromRGB(25,25,255),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
 
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
-    Name = "Rebel Guard",
+	Name = "Rebel Guard",
 	Color = Color3.fromRGB(25,25,200),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
 --
 ESPFramework:AddObjectListener(Other_NPCs,{ --Merchants
-    Name = "Merchant",
+	Name = "Merchant",
 	Color = Color3.fromRGB(25,200,0),
 	ColorDynamic = false,
 	IsEnabled = "Merchant_ESP",
 })
 
 ESPFramework:AddObjectListener(Other_NPCs,{ --Brokers
-    Name = "Broker",
+	Name = "Broker",
 	Color = Color3.fromRGB(25,200,0),
 	ColorDynamic = false,
 	IsEnabled = "Broker_ESP",
 })
 --
 ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Rebel Merchants
-    Name = "Rebel Merchant",
+	Name = "Rebel Merchant",
 	Color = Color3.fromRGB(255,255,0),
 	ColorDynamic = false,
 	IsEnabled = "Factions_Merchant_ESP",
 })
 
 ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
-    Name = "Vulture Merchant",
+	Name = "Vulture Merchant",
 	Color = Color3.fromRGB(255,255,0),
 	ColorDynamic = false,
 	IsEnabled = "Factions_Merchant_ESP",
@@ -1624,16 +1630,34 @@ local oldNamecall
 
 oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 	local Method = getnamecallmethod()
-	
-    local Arguments = {...}
-    local self = Arguments[1]
 
-    local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
+	local Arguments = {...}
+	local self = Arguments[1]
 
-    if self == workspace and not checkcaller() and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
-        if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
+	local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
+
+	if self == workspace and not checkcaller() and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
+		if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
+
+			--[[
+			if Toggles.ShowSilentTarget.Value == true then
+		
+				if HitPart then
+					local Root = HitPart.Parent.PrimaryPart or HitPart
+					local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
+			
+					mouse_box.Visible = IsOnScreen
+					mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
+				else 
+					mouse_box.Visible = false 
+					mouse_box.Position = Vector2.new()
+				end
+			else
+				mouse_box.Visible = false 
+				mouse_box.Position = Vector2.new()
+			end--]]
 
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
@@ -1647,7 +1671,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 		end
 	else
 		return oldNamecall(...)
-    end
+	end
 
 	return oldNamecall(...)
 end))
@@ -1708,7 +1732,7 @@ RunService.Heartbeat:Connect(function()
 		Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
 	end
 
-    if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
+	if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
 		local LootModel = BunkerLoot[BunkerAutoFarmAt]
 		TPtoLootAndPickUp(LootModel.LootBase,false)
 		BunkerAutoFarmAt += 1
@@ -1717,7 +1741,7 @@ RunService.Heartbeat:Connect(function()
 		if BunkerAutoFarmAt >= #BunkerLoot then
 			BunkerAutoFarmAt = 1
 		end
-		
+
 	end
 
 	if Toggles.Arena_AutoFarm.Value == true then
