@@ -386,12 +386,6 @@ SilentAim:AddToggle('ShowFOV', {
     Tooltip = 'Draws a circle of the desired fov value.',
 })
 
-SilentAim:AddToggle('ShowSilentTarget', {
-    Text = 'Show Silent Aim target',
-    Default = false,
-    Tooltip = 'Shows the silent aim current target (can cause fps loss on low end pcs).',
-})
-
 SilentAim:AddSlider('SilentAimFovSlider', {
     Text = 'FOV',
 
@@ -1640,24 +1634,6 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
         if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
-
-			--[[
-			if Toggles.ShowSilentTarget.Value == true then
-		
-				if HitPart then
-					local Root = HitPart.Parent.PrimaryPart or HitPart
-					local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
-			
-					mouse_box.Visible = IsOnScreen
-					mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
-				else 
-					mouse_box.Visible = false 
-					mouse_box.Position = Vector2.new()
-				end
-			else
-				mouse_box.Visible = false 
-				mouse_box.Position = Vector2.new()
-			end--]]
 
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
