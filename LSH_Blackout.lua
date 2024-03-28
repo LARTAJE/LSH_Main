@@ -1555,11 +1555,19 @@ ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
 	IsEnabled = "Factions_Merchant_ESP",
 })
 
-workspace.Debris.Loot.ChildAdded:Connect(function(LootBag)
-	local LoooottableeOMG = LootBag:FindFirstChild("LootTable", true)
-	table.insert(LootTables, LoooottableeOMG)
-	SetUpLootTables(LoooottableeOMG)
-end)
+for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
+	if PlrDeathBLootTable.Name == "LootTable" then
+
+		PlrDeathBLootTable.ChildAdded:Connect(function(Item)
+			ItemAdded(Item)
+		end)
+
+		for __,Item in(PlrDeathBLootTable:GetChildren()) do
+			ItemAdded(Item)
+		end
+
+	end
+end
 
 --[[
 game.DescendantAdded:Connect(function(OBJa)
