@@ -1466,6 +1466,21 @@ for _, LootTable in pairs(game:GetDescendants()) do
 
 end
 
+workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
+	local LootTable = Bag:WaitForChild("LootTable",5)
+
+	if not LootTable then return end
+
+	LootTable.ChildAdded:Connect(function(Item)
+		ItemAdded(Item)
+	end)
+
+	for __,Item in(LootTable:GetChildren()) do
+		ItemAdded(Item)
+	end
+
+end)
+
 for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 	if PlrDeathBLootTable.Name == "LootTable" then
 		SetUpLootTables(PlrDeathBLootTable)
