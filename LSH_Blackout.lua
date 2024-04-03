@@ -1608,7 +1608,8 @@ ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
 })
 
 workspace.Debris.Loot.ChildAdded:Connect(function(LootBag)
-	local LoooottableeOMG = LootBag:FindFirstChild("LootTable", true)
+	local LoooottableeOMG = LootBag:WaitForChild("LootTable", 5)
+    if not LoooottableeOMG then return end
 	table.insert(LootTables, LoooottableeOMG)
 	SetUpLootTables(LoooottableeOMG)
 end)
@@ -1851,14 +1852,16 @@ RunService.Heartbeat:Connect(function()
 
         CharacterRoot.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
         RunService.RenderStepped:Wait()
-        hrp.Velocity = vel
+        CharacterRoot.Velocity = vel
         RunService.RenderStepped:Wait()
-        hrp.Velocity = vel + Vector3.new(0, movel, 0)
+        CharacterRoot.Velocity = vel + Vector3.new(0, movel, 0)
         movel = movel * -1
     end
 
     if Toggles.DisableFDMG_RAGDOLL.Value == true then
-       -- Character:WaitForChild("RagdollClient").Enabled = false
+      Character:WaitForChild("RagdollClient").Enabled = false
+    else
+        Character:WaitForChild("RagdollClient").Enabled = true
     end
 
 	if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
