@@ -1,15 +1,13 @@
 --// Protect Gui
 
 if not syn or not protectgui then
-	getgenv().protectgui = function() end
+	getgenv().protectgui = function()
+
+	end
 end
 
 --/#
-
-Key = "EuAmoODivisãoKarreta";
-
 repeat task.wait() until game:IsLoaded();
-
 repeat
 	setthreadidentity(8);
 	task.wait();
@@ -21,7 +19,13 @@ local AvalibleKeys = {
 	"EuAmoODivisãoKarreta"
 }
 
-if not table.find(AvalibleKeys, Key) then game.Players.LocalPlayer:Kick("Invalid key") end
+if not getgenv().Key then
+	game.Players.LocalPlayer:Kick("Missing script key")
+end
+
+if not table.find(AvalibleKeys, getgenv().Key) then
+	 game.Players.LocalPlayer:Kick("Invalid key")
+ end
 --]]
 --/#
 
@@ -1211,8 +1215,8 @@ local function getClosestPlayer()
 		local _Character = Player.Character
 		if not _Character then continue end
 
-		if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
-		if Toggles.IgnoreFriends.Value and not Player:IsFriendsWith(LocalPlayer.UserId) then continue end
+		--if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+		if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
 
 		local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
 		local Humanoid = FindFirstChild(_Character, "Humanoid")
@@ -1388,6 +1392,7 @@ end
 Missions:AddButton('Start Cargo Ambush', function()
 	StartMission("StealCargo", true)
 end)
+
 --[[
 Teleport:AddDropdown('DropDownTeleport', {
 	Values = PlayersInServer,
@@ -1711,6 +1716,11 @@ RunService.Heartbeat:Connect(function()
 	task.wait()
 
 	Cam = workspace.CurrentCamera
+
+	if localplayer.Character then
+		Character = localplayer.Character
+		CharacterRoot = localplayer.Character:WaitForChild("HumanoidRootPart")
+	end
 
 	if not Character:FindFirstChild("Humanoid") then return end
 	if Character.Humanoid.Health <= 0 then return end
