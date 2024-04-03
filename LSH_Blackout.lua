@@ -1815,7 +1815,7 @@ RunService.Heartbeat:Connect(function()
 		for i = 2, #KillAuraChars do
 			local KillAuraTargetCharacter = KillAuraChars[i]
        
-			if KillAuraTargetCharacter and KillAuraTargetCharacter:FindFirstChild("Humanoid") and KillAuraTargetCharacter.Humanoid.Health > 0 and KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart") and LocalPlayer:DistanceFromCharacter(KillAuraTargetCharacter.HumanoidRootPart.Position) <= Options.KillAura_Range.Value then
+			if KillAuraTargetCharacter and KillAuraTargetCharacter:FindFirstChild("Humanoid") and KillAuraTargetCharacter.Humanoid.Health > 0 and KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart") and (CharacterRoot.Position - KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart").Position).Magnitude <= Options.KillAura_Range.Value then
 				Swing()
 				Hit(KillAuraTargetCharacter, Options.KillAura_TargetPart.Value)
 			end
