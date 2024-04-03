@@ -1718,7 +1718,7 @@ RunService.Heartbeat:Connect(function()
 	Cam = workspace.CurrentCamera
 
 	if LocalPlayer.Character then
-		Character = LocalPlayer
+		Character = LocalPlayer.Character
 		CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 	end
 
