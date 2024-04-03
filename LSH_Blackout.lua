@@ -197,6 +197,7 @@ local Tabs = {
 
 --// UI Stuff
 
+local LeftSideTab0 = Tabs.Main:AddLeftTabbox()
 local LeftSideTab1_ = Tabs.Main:AddLeftTabbox()
 local LeftSideTab1 = Tabs.Main:AddLeftTabbox()
 local LeftSideTab2 = Tabs.Main:AddLeftTabbox()
@@ -214,6 +215,7 @@ local ESP_LeftSideTab1 = Tabs.ESP:AddLeftTabbox()
 local ESP_LeftSideTab2 = Tabs.ESP:AddRightTabbox()
 --// Even more tabs
 
+local Combat = LeftSideTab0:AddTab('Combat')
 local Movement = LeftSideTab1_:AddTab('Movement')
 local AutoLoot = LeftSideTab1:AddTab('AutoLoot')
 local Notificate = LeftSideTab2:AddTab('Notify items')
@@ -223,6 +225,39 @@ local SilentAim = RightSideTab1:AddTab('Silent Aim')
 local Misc = RightSideTab2:AddTab('Misc')
 local Teleport = RightSideTab3:AddTab('Teleport')
 local AutofarmTab = LeftSideTab5:AddTab('Auto farms')
+
+--// Combat
+
+Combat:AddToggle('KillAura', {
+	Text = 'KillAura',
+	Default = false,
+	Tooltip = 'Kill aura toggle.',
+})
+
+Combat:AddToggle('KillAura_Target_NPCS', {
+	Text = 'Target npcs',
+	Default = false,
+	Tooltip = 'Kill aura toggle.',
+})
+
+Combat:AddSlider('KillAura_Range', {
+	Text = 'Range',
+
+	Default = 50,
+	Min = 0,
+	Max = 100,
+	Rounding = 1,
+
+	Compact = false,
+})
+
+Combat:AddDropdown('KillAura_TargetPart', {
+	Values = {'Head', 'Torso'},
+	Default = 1,
+	Multi = false,
+	Text = 'KillAura TargetPart',
+	Tooltip = 'KillAura Targets x Part',
+})
 
 --//ESPs
 local ESP_MAIN = ESP_LeftSideTab1:AddTab('ESP')
@@ -1142,11 +1177,14 @@ local function CalculateChance(Percentage)
 	return chance <= Percentage / 100
 end
 
-local function Hit(__ZCharacter,PartToHit)
+local function Swing()
 	SwingEvent:InvokeServer()
+end
+
+local function Hit(__ZCharacter,PartToHit)
 	local args = {
-		[1] = __ZCharacter["Head"],
-		[2] = __ZCharacter["Head"].Position
+		[1] = __ZCharacter[PartToHit],
+		[2] = __ZCharacter[PartToHit].Position
 	}
 	HitEvent:FireServer(unpack(args))
 end
@@ -1216,7 +1254,7 @@ local function getClosestPlayer()
 		if not _Character then continue end
 
 		--if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
-		if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
+		--if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
 
 		local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
 		local Humanoid = FindFirstChild(_Character, "Humanoid")
@@ -1252,11 +1290,8 @@ local function StartMission(Mission, TPBack)
 	else
 		CharacterRoot.CFrame = BrokerRootPart.CFrame
 	end
-
 	--task.wait(.2)
-
 	StartTask:FireServer(BrokerRootPart, Mission)
-
 end
 
 local function Damage(Damage,LimbDamageTable)
@@ -1318,7 +1353,8 @@ local function ArenaInstanceAdded(INNNSTANCE)
 
 		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
 			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
-			Hit(INNNSTANCE)
+			Swing()
+			Hit(INNNSTANCE, "Head")
 			task.wait(0.05) 
 		end
 
@@ -1330,7 +1366,8 @@ local function RedRaidInstanceAdded(INNNSTANCE)
 
 		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
 			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
-			Hit(INNNSTANCE)
+			Swing()
+			Hit(INNNSTANCE, "Head")
 			task.wait(0.05) 
 		end
 
@@ -1417,15 +1454,6 @@ Misc:AddButton('Suicide', function()
 		["Head"] = 1000
 	})
 
-end)
-
---// More Toggles & stuff
-Options.AutoLootFilter:OnChanged(function()
---[[
-	for index, value in next, Options.AutoLootFilter.Value do
-        print(index, value)
-    end
---]]
 end)
 
 Toggles.SpeedToggle:OnChanged(function()
@@ -1739,6 +1767,21 @@ RunService.Heartbeat:Connect(function()
 
 	if Toggles.SpeedToggle.Value == true then
 		Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
+	end
+
+	if Toggles.KillAura.Value == true then
+		local KillAuraPlrs = game.Players:GetPlayers()
+		
+		for i = 2, #KillAuraPlrs do
+			local KillAuraTargetCharacter = KillAuraPlrs[i].Character
+       
+			if KillAuraTargetCharacter and KillAuraTargetCharacter:FindFirstChild("Humanoid") and KillAuraTargetCharacter.Humanoid.Health > 0 and KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart") and LocalPlayer:DistanceFromCharacter(KillAuraTargetCharacter.HumanoidRootPart.Position) <= Options.KillAura_Range.Value then
+				Swing()
+				Hit(KillAuraTargetCharacter, Options.KillAura_TargetPart.Value)
+			end
+	
+		end
+
 	end
 
 	if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
