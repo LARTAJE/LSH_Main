@@ -1770,10 +1770,50 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if Toggles.KillAura.Value == true then
-		local KillAuraPlrs = game.Players:GetPlayers()
-		
-		for i = 2, #KillAuraPlrs do
-			local KillAuraTargetCharacter = KillAuraPlrs[i].Character
+		local KillAuraChars = {}
+
+		for _,Instances in pairs(game.Players:GetPlayers()) do
+			local Hum = Instances.Character:FindFirstChild("Humanoid")
+
+			if Hum and Hum.Health > 1 then
+				table.insert(KillAuraChars, Instances)
+			end
+
+		end
+
+		if Toggles.KillAura_Target_NPCS.Value == true then
+			
+			for _,Instances in pairs(waveSurvival_m:GetChildren()) do
+				local Hum = Instances:FindFirstChild("Humanoid")
+	
+				if Hum and Hum.Health > 1 then
+					table.insert(KillAuraChars, Instances)
+				end
+	
+			end
+
+			for _,Instances in pairs(Hostile_NPCs:GetChildren()) do
+				local Hum = Instances:FindFirstChild("Humanoid")
+	
+				if Hum and Hum.Health > 1 then
+					table.insert(KillAuraChars, Instances)
+				end
+	
+			end
+
+			for _,Instances in pairs(Arena:GetChildren()) do
+				local Hum = Instances:FindFirstChild("Humanoid")
+	
+				if Hum and Hum.Health > 1 then
+					table.insert(KillAuraChars, Instances)
+				end
+	
+			end
+			
+		end
+
+		for i = 2, #KillAuraChars do
+			local KillAuraTargetCharacter = KillAuraChars[i]
        
 			if KillAuraTargetCharacter and KillAuraTargetCharacter:FindFirstChild("Humanoid") and KillAuraTargetCharacter.Humanoid.Health > 0 and KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart") and LocalPlayer:DistanceFromCharacter(KillAuraTargetCharacter.HumanoidRootPart.Position) <= Options.KillAura_Range.Value then
 				Swing()
