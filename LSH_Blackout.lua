@@ -1463,10 +1463,37 @@ for _, ProxPrompt in pairs(game:GetDescendants()) do
 
 end
 
-for _, LootTable in pairs(game:GetDescendants()) do
+--// Setup Connections
 
-	if LootTable.Name == "LootTable" then
-		SetUpLootTables(LootTable)
+for _, Loot in pairs(game:GetDescendants()) do
+
+	if Loot.Name == "Loot" then
+
+        function newOBJ(_OBJ)
+            local SSssLootTable = _OBJ:WaitForChild("LootTable",5)
+            
+            if SSssLootTable then
+                SetUpLootTables(SSssLootTable)
+            end
+
+            for _, ProxPrompt in pairs(_OBJ:GetDescendants()) do
+	
+                if ProxPrompt:IsA("ProximityPrompt") then
+                    PromptSetUp(ProxPrompt)
+                end
+            
+            end
+            
+        end
+
+		Loot.ChildAdded:Connect(function(OBJ)
+            newOBJ(OBJ)
+        end)
+
+        for i, OBJ in pairs(Loot:GetChildren()) do
+            newOBJ(OBJ)
+        end
+
 	end
 
 end
@@ -1560,10 +1587,19 @@ ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
 	IsEnabled = "Factions_Merchant_ESP",
 })
 
-workspace.Debris.Loot.ChildAdded:Connect(function(LootBag)
-	local LoooottableeOMG = LootBag:FindFirstChild("LootTable", true)
-	table.insert(LootTables, LoooottableeOMG)
-	SetUpLootTables(LoooottableeOMG)
+workspace.Debris.Loot.ChildAdded:Connect(function(Bag)
+	local LootTable = Bag:WaitForChild("LootTable",5)
+
+	if not LootTable then return end
+
+	LootTable.ChildAdded:Connect(function(Item)
+		ItemAdded(Item)
+	end)
+
+	for __,Item in(LootTable:GetChildren()) do
+		ItemAdded(Item)
+	end
+
 end)
 
 --[[
@@ -1717,9 +1753,9 @@ RunService.Heartbeat:Connect(function()
 
 	Cam = workspace.CurrentCamera
 
-	if localplayer.Character then
-		Character = localplayer.Character
-		CharacterRoot = localplayer.Character:WaitForChild("HumanoidRootPart")
+	if LocalPlayer.Character then
+		Character = LocalPlayer.Character
+		CharacterRoot = LocalPlayer.Character:WaitForChild("HumanoidRootPart")
 	end
 
 	if not Character:FindFirstChild("Humanoid") then return end
