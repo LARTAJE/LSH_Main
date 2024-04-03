@@ -234,10 +234,16 @@ Combat:AddToggle('KillAura', {
 	Tooltip = 'Kill aura toggle.',
 })
 
+Combat:AddToggle('KillAura_Target_Players', {
+	Text = 'Target players',
+	Default = false,
+	Tooltip = 'Target players toggle.',
+})
+
 Combat:AddToggle('KillAura_Target_NPCS', {
 	Text = 'Target npcs',
 	Default = false,
-	Tooltip = 'Kill aura toggle.',
+	Tooltip = 'Target npcs toggle.',
 })
 
 Combat:AddSlider('KillAura_Range', {
@@ -1448,6 +1454,19 @@ Teleport:AddButton('TeleportToPlayer', function()
 
 end)
 --]]
+
+Misc:AddToggle('HiddenFling', {
+	Text = 'Hidden fling',
+	Default = false,
+	Tooltip = 'Flings... and its hidden!.',
+})
+
+Misc:AddToggle('DisableFDMG_RAGDOLL', {
+	Text = 'Disable Ragdoll',
+	Default = false,
+	Tooltip = 'Disables ragdoll and adicionaly disable fall damage!.',
+})
+
 Misc:AddButton('Suicide', function()
 
 	Damage(1000,{
@@ -1772,14 +1791,16 @@ RunService.Heartbeat:Connect(function()
 	if Toggles.KillAura.Value == true then
 		local KillAuraChars = {}
 
-		for _,Instances in pairs(game.Players:GetPlayers()) do
-			local Hum = Instances.Character:FindFirstChild("Humanoid")
-
-			if Hum and Hum.Health > 1 then
-				table.insert(KillAuraChars, Instances)
-			end
-
-		end
+        if Toggles.KillAura_Target_Players.Value == true then
+            for _,Instances in pairs(game.Players:GetPlayers()) do
+                local Hum = Instances.Character:FindFirstChild("Humanoid")
+    
+                if Hum and Hum.Health > 1 then
+                    table.insert(KillAuraChars, Instances)
+                end
+    
+            end
+        end
 
 		if Toggles.KillAura_Target_NPCS.Value == true then
 			
@@ -1823,6 +1844,22 @@ RunService.Heartbeat:Connect(function()
 		end
 
 	end
+
+    if Toggles.HiddenFling.Value == true then
+        local vel = CharacterRoot.Velocity
+        local movel = 0.1
+
+        CharacterRoot.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+        RunService.RenderStepped:Wait()
+        hrp.Velocity = vel
+        RunService.RenderStepped:Wait()
+        hrp.Velocity = vel + Vector3.new(0, movel, 0)
+        movel = movel * -1
+    end
+
+    if Toggles.DisableFDMG_RAGDOLL.Value == true then
+       -- Character:WaitForChild("RagdollClient").Enabled = false
+    end
 
 	if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
 		local LootModel = BunkerLoot[BunkerAutoFarmAt]
