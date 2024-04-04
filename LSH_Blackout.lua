@@ -1797,7 +1797,7 @@ RunService.Heartbeat:Connect(function()
                 local Hum = Instances.Character:FindFirstChild("Humanoid")
     
                 if Hum and Hum.Health > 1 then
-                    table.insert(KillAuraChars, Instances)
+                    table.insert(KillAuraChars, Instances.Character)
                 end
     
             end
