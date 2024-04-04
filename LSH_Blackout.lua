@@ -398,6 +398,12 @@ SilentAim:AddToggle('SilentAimToggle', {
 	Tooltip = 'Enables Silent aim.',
 })
 
+SilentAim:AddToggle('InstaHit', {
+	Text = 'Instant hit',
+	Default = false,
+	Tooltip = 'Bullets teleports to players.',
+})
+
 SilentAim:AddDropdown('TargetPart', {
 	Values = {'Head', 'Torso','Random'},
 	Default = 1,
@@ -1713,7 +1719,9 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 			if HitPart then
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
-
+                if Toggles.InstaHit.Value then
+                    Arguments[2] = HitPart.Position
+                end
 				return oldNamecall(unpack(Arguments))
 			else
 				return oldNamecall(...)
