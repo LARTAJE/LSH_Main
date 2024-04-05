@@ -1,3 +1,5 @@
+getgenv().Key = "EuAmoODivisãoKarreta"
+
 --// Protect Gui
 
 if not syn or not protectgui then
@@ -129,6 +131,9 @@ local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 local GetChildren = game.GetChildren
 local GetPlayers = Players.GetPlayers
 
+local SilentTargetHightLight = Instance.new("Highlight")
+SilentTargetHightLight.FillTransparency = 1
+
 local WorldToScreen = Cam.WorldToScreenPoint
 local WorldToViewportPoint = Cam.WorldToViewportPoint
 local GetPartsObscuringTarget = Cam.GetPartsObscuringTarget
@@ -140,15 +145,6 @@ local GuiInset = GuiService.GetGuiInset
 local resume = coroutine.resume 
 local create = coroutine.create
 
-local mouse_box = Drawing.new("Square")
-mouse_box.Visible = true 
-mouse_box.ZIndex = 999 
-mouse_box.Color = Color3.fromRGB(255, 0, 0)
-mouse_box.Thickness = 20 
-mouse_box.Size = Vector2.new(10,10)
-mouse_box.Filled = true 
-
-
 local SilentAIMFov = Drawing.new("Circle")
 SilentAIMFov.Thickness = 1
 SilentAIMFov.NumSides = 100
@@ -158,7 +154,6 @@ SilentAIMFov.Visible = false
 SilentAIMFov.ZIndex = 999
 SilentAIMFov.Transparency = 1
 SilentAIMFov.Color = Color3.fromRGB(255,255,255)
-
 
 --]]
 local GuiLoaded
@@ -417,12 +412,6 @@ SilentAim:AddToggle('VisibleCheck', {
 	Text = 'Visible Check',
 	Default = true,
 	Tooltip = 'Checks if target player is in vision.',
-})
-
-SilentAim:AddToggle('TargetNPCs', {
-	Text = 'Target NPCs',
-	Default = false,
-	Tooltip = 'Silent aim targets npcs.',
 })
 
 SilentAim:AddToggle('IgnoreFriends', {
@@ -1116,8 +1105,10 @@ local function ItemAdded(Item,Method)
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
-
-		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.NotificateItemsFilter.Value["Contraband"] == true) then
+        print(ItemStat.Type)
+		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
+         or ItemStat.Contraband == true and
+          (Options.NotificateItemsFilter.Value["Contraband"] == true) then
 			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
 
 			if Toggles.NotificateHightlightLoot.Value == true then
@@ -1258,15 +1249,16 @@ local function getClosestPlayer()
 	if not Options.TargetPart.Value then return end
 	local Closest
 	local DistanceToMouse
+    local ToCheck = {}
 
 	for _, Player in next, GetPlayers(Players) do
 		if Player == LocalPlayer then continue end
-
 		local _Character = Player.Character
 		if not _Character then continue end
-
-		--if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
-		--if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
+        table.insert(ToCheck, _Character)
+		
+        if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+		if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
 
 		local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
 		local Humanoid = FindFirstChild(_Character, "Humanoid")
@@ -1336,19 +1328,20 @@ local function CollectLootFromLootTable(LootTable)
 
 	if Options.AutoLootFilter.Value["Cash"] == true then
 		task.wait(0.5)
-		PickUpItem(LootTable,"Cash",nil)
+		PickUpItem(LootTable, "Cash",nil)
 	end
 
 	if Options.AutoLootFilter.Value["Valuables"] == true then
 		task.wait(0.5)
-		PickUpItem(LootTable,"Valuables",nil)
+		PickUpItem(LootTable, "Valuables",nil)
 	end
 
 end
 
 local function II_C()
-
-	if Toggles.NoHD.Value then
+  if Toggles.NoHD then
+	
+    if Toggles.NoHD.Value then
 		for _,HPrompt in pairs(ProxPrompts) do
 			HPrompt.HoldDuration = 0
 		end
@@ -1358,6 +1351,7 @@ local function II_C()
 		end
 	end
 
+   end
 end
 
 local function ArenaInstanceAdded(INNNSTANCE)
@@ -1423,6 +1417,7 @@ local function PromptSetUp(ProxPrompt)
 			end
 
 		elseif ProxPrompt.Name == "OpenLootTable" then
+
 			local PromptLootTable = ProxPrompt.Parent:FindFirstChild("LootTable")
 
 			if Toggles.AutoLootToggle.Value == true then
@@ -1504,25 +1499,41 @@ Toggles.FlyToggle:OnChanged(function()
 
 end)
 
+function newOBJ(D_OBJ)
+    local SSssLootTable = D_OBJ:WaitForChild("LootTable",5)
+    print("Object "..D_OBJ.Name)
+    if SSssLootTable then
+        SetUpLootTables(SSssLootTable)
+    end
+
+    for _, __ProxPrompt in pairs(D_OBJ:GetDescendants()) do
+
+        if __ProxPrompt:IsA("ProximityPrompt") then
+            PromptSetUp(__ProxPrompt)
+        end
+    
+    end
+    
+end
+
+local function Check_LTS(__INS)
+    if __INS.Name == "Loot" then
+
+		__INS.ChildAdded:Connect(function(ooOBJ)
+            newOBJ(ooOBJ)
+        end)
+
+        for i, ooOBJ in pairs(__INS:GetChildren()) do
+            newOBJ(ooOBJ)
+        end
+
+	end
+end
+
 --/#
 
 --// Setup Connections
 
-for _, ProxPrompt in pairs(game:GetDescendants()) do
-
-	if ProxPrompt:IsA("ProximityPrompt") then
-		PromptSetUp(ProxPrompt)
-	end
-
-end
-
-for _, LootTable in pairs(game:GetDescendants()) do
-
-	if LootTable.Name == "LootTable" then
-		SetUpLootTables(LootTable)
-	end
-
-end
 
 for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 	if PlrDeathBLootTable.Name == "LootTable" then
@@ -1530,10 +1541,14 @@ for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 	end
 end
 
-for _, Lootinstancee in pairs(game:GetDescendants()) do
+for _, Lootinstancee in pairs(workspace:GetDescendants()) do
 
 	if Lootinstancee.Parent.Name == "Loot" then
 		table.insert(BunkerLoot, Lootinstancee)
+    elseif Lootinstancee:IsA("ProximityPrompt") then
+        PromptSetUp(Lootinstancee)
+    elseif Lootinstancee.Name == "LootTable" then
+        SetUpLootTables(Lootinstancee)
 	end
 
 end
@@ -1699,29 +1714,12 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
 
-			--[[
-			if Toggles.ShowSilentTarget.Value == true then
-		
-				if HitPart then
-					local Root = HitPart.Parent.PrimaryPart or HitPart
-					local RootToViewportPoint, IsOnScreen = WorldToViewportPoint(Cam, Root.Position);
-			
-					mouse_box.Visible = IsOnScreen
-					mouse_box.Position = Vector2.new(RootToViewportPoint.X, RootToViewportPoint.Y)
-				else 
-					mouse_box.Visible = false 
-					mouse_box.Position = Vector2.new()
-				end
-			else
-				mouse_box.Visible = false 
-				mouse_box.Position = Vector2.new()
-			end--]]
-
 			if HitPart then
-				Arguments[3] = getDirection(A_Origin, HitPart.Position)
                 if Toggles.InstaHit.Value then
-                    Arguments[2] = HitPart.Position
+                    Arguments[2] = HitPart.CFrame + HitPart.CFrame.LookVector * -2
+                    A_Origin = HitPart.Position
                 end
+				Arguments[3] = getDirection(A_Origin, HitPart.Position)
 				return oldNamecall(unpack(Arguments))
 			else
 				return oldNamecall(...)
@@ -1789,8 +1787,23 @@ RunService.Heartbeat:Connect(function()
 		SilentAIMFov.Visible = false
 	end
 
+    if Toggles.ShowSilentTarget.Value == true then
+        local HitPart = getClosestPlayer()
+			if HitPart then
+				local Char = HitPart.Parent
+                SilentTargetHightLight.Parent = Root
+			else 
+				SilentTargetHightLight.Parent = nil
+			end
+		else
+			SilentTargetHightLight.Parent = nil
+		end
+
 	if Toggles.BreakAI.Value == true then
+        local Velvel = CharacterRoot.Velocity
 		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
+        RunService.RenderStepped:Wait()
+        CharacterRoot.Velocity = Velvel
 	end
 
 	if Toggles.SpeedToggle.Value == true then
