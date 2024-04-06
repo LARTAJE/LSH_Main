@@ -147,6 +147,7 @@ local GuiInset = GuiService.GetGuiInset
 local FakeName = LocalPlayer.Name
 local FakeDisplayName = LocalPlayer.DisplayName
 local FakeVerifiedBadge = false
+local FakeCustom = LocalPlayer:GetAttribute("Level")
 
 local resume = coroutine.resume 
 local create = coroutine.create
@@ -622,15 +623,23 @@ VisualsTab:AddToggle('ShowCustomLevel', {
 	Tooltip = 'Fake level toggle (LOCAL).',
 })
 
-VisualsTab:AddSlider('CustomLevel', {
-	Text = 'Custom Level',
+VisualsTab:AddInput('FakeCustomLevel', {
+	Default = FakeCustom,
+	Numeric = true,
+	Finished = false,
 
-	Default = 1,
-	Min = 0,
-	Max = 100,
-	Rounding = 0,
+	Text = 'Custom level',
+	Tooltip = 'Changes ur level (LOCAL)',
 
-	Compact = false,
+	Placeholder = 'LEVEL',
+
+	Callback = function(Value)
+        
+		if typeof(Value) == "string" then
+			FakeCustom = Value
+		end
+
+	end
 })
 
 QualityOfLive:AddToggle('NoHD', {
@@ -2278,11 +2287,11 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if Toggles.ShowCustomLevel.Value == true then
-		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = Options.CustomLevel.Value
-		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = Options.CustomLevel.Value
-		PlayerGui:SetAttribute("Level", Options.CustomLevel.Value)
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = FakeCustom
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = FakeCustom
+		PlayerGui:SetAttribute("Level", FakeCustom)
 
-		if Options.CustomLevel.Value == 50 then
+		if FakeCustom == 50 then
 			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
 			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
 		else
