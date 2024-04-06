@@ -26,8 +26,8 @@ if not getgenv().Key then
 end
 
 if not table.find(AvalibleKeys, getgenv().Key) then
-	 game.Players.LocalPlayer:Kick("Invalid key")
- end
+	game.Players.LocalPlayer:Kick("Invalid key")
+end
 --]]
 --/#
 
@@ -49,6 +49,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
+local UserService = game:GetService("UserService")
 local Lighting = game.Lighting
 local GetPlayers = Players.GetPlayers
 
@@ -82,12 +83,13 @@ local NPCs = workspace:WaitForChild("NPCs")
 local Hostile_NPCs = NPCs:WaitForChild("Hostile")
 local Other_NPCs = NPCs:WaitForChild("Other")
 
-local ESPFramework = loadstring(game:HttpGet("https://raw.githubusercontent.com/NougatBitz/Femware-Leak/main/ESP.lua", true))()
+local ESPFramework = loadstring(game:HttpGet("https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/EF.lua", true))()
 --Aint creditin dis shit 💀
 
 local AutoLootLOLOLL = false
 local AutoLockPikcLOLO = false
 local NotifItems = false
+local PlayerDescriptionDump = Instance.new("Folder",nil)
 
 local PlayerDeathBagsLootTable = {}
 local BunkerLoot = {}
@@ -142,6 +144,10 @@ local FindFirstChild = game.FindFirstChild
 local RenderStepped = RunService.RenderStepped
 local GuiInset = GuiService.GetGuiInset
 
+local FakeName = LocalPlayer.Name
+local FakeDisplayName = LocalPlayer.DisplayName
+local FakeVerifiedBadge = false
+
 local resume = coroutine.resume 
 local create = coroutine.create
 
@@ -186,11 +192,15 @@ task.wait(math.random(1,4)) --Fake loading lol (kinda since it crashes if it loa
 local Tabs = {
 	Main = Window:AddTab('Main'), 
 	ESP = Window:AddTab('ESP'),
-	['UI Settings'] = Window:AddTab('UI Settings'),
+	Customization = Window:AddTab('Customization'),
+	['UI Settings'] = Window:AddTab('Settings'),
 }
 --/#
 
 --// UI Stuff
+
+local CustomizationTab0 = Tabs.Customization:AddLeftTabbox()
+local CustomizationTab1 = Tabs.Customization:AddRightTabbox()
 
 local LeftSideTab0 = Tabs.Main:AddLeftTabbox()
 local LeftSideTab1_ = Tabs.Main:AddLeftTabbox()
@@ -220,6 +230,9 @@ local SilentAim = RightSideTab1:AddTab('Silent Aim')
 local Misc = RightSideTab2:AddTab('Misc')
 local Teleport = RightSideTab3:AddTab('Teleport')
 local AutofarmTab = LeftSideTab5:AddTab('Auto farms')
+--//Custom
+local ColorsTab = CustomizationTab0:AddTab('colors')
+local VisualsTab = CustomizationTab1:AddTab('VisualsTab')
 
 --// Combat
 
@@ -333,6 +346,36 @@ ESP_SETTIGS:AddToggle('Faction_Merchants_ESP', {
 	Text = 'Show Faction Merchants',
 	Default = false,
 	Tooltip = 'Shows Faction Merchants in esp.',
+})
+
+ColorsTab:AddLabel('FOV Color'):AddColorPicker('Fov_ColorP', {
+	Default = Color3.new(0, 0, 0),
+	Title = 'FOV Color',
+	Transparency = 0,
+
+	Callback = function(Value)
+		SilentAIMFov.Color = Value
+	end
+})
+
+ColorsTab:AddLabel('Player ESP color'):AddColorPicker('Plr_ColorP', {
+	Default = Color3.new(1, 1, 1),
+	Title = 'Player ESP color',
+	Transparency = 0,
+
+	Callback = function(Value)
+		ESPFramework.Color = Value
+	end
+})
+
+ColorsTab:AddLabel('Ambient color'):AddColorPicker('Amb_ColorP', {
+	Default = Color3.new(1, 1, 1),
+	Title = 'Ambient color',
+	Transparency = 0,
+
+	Callback = function(Value)
+		game.Lighting.Ambient = Value
+	end
 })
 
 --//#
@@ -492,6 +535,12 @@ Movement:AddSlider('SpeedhackSlider', {
 	Compact = false,
 })
 
+Movement:AddToggle('InfiniteStamina', {
+	Text = 'Infinite Stamina',
+	Default = false,
+	Tooltip = 'Gives you infinite stamina (LOCAL).',
+})
+
 Movement:AddToggle('Noclip', {
 	Text = 'Noclip',
 	Default = false,
@@ -543,10 +592,45 @@ QualityOfLive:AddToggle('BreakAI', {
 	Tooltip = 'Breaks the mob AI lol.',
 })
 
-QualityOfLive:AddToggle('Fullbright', {
+VisualsTab:AddToggle('Fullbright', {
 	Text = 'Fullbright',
 	Default = false, --false
-	Tooltip = 'Breaks the mob AI lol.',
+	Tooltip = 'No darkness.',
+})
+
+VisualsTab:AddToggle('Glow', {
+	Text = 'Glow',
+	Default = false, --false
+	Tooltip = 'Bloom level 100.',
+})
+
+VisualsTab:AddToggle('HideLevel', {
+	Text = 'Hide Level',
+	Default = false, --false
+	Tooltip = 'Hides your level ui (LOCAL).',
+})
+
+VisualsTab:AddToggle('HideLeaderboard', {
+	Text = 'Hide Leaderboard',
+	Default = false, --false
+	Tooltip = 'Hides your leaderboard (LOCAL).',
+})
+
+VisualsTab:AddToggle('ShowCustomLevel', {
+	Text = 'Fake Level',
+	Default = false, --false
+	Tooltip = 'Fake level toggle (LOCAL).',
+})
+
+VisualsTab:AddSlider('CustomLevel', {
+	Text = 'Custom Level',
+
+	Default = 1,
+	Min = 0,
+	Max = 100,
+	Rounding = 0,
+
+	Compact = false,
 })
 
 QualityOfLive:AddToggle('NoHD', {
@@ -1105,10 +1189,10 @@ local function ItemAdded(Item,Method)
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
-        print(ItemStat.Type)
+		print(ItemStat.Type)
 		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
-         or ItemStat.Contraband == true and
-          (Options.NotificateItemsFilter.Value["Contraband"] == true) then
+			or ItemStat.Contraband == true and
+			(Options.NotificateItemsFilter.Value["Contraband"] == true) then
 			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
 
 			if Toggles.NotificateHightlightLoot.Value == true then
@@ -1249,15 +1333,15 @@ local function getClosestPlayer()
 	if not Options.TargetPart.Value then return end
 	local Closest
 	local DistanceToMouse
-    local ToCheck = {}
+	local ToCheck = {}
 
 	for _, Player in next, GetPlayers(Players) do
 		if Player == LocalPlayer then continue end
 		local _Character = Player.Character
 		if not _Character then continue end
-        table.insert(ToCheck, _Character)
-		
-        if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+		table.insert(ToCheck, _Character)
+
+		if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
 		if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
 
 		local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
@@ -1339,19 +1423,19 @@ local function CollectLootFromLootTable(LootTable)
 end
 
 local function II_C()
-  if Toggles.NoHD then
-	
-    if Toggles.NoHD.Value then
-		for _,HPrompt in pairs(ProxPrompts) do
-			HPrompt.HoldDuration = 0
-		end
-	else
-		for _,HPrompt in pairs(ProxPrompts) do
-			HPrompt.HoldDuration = HPrompt:GetAttribute("_Original_HoldTime")
-		end
-	end
+	if Toggles.NoHD then
 
-   end
+		if Toggles.NoHD.Value then
+			for _,HPrompt in pairs(ProxPrompts) do
+				HPrompt.HoldDuration = 0
+			end
+		else
+			for _,HPrompt in pairs(ProxPrompts) do
+				HPrompt.HoldDuration = HPrompt:GetAttribute("_Original_HoldTime")
+			end
+		end
+
+	end
 end
 
 local function ArenaInstanceAdded(INNNSTANCE)
@@ -1485,10 +1569,6 @@ Toggles.SpeedToggle:OnChanged(function()
 	Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
 end)
 
-Toggles.Fullbright:OnChanged(function()
-	--Lighting.Ambient = Color3.new(201, 129, 123)
-end)
-
 Toggles.FlyToggle:OnChanged(function()
 
 	if (not Toggles.FlyToggle.Value) then
@@ -1499,33 +1579,312 @@ Toggles.FlyToggle:OnChanged(function()
 
 end)
 
-function newOBJ(D_OBJ)
-    local SSssLootTable = D_OBJ:WaitForChild("LootTable",5)
-    print("Object "..D_OBJ.Name)
-    if SSssLootTable then
-        SetUpLootTables(SSssLootTable)
-    end
+local function GetClothes(id)
+	local NewClothing = nil
 
-    for _, __ProxPrompt in pairs(D_OBJ:GetDescendants()) do
-
-        if __ProxPrompt:IsA("ProximityPrompt") then
-            PromptSetUp(__ProxPrompt)
+    local Success, ClothingID = pcall(function()
+        local UID = tonumber(id)
+        local Request = game:HttpGet("https://assetdelivery.roblox.com/v1/asset/?ID="..UID)
+           
+        if Request then
+            local Start = string.find(Request,"<url>")
+            local End = string.find(Request,"</url>",Start)
+        
+             if Start and End then
+                 print("Success")
+                 NewClothing = string.sub(Request,Start+5,End-1)
+                 return NewClothing
+              end
         end
-    
+
+    end)
+
+	if NewClothing then 
+        print("ID: ".. NewClothing)
+		return NewClothing
+	else 
+        print("err")
+		return "rbxassetid://0"
+	end
+
+end
+
+local function GetBodyParts(Head,Torso,RightArm,LeftArm,RightLeg,LeftLeg)
+	local d = Instance.new("HumanoidDescription")
+	d.Head = Head
+	d.Torso = Torso
+	d.RightArm = RightArm
+	d.LeftArm = LeftArm
+	d.RightLeg = RightLeg
+	d.LeftLeg = LeftLeg
+
+	local m = Players:CreateHumanoidModelFromDescription(d,Enum.HumanoidRigType.R6,Enum.AssetTypeVerification.ClientOnly)
+	local meshes = {}
+
+	for _,mesh in pairs(m:GetChildren()) do 
+		if mesh:IsA("CharacterMesh") then
+			meshes[#meshes+1] = mesh
+			mesh.Parent = nil
+		end
+	end
+
+	m:Destroy()
+
+	return meshes
+end
+
+function weldAttachments(attach1, attach2)
+    local weld = Instance.new("Weld")
+    weld.Part0 = attach1.Parent
+    weld.Part1 = attach2.Parent
+    weld.C0 = attach1.CFrame
+    weld.C1 = attach2.CFrame
+    weld.Parent = attach1.Parent
+    return weld
+end
+ 
+local function buildWeld(weldName, parent, part0, part1, c0, c1)
+    local weld = Instance.new("Weld")
+    weld.Name = weldName
+    weld.Part0 = part0
+    weld.Part1 = part1
+    weld.C0 = c0
+    weld.C1 = c1
+    weld.Parent = parent
+    return weld
+end
+ 
+local function findFirstMatchingAttachment(model, name)
+    for _, child in pairs(model:GetChildren()) do
+        if child:IsA("Attachment") and child.Name == name then
+            return child
+        elseif not child:IsA("Accoutrement") and not child:IsA("Tool") then -- Don't look in hats or tools in the character
+            local foundAttachment = findFirstMatchingAttachment(child, name)
+            if foundAttachment then
+                return foundAttachment
+            end
+        end
     end
-    
+end
+ 
+function addAccoutrement(character, accoutrement)  
+    accoutrement.Parent = character
+    local handle = accoutrement:FindFirstChild("Handle")
+    if handle then
+        local accoutrementAttachment = handle:FindFirstChildOfClass("Attachment")
+        if accoutrementAttachment then
+            local characterAttachment = findFirstMatchingAttachment(character, accoutrementAttachment.Name)
+            if characterAttachment then
+                weldAttachments(characterAttachment, accoutrementAttachment)
+            end
+        else
+            local head = character:FindFirstChild("Head")
+            if head then
+                local attachmentCFrame = CFrame.new(0, 0.5, 0)
+                local hatCFrame = accoutrement.AttachmentPoint
+                buildWeld("HeadWeld", head, head, handle, attachmentCFrame, hatCFrame)
+            end
+        end
+    end
+end
+
+local function ExtractDescriptor(ID)
+    local NID = tonumber(ID)
+	local OutfitId = NID
+    local UserName = Players:GetNameFromUserIdAsync(NID)
+    FakeName = UserName
+    local UserInfo = UserService:GetUserInfosByUserIdsAsync({NID})
+   
+    if UserInfo then
+        FakeDisplayName = UserInfo[1].DisplayName
+        FakeVerifiedBadge = UserInfo[1].HasVerifiedBadge
+    end
+
+	local Description = Players:GetHumanoidDescriptionFromUserId(OutfitId)
+	local Extracted = nil
+
+	if OutfitId then
+
+		if PlayerDescriptionDump:FindFirstChild(UserName) then			
+			return PlayerDescriptionDump[UserName]:GetChildren()
+		else 
+			Extracted = Instance.new("Folder", PlayerDescriptionDump)
+			Extracted.Name = UserName
+			Description = Players:GetHumanoidDescriptionFromUserId(OutfitId)
+		end
+	end
+
+
+	for _,Accessory in pairs(Description:GetAccessories(true)) do 
+		if not Accessory.IsLayered then
+			local NewAccessory = nil
+			NewAccessory = game:GetObjects("rbxassetid://"..Accessory.AssetId)[1]
+			NewAccessory.Parent = Extracted
+		end
+	end
+
+Instance.new("Decal",Extracted).Texture = (Description.Face == 0 and "rbxasset://textures/face.png") or "rbxthumb://type=Asset&id="..Description.Face.."&w=420&h=420"
+
+local Colors = Instance.new("BodyColors",Extracted)
+
+Colors.TorsoColor3 = Description.TorsoColor
+Colors.HeadColor3 = Description.HeadColor
+Colors.LeftArmColor3 = Description.LeftArmColor
+Colors.RightArmColor3 = Description.RightArmColor
+Colors.LeftLegColor3 = Description.LeftLegColor
+Colors.RightLegColor3 = Description.RightLegColor
+
+if Description.Shirt ~= 0 then
+	local Top = Instance.new("Shirt", Extracted)
+    local Template = GetClothes(Description.Shirt)
+   
+    local indexo = 1
+
+if not Template then
+    repeat
+		indexo += 1
+        Template = GetClothes(Description.Shirt)
+    until Template or indexo >= 50
+end
+
+    if Template then
+        Top.ShirtTemplate = Template
+    end
+
+end
+
+if Description.Pants ~= 0 then
+	local Bottom = Instance.new("Pants",Extracted)
+    local Template = GetClothes(Description.Pants)
+    local indexo = 1
+
+if not Template then
+	repeat
+		indexo += 1
+		Template = GetClothes(Description.Pants)
+	until Template or indexo >= 50
+end
+
+    if Template then
+        Bottom.PantsTemplate = Template
+    end
+
+end
+
+for _,m in pairs(GetBodyParts(Description.Head,Description.Torso,Description.RightArm,Description.LeftArm,Description.RightLeg,Description.LeftLeg)) do
+	m.Parent = Extracted
+end
+
+return Extracted:GetChildren()
+end
+
+local function ChangeChar(ID)
+    if not ID then return end
+    if not Players:GetNameFromUserIdAsync(tonumber(ID)) then return end
+
+	local _Desc = ExtractDescriptor(ID)
+
+    if _Desc then
+
+        for _, v in pairs(Character:GetChildren()) do
+            if v:IsA("Accessory") then
+                v:Destroy()
+            end
+        end
+
+		for _, Accourtment in pairs(_Desc) do 
+			local NewAccourtment = Accourtment:Clone()
+
+			if NewAccourtment:IsA("Accessory") then
+				NewAccourtment.Handle.Anchored = false
+				addAccoutrement(Character, NewAccourtment)
+			elseif NewAccourtment:IsA("Decal") then
+				Character:WaitForChild("Head"):FindFirstChildOfClass("Decal").Texture = NewAccourtment.Texture
+			elseif NewAccourtment:IsA("Shirt") then
+				local ClothingPiece = Character:FindFirstChildOfClass("Shirt")
+
+				if ClothingPiece then
+					ClothingPiece.ShirtTemplate = NewAccourtment.ShirtTemplate
+				else 
+					ClothingPiece:Clone().Parent = Character
+				end
+
+			elseif NewAccourtment:IsA("Pants") then
+				local ClothingPiece = Character:FindFirstChildOfClass("Pants")
+
+				if ClothingPiece then
+					ClothingPiece.PantsTemplate = NewAccourtment.PantsTemplate
+				else 
+					ClothingPiece:Clone().Parent = Character
+				end
+
+			elseif NewAccourtment:IsA("CharacterMesh") then
+				NewAccourtment:Clone().Parent = Character
+			elseif NewAccourtment:IsA("BodyColors") then
+				--		
+				if Character:FindFirstChild("Head") then
+					Character["Head"].Color = NewAccourtment.HeadColor3
+
+					if Character.Head:FindFirstChild("FaceMount") then
+						Character.Head["FaceMount"].Color = NewAccourtment.HeadColor3
+					end
+
+				end
+
+				if Character:FindFirstChild("Torso") then
+					Character["Torso"].Color = NewAccourtment.TorsoColor3
+				end
+
+				if Character:FindFirstChild("Right Arm") then
+					Character["Right Arm"].Color = NewAccourtment.RightArmColor3
+				end
+
+				if Character:FindFirstChild("Left Arm") then
+					Character["Left Arm"].Color = NewAccourtment.LeftArmColor3
+				end
+
+				if Character:FindFirstChild("Right Leg") then
+					Character["Right Leg"].Color = NewAccourtment.RightLegColor3
+				end
+
+				if Character:FindFirstChild("Left Leg") then
+					Character["Left Leg"].Color = NewAccourtment.LeftLegColor3
+				end
+
+			end
+
+		end
+
+	end
+
+end
+
+function newOBJ(D_OBJ)
+	local SSssLootTable = D_OBJ:WaitForChild("LootTable",5)
+	if SSssLootTable then
+		SetUpLootTables(SSssLootTable)
+	end
+
+	for _, __ProxPrompt in pairs(D_OBJ:GetDescendants()) do
+
+		if __ProxPrompt:IsA("ProximityPrompt") then
+			PromptSetUp(__ProxPrompt)
+		end
+
+	end
+
 end
 
 local function Check_LTS(__INS)
-    if __INS.Name == "Loot" then
+	if __INS.Name == "Loot" then
 
 		__INS.ChildAdded:Connect(function(ooOBJ)
-            newOBJ(ooOBJ)
-        end)
+			newOBJ(ooOBJ)
+		end)
 
-        for i, ooOBJ in pairs(__INS:GetChildren()) do
-            newOBJ(ooOBJ)
-        end
+		for i, ooOBJ in pairs(__INS:GetChildren()) do
+			newOBJ(ooOBJ)
+		end
 
 	end
 end
@@ -1545,10 +1904,10 @@ for _, Lootinstancee in pairs(workspace:GetDescendants()) do
 
 	if Lootinstancee.Parent.Name == "Loot" then
 		table.insert(BunkerLoot, Lootinstancee)
-    elseif Lootinstancee:IsA("ProximityPrompt") then
-        PromptSetUp(Lootinstancee)
-    elseif Lootinstancee.Name == "LootTable" then
-        SetUpLootTables(Lootinstancee)
+	elseif Lootinstancee:IsA("ProximityPrompt") then
+		PromptSetUp(Lootinstancee)
+	elseif Lootinstancee.Name == "LootTable" then
+		SetUpLootTables(Lootinstancee)
 	end
 
 end
@@ -1558,14 +1917,14 @@ end
 --//Events
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
 	Name = "Military Scout",
-	Color = Color3.fromRGB(10,25,25),
+	Color = Color3.fromRGB(25,25,255),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
 
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
 	Name = "Military Guard",
-	Color = Color3.fromRGB(10,10,10),
+	Color = Color3.fromRGB(25,25,255),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
@@ -1573,14 +1932,14 @@ ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
 --
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
 	Name = "Vulture Scout",
-	Color = Color3.fromRGB(255,1,25),
+	Color = Color3.fromRGB(25,25,255),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
 
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
 	Name = "Vulture Guard",
-	Color = Color3.fromRGB(200,1,25),
+	Color = Color3.fromRGB(25,25,255),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
@@ -1595,7 +1954,7 @@ ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
 
 ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
 	Name = "Rebel Guard",
-	Color = Color3.fromRGB(25,25,200),
+	Color = Color3.fromRGB(25,25,255),
 	ColorDynamic = false,
 	IsEnabled = "NPC_ESP",
 })
@@ -1628,9 +1987,28 @@ ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
 	IsEnabled = "Factions_Merchant_ESP",
 })
 
+VisualsTab:AddInput('Disguiser', {
+	Default = LocalPlayer.UserId,
+	Numeric = true,
+	Finished = false,
+
+	Text = 'Disguiser',
+	Tooltip = 'Changes ur avatar by user ID (LOCAL)',
+
+	Placeholder = 'USER ID',
+
+	Callback = function(Value)
+        
+		if typeof(Value) == "string" then
+			ChangeChar(Value)
+		end
+
+	end
+})
+
 workspace.Debris.Loot.ChildAdded:Connect(function(LootBag)
 	local LoooottableeOMG = LootBag:WaitForChild("LootTable", 5)
-    if not LoooottableeOMG then return end
+	if not LoooottableeOMG then return end
 	table.insert(LootTables, LoooottableeOMG)
 	SetUpLootTables(LoooottableeOMG)
 end)
@@ -1711,14 +2089,20 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 	if self == workspace and not checkcaller() and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
 		if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
+			if Arguments[4]["FilterDescendantsInstances"][3] ~= nil then
+				print(Arguments[4]["FilterDescendantsInstances"][3])
+			end
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
 
 			if HitPart then
-                if Toggles.InstaHit.Value then
-                    Arguments[2] = HitPart.CFrame + HitPart.CFrame.LookVector * -2
-                    A_Origin = HitPart.Position
-                end
+				if Toggles.InstaHit.Value then
+					local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
+					local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
+					print(typeof(CfTVec))
+					Arguments[2] = CfTVec
+					A_Origin = CfTVec
+				end
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
 				return oldNamecall(unpack(Arguments))
 			else
@@ -1757,13 +2141,6 @@ for _,v in pairs(Players:GetPlayers()) do
 end
 --/#
 
---// Fullbright
-
-Lighting:GetPropertyChangedSignal("Ambient"):Connect(function()
-	if Toggles.Fullbright.Value then
-		--Lighting.Ambient = Color3.new(1,1,1)
-	end
-end)
 --/#
 
 RunService.Heartbeat:Connect(function()
@@ -1776,6 +2153,9 @@ RunService.Heartbeat:Connect(function()
 		CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 	end
 
+    PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
+    PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
+
 	if not Character:FindFirstChild("Humanoid") then return end
 	if Character.Humanoid.Health <= 0 then return end
 
@@ -1787,103 +2167,163 @@ RunService.Heartbeat:Connect(function()
 		SilentAIMFov.Visible = false
 	end
 
-    if Toggles.ShowSilentTarget.Value == true then
-        local HitPart = getClosestPlayer()
-			if HitPart then
-				local Char = HitPart.Parent
-                SilentTargetHightLight.Parent = Root
-			else 
-				SilentTargetHightLight.Parent = nil
-			end
-		else
+	if Toggles.ShowSilentTarget.Value == true then
+		local HitPart = getClosestPlayer()
+		if HitPart then
+			local Char = HitPart.Parent
+			SilentTargetHightLight.Parent = Root
+		else 
 			SilentTargetHightLight.Parent = nil
 		end
+	else
+		SilentTargetHightLight.Parent = nil
+	end
 
 	if Toggles.BreakAI.Value == true then
-        local Velvel = CharacterRoot.Velocity
+		local Velvel = CharacterRoot.Velocity
 		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
-        RunService.RenderStepped:Wait()
-        CharacterRoot.Velocity = Velvel
+		RunService.RenderStepped:Wait()
+		CharacterRoot.Velocity = Velvel
+	end
+
+	if Toggles.HideLevel.Value == true then
+		PlayerGui.MainGui.LevelFrame.Visible = false
+	else
+		PlayerGui.MainGui.LevelFrame.Visible = true
 	end
 
 	if Toggles.SpeedToggle.Value == true then
 		Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
 	end
 
+	if Toggles.Fullbright.Value == true then
+		Lighting.Brightness = 2
+		Lighting.ClockTime = 14
+		Lighting.FogEnd = 100000
+		Lighting.GlobalShadows = false
+		Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+	end
+
+	if Toggles.Glow.Value == true then
+		Lighting.ExposureCompensation = 1
+	else
+		Lighting.ExposureCompensation = 0
+	end
+
+	if Toggles.InfiniteStamina.Value == true then
+		PlayerGui:SetAttribute("Stamina", 100)
+	end
+
 	if Toggles.KillAura.Value == true then
 		local KillAuraChars = {}
 
-        if Toggles.KillAura_Target_Players.Value == true then
-            for _,Instances in pairs(game.Players:GetPlayers()) do
-                local Hum = Instances.Character:FindFirstChild("Humanoid")
-    
-                if Hum and Hum.Health > 1 then
-                    table.insert(KillAuraChars, Instances.Character)
-                end
-    
-            end
-        end
+		if Toggles.KillAura_Target_Players.Value == true then
+			for _,Instances in pairs(game.Players:GetPlayers()) do
+				local Hum = Instances.Character:FindFirstChild("Humanoid")
+
+				if Hum and Hum.Health > 1 then
+					table.insert(KillAuraChars, Instances.Character)
+				end
+
+			end
+		end
 
 		if Toggles.KillAura_Target_NPCS.Value == true then
-			
+
 			for _,Instances in pairs(waveSurvival_m:GetChildren()) do
 				local Hum = Instances:FindFirstChild("Humanoid")
-	
+
 				if Hum and Hum.Health > 1 then
 					table.insert(KillAuraChars, Instances)
 				end
-	
+
 			end
 
 			for _,Instances in pairs(Hostile_NPCs:GetChildren()) do
 				local Hum = Instances:FindFirstChild("Humanoid")
-	
+
 				if Hum and Hum.Health > 1 then
 					table.insert(KillAuraChars, Instances)
 				end
-	
+
 			end
 
 			for _,Instances in pairs(Arena:GetChildren()) do
 				local Hum = Instances:FindFirstChild("Humanoid")
-	
+
 				if Hum and Hum.Health > 1 then
 					table.insert(KillAuraChars, Instances)
 				end
-	
+
 			end
-			
+
 		end
 
 		for i = 2, #KillAuraChars do
 			local KillAuraTargetCharacter = KillAuraChars[i]
-       
+
 			if KillAuraTargetCharacter and KillAuraTargetCharacter:FindFirstChild("Humanoid") and KillAuraTargetCharacter.Humanoid.Health > 0 and KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart") and (CharacterRoot.Position - KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart").Position).Magnitude <= Options.KillAura_Range.Value then
 				Swing()
 				Hit(KillAuraTargetCharacter, Options.KillAura_TargetPart.Value)
 			end
-	
+
 		end
 
 	end
 
-    if Toggles.HiddenFling.Value == true then
-        local vel = CharacterRoot.Velocity
-        local movel = 0.1
+	if Toggles.HideLeaderboard.Value == true then
+		PlayerGui.MainStaticGui.RightTab.Visible = false
+	else
+		PlayerGui.MainStaticGui.RightTab.Visible = true
+	end
 
-        CharacterRoot.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
-        RunService.RenderStepped:Wait()
-        CharacterRoot.Velocity = vel
-        RunService.RenderStepped:Wait()
-        CharacterRoot.Velocity = vel + Vector3.new(0, movel, 0)
-        movel = movel * -1
-    end
+	if Toggles.ShowCustomLevel.Value == true then
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = Options.CustomLevel.Value
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = Options.CustomLevel.Value
+		PlayerGui:SetAttribute("Level", Options.CustomLevel.Value)
 
-    if Toggles.DisableFDMG_RAGDOLL.Value == true then
-      Character:WaitForChild("RagdollClient").Enabled = false
-    else
-        Character:WaitForChild("RagdollClient").Enabled = true
-    end
+		if Options.CustomLevel.Value == 50 then
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
+		else
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = true
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = false
+		end
+
+	else
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = LocalPlayer:GetAttribute("Level")
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = LocalPlayer:GetAttribute("Level")
+		PlayerGui:SetAttribute("Level", LocalPlayer:GetAttribute("Level"))
+
+		if LocalPlayer:GetAttribute("Level") == 50 then
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
+		else
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = true
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = false
+		end
+
+	end
+
+	--PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = ""
+
+	if Toggles.HiddenFling.Value == true then
+		local vel = CharacterRoot.Velocity
+		local movel = 0.1
+
+		CharacterRoot.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+		RunService.RenderStepped:Wait()
+		CharacterRoot.Velocity = vel
+		RunService.RenderStepped:Wait()
+		CharacterRoot.Velocity = vel + Vector3.new(0, movel, 0)
+		movel = movel * -1
+	end
+
+	if Toggles.DisableFDMG_RAGDOLL.Value == true then
+		Character:WaitForChild("RagdollClient").Enabled = false
+	else
+		Character:WaitForChild("RagdollClient").Enabled = true
+	end
 
 	if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
 		local LootModel = BunkerLoot[BunkerAutoFarmAt]
