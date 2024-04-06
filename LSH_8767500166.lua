@@ -147,7 +147,6 @@ local GuiInset = GuiService.GetGuiInset
 local FakeName = LocalPlayer.Name
 local FakeDisplayName = LocalPlayer.DisplayName
 local FakeVerifiedBadge = false
-local FakeCustom = LocalPlayer:GetAttribute("Level")
 
 local resume = coroutine.resume 
 local create = coroutine.create
@@ -623,23 +622,15 @@ VisualsTab:AddToggle('ShowCustomLevel', {
 	Tooltip = 'Fake level toggle (LOCAL).',
 })
 
-VisualsTab:AddInput('FakeCustomLevel', {
-	Default = FakeCustom,
-	Numeric = true,
-	Finished = false,
+VisualsTab:AddSlider('CustomLevel', {
+	Text = 'Custom Level',
 
-	Text = 'Custom level',
-	Tooltip = 'Changes ur level (LOCAL)',
+	Default = 1,
+	Min = 0,
+	Max = 100,
+	Rounding = 0,
 
-	Placeholder = 'LEVEL',
-
-	Callback = function(Value)
-        
-		if typeof(Value) == "string" then
-			FakeCustom = Value
-		end
-
-	end
+	Compact = false,
 })
 
 QualityOfLive:AddToggle('NoHD', {
@@ -1769,8 +1760,8 @@ if Description.Pants ~= 0 then
 
 if not Template then
 	repeat
-		indexo += 1
-		Template = GetClothes(Description.Pants)
+			indexo += 1
+			Template = GetClothes(Description.Pants)
 	until Template or indexo >= 50
 end
 
@@ -2007,11 +1998,8 @@ VisualsTab:AddInput('Disguiser', {
 	Placeholder = 'USER ID',
 
 	Callback = function(Value)
-        
-		if typeof(Value) == "string" then
-			ChangeChar(Value)
-		end
-
+        if typeof(Value) == "string" then end
+		ChangeChar(Value)
 	end
 })
 
@@ -2287,11 +2275,11 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if Toggles.ShowCustomLevel.Value == true then
-		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = FakeCustom
-		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = FakeCustom
-		PlayerGui:SetAttribute("Level", FakeCustom)
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = Options.CustomLevel.Value
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = Options.CustomLevel.Value
+		PlayerGui:SetAttribute("Level", Options.CustomLevel.Value)
 
-		if FakeCustom == 50 then
+		if Options.CustomLevel.Value == 50 then
 			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
 			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
 		else
