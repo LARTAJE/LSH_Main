@@ -349,7 +349,7 @@ ESP_SETTIGS:AddToggle('Faction_Merchants_ESP', {
 })
 
 ColorsTab:AddLabel('FOV Color'):AddColorPicker('Fov_ColorP', {
-	Default = Color3.new(1, 1, 1),
+	Default = Color3.new(0, 0, 0),
 	Title = 'FOV Color',
 	Transparency = 0,
 
@@ -368,18 +368,8 @@ ColorsTab:AddLabel('Player ESP color'):AddColorPicker('Plr_ColorP', {
 	end
 })
 
-ColorsTab:AddLabel('Friend ESP color'):AddColorPicker('Friend_ColorP', {
-	Default = Color3.new(1, 1, 1),
-	Title = 'Friend ESP color',
-	Transparency = 0,
-
-	Callback = function(Value)
-		ESPFramework.FriendColor = Value
-	end
-})
-
 ColorsTab:AddLabel('Ambient color'):AddColorPicker('Amb_ColorP', {
-	Default = Color3.fromRGB(130, 130, 130),
+	Default = Color3.new(1, 1, 1),
 	Title = 'Ambient color',
 	Transparency = 0,
 
@@ -1175,19 +1165,17 @@ local OnAdminJoined = function(Plr)
 	if GroupStates.Criminality or GroupStates.Blackout then
 		local Role = GetRoleInGroup(Plr, 6568965)
 
-		if Role ~= "Member" or GroupStates.CrimAdminGroup and Toggles.Player_Notificate.Value == true then
-			--[[
+		if Role ~= "Member" or GroupStates.CrimAdminGroup then
+
 			if Toggles.AdminDetector.Value then
 				Player:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
 				return
 			end
-			--]]
+
+
 			AdminSound:Play()
 			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
-		elseif Plr:IsFriendsWith(LocalPlayer.UserId) and Toggles.Player_Notificate.Value == true and Toggles.Friend_Notif.Value == true then
-			AdminSound:Play()
-			Library:Notify("Your friend "..Plr.Name.. " Has joined!")
-		elseif Toggles.Player_Notificate.Value == true then
+		else
 			AdminSound:Play()
 			Library:Notify(Plr.Name.." Joined, be careful!")
 		end
@@ -1562,18 +1550,6 @@ Misc:AddToggle('DisableFDMG_RAGDOLL', {
 	Text = 'Disable Ragdoll',
 	Default = false,
 	Tooltip = 'Disables ragdoll and adicionaly disable fall damage!.',
-})
-
-Misc:AddToggle('Player_Notificate', {
-	Text = 'Player notifier',
-	Default = true,
-	Tooltip = 'When a player joins you get a notification.',
-})
-
-Misc:AddToggle('Friend_Notif', {
-	Text = 'Special friend message',
-	Default = true,
-	Tooltip = 'When a friend joins you get a special notification.',
 })
 
 Misc:AddButton('Suicide', function()
@@ -2106,25 +2082,24 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 	local Arguments = {...}
 	local self = Arguments[1]
 
-	local callingscript = getcallingscript()
-
 	local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
 
-	if self == workspace and not checkcaller() and tostring(callingscript) == "GunHandler" and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
-		
-		if ValidateArguments(Arguments, ExpectedArguments.Raycast) then
+	if self == workspace and not checkcaller() and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
+		if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
+			if Arguments[4]["FilterDescendantsInstances"][3] ~= nil then
+				print(Arguments[4]["FilterDescendantsInstances"][3])
+			end
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
 
 			if HitPart then
-
 				if Toggles.InstaHit.Value then
-					local pos = HitPart.CFrame
+					local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
 					local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
+					print(typeof(CfTVec))
 					Arguments[2] = CfTVec
 					A_Origin = CfTVec
 				end
-
 				Arguments[3] = getDirection(A_Origin, HitPart.Position)
 				return oldNamecall(unpack(Arguments))
 			else
@@ -2133,19 +2108,6 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 		else
 			return oldNamecall(...)
 		end
-	elseif Method == "FireServer" and tostring(callingscript) == "GunHandler" and Arguments[1].Name == "Shoot" then
-		local HitPart = getClosestPlayer()
-	
-		if HitPart then
-			if Toggles.InstaHit.Value then
-				local pos = HitPart.CFrame
-				local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
-				--Arguments[3] = pos
-				--Arguments[2] = CfTVec
-				return oldNamecall(unpack(Arguments))
-			end
-		end
-	
 	else
 		return oldNamecall(...)
 	end
@@ -2204,14 +2166,12 @@ RunService.Heartbeat:Connect(function()
 
 	if Toggles.ShowSilentTarget.Value == true then
 		local HitPart = getClosestPlayer()
-
 		if HitPart then
 			local Char = HitPart.Parent
-			SilentTargetHightLight.Parent = HitPart.Parent
+			SilentTargetHightLight.Parent = Root
 		else 
 			SilentTargetHightLight.Parent = nil
 		end
-
 	else
 		SilentTargetHightLight.Parent = nil
 	end
