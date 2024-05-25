@@ -1,35 +1,3 @@
-getgenv().Key = "EuAmoODivisãoKarreta"
-
---// Protect Gui
-
-if not syn or not protectgui then
-	getgenv().protectgui = function()
-
-	end
-end
-
---/#
-repeat task.wait() until game:IsLoaded();
-repeat
-	setthreadidentity(8);
-	task.wait();
-until getthreadidentity() == 8;
-
---// Keys System
-
-local AvalibleKeys = {
-	"EuAmoODivisãoKarreta"
-}
-
-if not getgenv().Key then
-	game.Players.LocalPlayer:Kick("Missing script key")
-end
-
-if not table.find(AvalibleKeys, getgenv().Key) then
-	game.Players.LocalPlayer:Kick("Invalid key")
-end
---]]
---/#
 
 local Started = tick()
 local is_synapse_function = isexecutorclosure
@@ -84,8 +52,6 @@ local Hostile_NPCs = NPCs:WaitForChild("Hostile")
 local Other_NPCs = NPCs:WaitForChild("Other")
 
 local ESPFramework = loadstring(game:HttpGet("https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/EF.lua", true))()
---Aint creditin dis shit 💀
-
 local AutoLootLOLOLL = false
 local AutoLockPikcLOLO = false
 local NotifItems = false
