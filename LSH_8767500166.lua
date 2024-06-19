@@ -1,5 +1,5 @@
 
-local Started = tick()
+local Started = tick() - 1
 local is_synapse_function = isexecutorclosure
 
 local gameId = game.GameId;
