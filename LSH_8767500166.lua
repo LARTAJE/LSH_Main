@@ -151,7 +151,7 @@ local Window = Library:CreateWindow({
 
 --/#
 Library:Notify("Script loading", 5)
-task.wait(math.random(1,4)) --Fake loading lol (kinda since it crashes if it loads to fast)
+task.wait(math.random(1,4)) --Fake loading lol (kinda since it can crashes if it loads to fast)
 
 --// Tabs
 
@@ -1155,7 +1155,6 @@ local function ItemAdded(Item,Method)
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
-		print(ItemStat.Type)
 		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
 			or ItemStat.Contraband == true and
 			(Options.NotificateItemsFilter.Value["Contraband"] == true) then
@@ -1763,6 +1762,7 @@ local function ChangeChar(ID)
 
 			if NewAccourtment:IsA("Accessory") then
 				NewAccourtment.Handle.Anchored = false
+				NewAccourtment.Handle.CanCollide = false
 				addAccoutrement(Character, NewAccourtment)
 			elseif NewAccourtment:IsA("Decal") then
 				Character:WaitForChild("Head"):FindFirstChildOfClass("Decal").Texture = NewAccourtment.Texture
@@ -2202,7 +2202,7 @@ RunService.Heartbeat:Connect(function()
 
 			end
 
-			for _,Instances in pairs(Hostile_NPCs:GetChildren()) do
+			for _, Instances in pairs(Hostile_NPCs:GetChildren()) do
 				local Hum = Instances:FindFirstChild("Humanoid")
 
 				if Hum and Hum.Health > 1 then
@@ -2211,13 +2211,17 @@ RunService.Heartbeat:Connect(function()
 
 			end
 
-	         	for _,Instances in pairs(workspace.ActiveTasks.Location.AliveEnemies:GetChildren()) do
-				local Hum = Instances:FindFirstChild("Humanoid")
-
-				if Hum and Hum.Health > 1 then
-					table.insert(KillAuraChars, Instances)
+			for _, Stuff in workspace.ActiveTasks:GetChildren() do 
+			   if Stuff.Name == "Location" then
+				for _,Instances in Stuff:GetChildren() do
+					local Hum = Instances:FindFirstChild("Humanoid")
+	
+					if Hum and Hum.Health > 1 then
+						table.insert(KillAuraChars, Instances)
+					end
+	
 				end
-
+			   end
 			end
 
 			for _,Instances in pairs(Arena:GetChildren()) do
