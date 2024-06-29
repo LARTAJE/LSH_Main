@@ -2211,6 +2211,15 @@ RunService.Heartbeat:Connect(function()
 
 			end
 
+	         	for _,Instances in pairs(workspace.ActiveTasks.Location.AliveEnemies:GetChildren()) do
+				local Hum = Instances:FindFirstChild("Humanoid")
+
+				if Hum and Hum.Health > 1 then
+					table.insert(KillAuraChars, Instances)
+				end
+
+			end
+
 			for _,Instances in pairs(Arena:GetChildren()) do
 				local Hum = Instances:FindFirstChild("Humanoid")
 
