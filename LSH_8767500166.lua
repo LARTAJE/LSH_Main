@@ -2212,8 +2212,8 @@ RunService.Heartbeat:Connect(function()
 			end
 
 			for _, Stuff in workspace.ActiveTasks:GetChildren() do 
-			   if Stuff.Name == "Location" then
-				for _,Instances in Stuff:GetChildren() do
+			   if Stuff.Name == "Location" and Stuff:FindFirstChild("FinalFight") then
+				for _,Instances in Stuff.FinalFight:GetChildren() do
 					local Hum = Instances:FindFirstChild("Humanoid")
 	
 					if Hum and Hum.Health > 1 then
