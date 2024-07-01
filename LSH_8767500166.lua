@@ -91,7 +91,7 @@ local ExpectedArguments = {
 --]]
 
 local ValidTargetParts = {"Head", "Torso"};
-local BlackListedItems = {"Skyfall T.A.G."}
+local BlackListedItems = {"Skyfall T.A.G.", "GL-06"}
 local ctrl = {f = 0, b = 0, l = 0, r = 0}
 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 
@@ -693,7 +693,355 @@ ThemeManager:ApplyToTab(Tabs['UI Settings'])
 
 --// Locals
 
-local ItemStats = require(game:GetService("ReplicatedStorage").Mods.TypeDatabase)
+local ItemStats = {
+
+	--//# Food
+
+	["Energy Bar"] = {
+		Type = "Food",
+		Contraband = false
+	},
+
+	["Energy Drink"] = {
+		Type = "Food",
+		Contraband = false
+	},
+
+	["Coffee"] = {
+		Type = "Food",
+		Contraband = false
+	},
+
+	["Soda"] = {
+		Type = "Food",
+		Contraband = false
+	},
+
+	["Canned Beans"] = {
+		Type = "Food",
+		Contraband = false
+	},
+
+	["Canned Corn"] = {
+		Type = "Food",
+		Contraband = false
+	},
+	--/#
+
+	--// Healing
+
+	["Medkit"] = {
+		Type = "Healing",
+		Contraband = false
+	},
+
+	["Bandage"] = {
+		Type = "Healing",
+		Contraband = false
+	},
+
+	["Trauma Pad"] = {
+		Type = "Healing",
+		Contraband = false
+	},
+	--/#
+
+
+	--// Misc
+
+	["Lockpick"] = {
+		Type = "Misc",
+		Contraband = false
+	},
+
+	["Bounty Card"] = {
+		Type = "Misc",
+		Contraband = false
+	},
+	--/#
+
+	--// Melees
+
+
+	["Bat"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+
+	["Tomahawk"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+
+	["Spear"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+
+	["Tactical Knife"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+
+	["Greataxe"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+
+	["Katana"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+
+	["Sledgehammer"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+
+	["Photon Blades"] = {
+		Type = "Melee",
+		Contraband = true
+	},
+
+	--// Guns
+
+
+	["725"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["M4A1"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["AWM"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["Crossbow"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["FAMAS"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["M1911"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["MP5"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["SCAR-17"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["SCAR-20"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["SPAS-12"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["TAC-14"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["G3"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+	["G17"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["G18"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["MAC-11"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["AK-47"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["UZI"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["M24"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+
+	["Deagle"] = {
+		Type = "Gun",
+		Contraband = false
+	},
+
+	["Photon Accelerator"] = {
+		Type = "Gun",
+		Contraband = true
+	},
+	--/#
+
+
+	--// Explosives
+
+	["GL-06"] = {
+		Type = "Explosive",
+		Contraband = false
+	},
+
+	["RPG-18"] = {
+		Type = "Explosive",
+		Contraband = true
+	},
+	--/#
+
+	--// Utility
+
+	["Ammo Box"] = {
+		Type = "Utility",
+		Contraband = false
+	},
+
+	["Flashbang"] = {
+		Type = "Utility",
+		Contraband = false
+	},
+
+	["Grenade"] = {
+		Type = "Utility",
+		Contraband = false
+	},
+
+	["Incendiary"] = {
+		Type = "Utility",
+		Contraband = false
+	},
+
+	["Smoke"] = {
+		Type = "Utility",
+		Contraband = false
+	},
+
+
+	--// Armor
+
+	["Light Tactical Armor"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+
+	["Heavy Tactical Armor"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+
+	["Operator Helmet"] = {
+		Type = "Armor",
+		Contraband = true
+	},
+
+	["Operator Vest"] = {
+		Type = "Armor",
+		Contraband = true
+	},
+
+	["Operator Leggings"] = {
+		Type = "Armor",
+		Contraband = true
+	},
+
+	["Tactical Leggings"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+
+	["Tactical Helmet"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+
+	["Small Backpack"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+
+	["Large Backpack"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+
+	["Night-Vision Goggles"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+
+	["Anti-Flash Goggles"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+
+	["Gas Mask"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	--/#
+
+
+	--// Keycards
+
+	["Purple Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+
+	["Green Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+
+	["Blue Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+
+	["Red Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+	--/#
+
+	--// Flares
+
+	["Red Flare Gun"] = {
+		Type = "Flares",
+		Contraband = false
+	},
+
+	["Green Flare Gun"] = {
+		Type = "Flares",
+		Contraband = false
+	},
+
+}
 --]]
 --// Events
 
@@ -758,7 +1106,9 @@ local function OnPlayerDisconnect(Plr)
 end
 
 local function OnCharacterAdded(__Character)
+	print(__Character.Name)
 	__Character.ChildAdded:Connect(function(Child)
+		print(Child.Name)
 		if table.find(BlackListedItems, Child.Name) then
 			Library:Notify("Item "..Child.Name.. " has been equipped by ".. __Character.Name)
 			HightlightOBJ(__Character, 60)
