@@ -11,7 +11,6 @@ local PlayerGui = game.Players.LocalPlayer.PlayerGui
 local Character = LocalPlayer.Character
 local mouse = LocalPlayer:GetMouse()
 
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -22,7 +21,6 @@ local Lighting = game.Lighting
 local GetPlayers = Players.GetPlayers
 
 local GetMouseLocation = UserInputService.GetMouseLocation
-
 local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 local VirtualInputManager = Instance.new("VirtualInputManager")
 
@@ -760,86 +758,87 @@ local function OnPlayerDisconnect(Plr)
 end
 
 local function OnCharacterAdded(__Character)
-		__Character.ChildAdded:Connect(function(Child)
-			if table.find(BlackListedItems, Child.Name) then
-				Library:Notify("Item "..Child.Name.. " has been equipped by ".. __Character.Name)
-				HightlightOBJ(__Character, 60)
-				AdminSound:Play()
-			end
-		end)
+	__Character.ChildAdded:Connect(function(Child)
+		if table.find(BlackListedItems, Child.Name) then
+			Library:Notify("Item "..Child.Name.. " has been equipped by ".. __Character.Name)
+			HightlightOBJ(__Character, 60)
+			AdminSound:Play()
+		end
+	end)
 
-	local OnAdminJoined = function(Plr)
-		table.insert(PlayersInServer,Plr)
+	
+end
 
-		local IsInGroup = function(Plr, Id)
-			local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
-			if Success then 
-				return Response 
+local OnAdminJoined = function(Plr)
+	table.insert(PlayersInServer,Plr)
+
+	local IsInGroup = function(Plr, Id)
+		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
+		if Success then 
+			return Response 
+		end
+		return false
+	end
+
+	local GetRoleInGroup = function(Plr, Id)
+		local Success, Response = pcall(Plr.GetRoleInGroup, Plr, Id)
+		if Success then
+			return Response
+		end
+		return false
+	end
+
+	local GroupStates = { 
+		["CrimAdminGroup"] = IsInGroup(Plr, 10911475),
+		["Blackout"] = IsInGroup(Plr, 6568965),
+	}
+
+	Plr.CharacterAdded:Connect(function()
+		OnCharacterAdded(Plr.Character)
+		table.insert(Plr, Plr.Character)
+	end)
+
+	if GroupStates.CrimAdminGroup or GroupStates.Blackout then
+		local Role = GetRoleInGroup(Plr, 6568965)
+
+		if Role ~= "Member" or GroupStates.CrimAdminGroup then
+
+			if Toggles.AdminDetector.Value then
+				LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
+				return
 			end
-			return false
+
+
+			AdminSound:Play()
+			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
+		else
+			AdminSound:Play()
+			Library:Notify(Plr.Name.." Joined, be careful!")
 		end
 
-		local GetRoleInGroup = function(Plr, Id)
-			local Success, Response = pcall(Plr.GetRoleInGroup, Plr, Id)
-			if Success then
-				return Response
-			end
-			return false
-		end
-
-		local GroupStates = { 
-			["CrimAdminGroup"] = IsInGroup(Plr, 10911475),
-			["Blackout"] = IsInGroup(Plr, 6568965),
-		}
-
-		Plr.CharacterAdded:Connect(function()
-			OnCharacterAdded(Plr.Character)
-			table.insert(Plr, Plr.Character)
-		end)
-
-		if GroupStates.Criminality or GroupStates.Blackout then
-			local Role = GetRoleInGroup(Plr, 6568965)
-
-			if Role ~= "Member" or GroupStates.CrimAdminGroup then
-
-				if Toggles.AdminDetector.Value then
-					Player:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
-					return
-				end
-
-
-				AdminSound:Play()
-				Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
-			else
-				Library:Notify(Plr.Name.." Joined, be careful!")
-			end
-
-		end
 	end
 end
 
-	local function ItemAdded(Item,Method)
+local function ItemAdded(Item,Method)
 
-		if Toggles.NotificateItemsToggle.Value == true then
+	if Toggles.NotificateItemsToggle.Value == true then
 
-			local ItemStat = ItemStats[Item.Name]
-			if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true) then
-				Library:Notify("Item ".. Item.Name.. " Dropped", 10)
+		local ItemStat = ItemStats[Item.Name]
+		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true) then
+			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
 
-				if Toggles.NotificateHightlightLoot.Value == true then
-					HightlightOBJ(Item.Parent.Parent,10)
-				end
+			if Toggles.NotificateHightlightLoot.Value == true then
+				HightlightOBJ(Item.Parent.Parent,10)
+			end
 
-				if Toggles.NotificateAddToESP.Value == true then
+			if Toggles.NotificateAddToESP.Value == true then
 
-					ESPFramework:Add(Item.Parent.Parent,{
-						Name = Item.Parent.Parent.Parent.Name,
-						Color = Color3.fromRGB(255, 135, 239),
-						ColorDynamic = false,
-						IsEnabled = "Notificate_Items",
-					})
-
-				end
+				ESPFramework:Add(Item.Parent.Parent,{
+					Name = Item.Parent.Parent.Parent.Name,
+					Color = Color3.fromRGB(255, 135, 239),
+					ColorDynamic = false,
+					IsEnabled = "Notificate_Items",
+				})
 
 			end
 
@@ -847,310 +846,312 @@ end
 
 	end
 
-	local speed = Options.FlySpeed.Value
+end
 
-	local function Fly()
-		local torso = Character.Torso
-		local bg = Instance.new("BodyGyro", torso)
-		bg.P = 9e4
-		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-		bg.cframe = torso.CFrame
-		local bv = Instance.new("BodyVelocity", torso)
-		bv.velocity = Vector3.new(0,0.1,0)
-		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+local speed = Options.FlySpeed.Value
 
-		repeat task.wait()
-			Character.Humanoid.PlatformStand = true
-			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-				speed = speed+.5
-			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-				speed = speed-1
-				if speed < 0 then
-					speed = 0
-				end
+local function Fly()
+	local torso = Character.Torso
+	local bg = Instance.new("BodyGyro", torso)
+	bg.P = 9e4
+	bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+	bg.cframe = torso.CFrame
+	local bv = Instance.new("BodyVelocity", torso)
+	bv.velocity = Vector3.new(0,0.1,0)
+	bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+
+	repeat task.wait()
+		Character.Humanoid.PlatformStand = true
+		if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+			speed = speed+.5
+		elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+			speed = speed-1
+			if speed < 0 then
+				speed = 0
 			end
-			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-			else
-				bv.velocity = Vector3.new(0,0.1,0)
-			end
-			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/150),0,0)
-		until not Toggles.FlyToggle.Value
-
-		ctrl = {f = 0, b = 0, l = 0, r = 0}
-		lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		speed = Options.FlySpeed.Value
-		bg:Destroy()
-		bv:Destroy()
-		Character.Humanoid.PlatformStand = false
-	end
-
-
-	local function CalculateChance(Percentage)
-		Percentage = math.floor(Percentage)
-		local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
-		return chance <= Percentage / 100
-	end
-
-	local function Swing()
-		SwingEvent:InvokeServer()
-	end
-
-	local function Hit(__ZCharacter,PartToHit)
-		local args = {
-			[1] = __ZCharacter[PartToHit],
-			[2] = __ZCharacter[PartToHit].Position
-		}
-		HitEvent:FireServer(unpack(args))
-	end
-
-	local function TPtoLootAndPickUp(PartToTp, TPBack)
-
-		if TPBack then
-			local OriginalPos = CharacterRoot.CFrame
-			CharacterRoot.CFrame = PartToTp.CFrame + PartToTp.CFrame.LookVector * -2
-			task.delay(1,function()
-				CharacterRoot.CFrame = OriginalPos
-			end)
+		end
+		if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).Position) - game.Workspace.CurrentCamera.CoordinateFrame.Position))*speed
+			lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+		elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).Position) - game.Workspace.CurrentCamera.CoordinateFrame.Position))*speed
 		else
-			CharacterRoot.CFrame = PartToTp.CFrame + PartToTp.CFrame.LookVector * -2
+			bv.velocity = Vector3.new(0,0.1,0)
 		end
+		bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/150),0,0)
+	until not Toggles.FlyToggle.Value
 
-		task.wait(2)
-
-		LockPick(PartToTp.Parent,true)
-		OpenLoot(PartToTp.Parent)
-	end
-
-	--game:GetService("ReplicatedStorage").GunStorage.Mods
-
-	local function ValidateArguments(Args, RayMethod)
-		local Matches = 0
-		if #Args < RayMethod.ArgCountRequired then
-			return false
-		end
-		for Pos, Argument in next, Args do
-			if typeof(Argument) == RayMethod.Args[Pos] then
-				Matches = Matches + 1
-			end
-		end
-		return Matches >= RayMethod.ArgCountRequired
-	end
-
-	local function Vector2MousePosition()
-		return Vector2.new(mouse.X, mouse.Y)
-	end
-
-	local function IsPlayerVisible(Player)
-		local PlayerCharacter = Player.Character
-		local LocalPlayerCharacter = LocalPlayer.Character
-
-		if not (PlayerCharacter or LocalPlayerCharacter) then return end 
-
-		local PlayerRoot = FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
-
-		if not PlayerRoot then return end 
-
-		local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
-		local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
-
-		return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
-	end
-
-	local function getClosestPlayer()
-		if not Options.TargetPart.Value then return end
-		local Closest
-		local DistanceToMouse
-		local ToCheck = {}
-
-		for _, Player in next, GetPlayers(Players) do
-			if Player == LocalPlayer then continue end
-			local _Character = Player.Character
-			if not _Character then continue end
-			table.insert(ToCheck, _Character)
-
-			if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
-			if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
-
-			local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
-			local Humanoid = FindFirstChild(_Character, "Humanoid")
-
-			if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
-
-			local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
-			if not OnScreen then continue end
-
-			local Distance = (getMousePosition() - ScreenPosition).Magnitude
-
-			if Distance <= (DistanceToMouse or Options.SilentAimFovSlider.Value or 2000) then
-				Closest = ((Options.TargetPart.Value == "Random" and _Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or _Character[Options.TargetPart.Value])
-				DistanceToMouse = Distance
-			end
-
-		end
-
-		return Closest
-	end
-
-	--]]
-
-	local function StartMission(Mission, TPBack)
-		local BrokerRootPart = Other_NPCs:FindFirstChild("Broker"):WaitForChild("HumanoidRootPart")
-
-		if TPBack then
-			local OriginalPos = CharacterRoot.CFrame
-			CharacterRoot.CFrame = BrokerRootPart.CFrame
-			task.delay(0.3,function()
-				CharacterRoot.CFrame = OriginalPos
-			end)
-		else
-			CharacterRoot.CFrame = BrokerRootPart.CFrame
-		end
-		--task.wait(.2)
-		StartTask:FireServer(BrokerRootPart, Mission)
-	end
-
-	local function Damage(Damage,LimbDamageTable)
-		DamageEvent:FireServer(Damage,LimbDamageTable)
-	end
-
-	local function NPCAdded(NPCChar)
-		--ESPFramework:AddObjectListener.createObject(NPCChar,)
-	end
-
-	local function NPCRemoved(NPCChar)
-		--ESPFramework:AddObjectListener.removeObject(NPCChar,)
-	end
-
-	local function CollectLootFromLootTable(LootTable)
-		local ItemsInLootTable = LootTable:GetChildren()
-		local CurrentItemIndex = 1
+	ctrl = {f = 0, b = 0, l = 0, r = 0}
+	lastctrl = {f = 0, b = 0, l = 0, r = 0}
+	speed = Options.FlySpeed.Value
+	bg:Destroy()
+	bv:Destroy()
+	Character.Humanoid.PlatformStand = false
+end
 
 
-		for _, Item in pairs(ItemsInLootTable) do
-			local ItemStat = ItemStats[Item.Name]
+local function CalculateChance(Percentage)
+	Percentage = math.floor(Percentage)
+	local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
+	return chance <= Percentage / 100
+end
 
-			if ItemStat and (Options.AutoLootFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.AutoLootFilter.Value[ItemStat.Contraband] == true) then
-				PickUpItem(LootTable,Item,true)
-				task.wait(0.5)
-			end
+local function Swing()
+	SwingEvent:InvokeServer()
+end
 
-		end
+local function Hit(__ZCharacter,PartToHit)
+	local args = {
+		[1] = __ZCharacter[PartToHit],
+		[2] = __ZCharacter[PartToHit].Position
+	}
+	HitEvent:FireServer(unpack(args))
+end
 
+local function TPtoLootAndPickUp(PartToTp, TPBack)
 
-		if Options.AutoLootFilter.Value["Cash"] == true then
-			task.wait(0.5)
-			PickUpItem(LootTable, "Cash",nil)
-		end
-
-		if Options.AutoLootFilter.Value["Valuables"] == true then
-			task.wait(0.5)
-			PickUpItem(LootTable, "Valuables",nil)
-		end
-
-	end
-
-	local function II_C()
-		if Toggles.NoHD then
-
-			if Toggles.NoHD.Value then
-				for _,HPrompt in pairs(ProxPrompts) do
-					HPrompt.HoldDuration = 0
-				end
-			else
-				for _,HPrompt in pairs(ProxPrompts) do
-					HPrompt.HoldDuration = HPrompt:GetAttribute("_Original_HoldTime")
-				end
-			end
-
-		end
-	end
-
-	local function ArenaInstanceAdded(INNNSTANCE)
-		if Toggles.Arena_AutoFarm.Value == true then
-
-			if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
-				CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
-				Swing()
-				Hit(INNNSTANCE, "Head")
-				task.wait(0.05) 
-			end
-
-		end
-	end
-
-	local function RedRaidInstanceAdded(INNNSTANCE)
-		if Toggles.RedRaid_AutoFarm.Value == true then
-
-			if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
-				CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
-				Swing()
-				Hit(INNNSTANCE, "Head")
-				task.wait(0.05) 
-			end
-
-		end
-	end
-
-	local function SetUpLootTables(_LootTable)
-		table.insert(LootTables, _LootTable)
-
-		_LootTable.ChildAdded:Connect(function(Item)
-			ItemAdded(Item)
+	if TPBack then
+		local OriginalPos = CharacterRoot.CFrame
+		CharacterRoot.CFrame = PartToTp.CFrame + PartToTp.CFrame.LookVector * -2
+		task.delay(1,function()
+			CharacterRoot.CFrame = OriginalPos
 		end)
-
-		for __,Item in(_LootTable:GetChildren()) do
-			ItemAdded(Item)
-		end
+	else
+		CharacterRoot.CFrame = PartToTp.CFrame + PartToTp.CFrame.LookVector * -2
 	end
 
-	local function PromptSetUp(ProxPrompt)
-		table.insert(ProxPrompts,ProxPrompt)
-		ProxPrompt:SetAttribute("_Original_HoldTime", ProxPrompt.HoldDuration)
-		II_C()
-		ProxPrompt.Triggered:Connect(function()
+	task.wait(2)
 
-			if ProxPrompt.Name == "LockMinigame" then
+	LockPick(PartToTp.Parent,true)
+	OpenLoot(PartToTp.Parent)
+end
 
-				if ProxPrompt:GetAttribute("Unlocked") then
-					task.wait(0.5)
+--game:GetService("ReplicatedStorage").GunStorage.Mods
+
+local function ValidateArguments(Args, RayMethod)
+	local Matches = 0
+	if #Args < RayMethod.ArgCountRequired then
+		return false
+	end
+	for Pos, Argument in next, Args do
+		if typeof(Argument) == RayMethod.Args[Pos] then
+			Matches = Matches + 1
+		end
+	end
+	return Matches >= RayMethod.ArgCountRequired
+end
+
+local function Vector2MousePosition()
+	return Vector2.new(mouse.X, mouse.Y)
+end
+
+local function IsPlayerVisible(Player)
+	local PlayerCharacter = Player.Character
+	local LocalPlayerCharacter = LocalPlayer.Character
+
+	if not (PlayerCharacter or LocalPlayerCharacter) then return end 
+
+	local PlayerRoot = FindFirstChild(PlayerCharacter, Options.TargetPart.Value) or FindFirstChild(PlayerCharacter, "HumanoidRootPart")
+
+	if not PlayerRoot then return end 
+
+	local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
+	local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
+
+	return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
+end
+
+local function getClosestPlayer()
+	if not Options.TargetPart.Value then return end
+	local Closest
+	local DistanceToMouse
+	local ToCheck = {}
+
+	for _, Player in next, GetPlayers(Players) do
+		if Player == LocalPlayer then continue end
+		local _Character = Player.Character
+		if not _Character then continue end
+		table.insert(ToCheck, _Character)
+
+		if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+		if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
+
+		local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
+		local Humanoid = FindFirstChild(_Character, "Humanoid")
+
+		if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
+
+		local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
+		if not OnScreen then continue end
+
+		local Distance = (getMousePosition() - ScreenPosition).Magnitude
+
+		if Distance <= (DistanceToMouse or Options.SilentAimFovSlider.Value or 2000) then
+			Closest = ((Options.TargetPart.Value == "Random" and _Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or _Character[Options.TargetPart.Value])
+			DistanceToMouse = Distance
+		end
+
+	end
+
+	return Closest
+end
+
+--]]
+
+local function StartMission(Mission, TPBack)
+	local BrokerRootPart = Other_NPCs:FindFirstChild("Broker"):WaitForChild("HumanoidRootPart")
+
+	if TPBack then
+		local OriginalPos = CharacterRoot.CFrame
+		CharacterRoot.CFrame = BrokerRootPart.CFrame
+		task.delay(0.3,function()
+			CharacterRoot.CFrame = OriginalPos
+		end)
+	else
+		CharacterRoot.CFrame = BrokerRootPart.CFrame
+	end
+	--task.wait(.2)
+	StartTask:FireServer(BrokerRootPart, Mission)
+end
+
+local function Damage(Damage,LimbDamageTable)
+	DamageEvent:FireServer(Damage,LimbDamageTable)
+end
+
+local function NPCAdded(NPCChar)
+	--ESPFramework:AddObjectListener.createObject(NPCChar,)
+end
+
+local function NPCRemoved(NPCChar)
+	--ESPFramework:AddObjectListener.removeObject(NPCChar,)
+end
+
+local function CollectLootFromLootTable(LootTable)
+	local ItemsInLootTable = LootTable:GetChildren()
+	local CurrentItemIndex = 1
+
+
+	for _, Item in pairs(ItemsInLootTable) do
+		local ItemStat = ItemStats[Item.Name]
+
+		if ItemStat and (Options.AutoLootFilter.Value[ItemStat.Type] == true) or ItemStat.Contraband == true and (Options.AutoLootFilter.Value[ItemStat.Contraband] == true) then
+			PickUpItem(LootTable,Item,true)
+			task.wait(0.5)
+		end
+
+	end
+
+
+	if Options.AutoLootFilter.Value["Cash"] == true then
+		task.wait(0.5)
+		PickUpItem(LootTable, "Cash",nil)
+	end
+
+	if Options.AutoLootFilter.Value["Valuables"] == true then
+		task.wait(0.5)
+		PickUpItem(LootTable, "Valuables",nil)
+	end
+
+end
+
+local function II_C()
+	if Toggles.NoHD then
+
+		if Toggles.NoHD.Value then
+			for _,HPrompt in pairs(ProxPrompts) do
+				HPrompt.HoldDuration = 0
+			end
+		else
+			for _,HPrompt in pairs(ProxPrompts) do
+				HPrompt.HoldDuration = HPrompt:GetAttribute("_Original_HoldTime")
+			end
+		end
+
+	end
+end
+
+local function ArenaInstanceAdded(INNNSTANCE)
+	if Toggles.Arena_AutoFarm.Value == true then
+
+		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
+			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
+			Swing()
+			Hit(INNNSTANCE, "Head")
+			task.wait(0.05) 
+		end
+
+	end
+end
+
+local function RedRaidInstanceAdded(INNNSTANCE)
+	if Toggles.RedRaid_AutoFarm.Value == true then
+
+		if INNNSTANCE:FindFirstChild("Head") and INNNSTANCE:IsA("Model") then
+			CharacterRoot.CFrame = (INNNSTANCE["HumanoidRootPart"].CFrame + Vector3.new(0,4,0))-- + (INNNSTANCE["HumanoidRootPart"].CFrame.LookVector * -2)
+			Swing()
+			Hit(INNNSTANCE, "Head")
+			task.wait(0.05) 
+		end
+
+	end
+end
+
+local function SetUpLootTables(_LootTable)
+	table.insert(LootTables, _LootTable)
+
+	_LootTable.ChildAdded:Connect(function(Item)
+		ItemAdded(Item)
+	end)
+
+	for __,Item in(_LootTable:GetChildren()) do
+		ItemAdded(Item)
+	end
+end
+
+local function PromptSetUp(ProxPrompt)
+	table.insert(ProxPrompts,ProxPrompt)
+	ProxPrompt:SetAttribute("_Original_HoldTime", ProxPrompt.HoldDuration)
+	II_C()
+	ProxPrompt.Triggered:Connect(function()
+
+		if ProxPrompt.Name == "LockMinigame" then
+			local ToLockPick = ProxPrompt.Parent.Parent.Parent
+			
+			if ProxPrompt:GetAttribute("Unlocked") then
+				task.wait(0.5)
+				OpenLoot(ToLockPick)
+			end
+
+			if Toggles.AutoLockpickToggle.Value == true then
+				task.wait(1)
+				LockPick(ToLockPick,true)
+
+				if Toggles.OpenlootOnLockpick.Value == true then
 					OpenLoot(ToLockPick)
 				end
 
-				if Toggles.AutoLockpickToggle.Value == true then
-					local ToLockPick = ProxPrompt.Parent.Parent.Parent
-					task.wait(1)
-					LockPick(ToLockPick,true)
-
-					if Toggles.OpenlootOnLockpick.Value == true then
-						OpenLoot(ToLockPick)
-					end
-
-				end
-
-			elseif ProxPrompt.Name == "OpenLootTable" then
-
-				local PromptLootTable = ProxPrompt.Parent:FindFirstChild("LootTable")
-
-				if Toggles.AutoLootToggle.Value == true then
-					task.wait(0.6)
-					CollectLootFromLootTable(PromptLootTable)
-				end
-
 			end
 
-		end)
+		elseif ProxPrompt.Name == "OpenLootTable" then
 
-	end
+			local PromptLootTable = ProxPrompt.Parent:FindFirstChild("LootTable")
 
-	--// Start Missions
+			if Toggles.AutoLootToggle.Value == true then
+				task.wait(0.6)
+				CollectLootFromLootTable(PromptLootTable)
+			end
 
-	Missions:AddButton('Start Cargo Ambush', function()
-		StartMission("StealCargo", true)
+		end
+
 	end)
+
+end
+
+--// Start Missions
+
+Missions:AddButton('Start Cargo Ambush', function()
+	StartMission("StealCargo", true)
+end)
 
 --[[
 Teleport:AddDropdown('DropDownTeleport', {
@@ -1171,476 +1172,476 @@ Teleport:AddButton('TeleportToPlayer', function()
 end)
 --]]
 
-	Misc:AddToggle('HiddenFling', {
-		Text = 'Hidden fling',
-		Default = false,
-		Tooltip = 'Flings... and its hidden!.',
+Misc:AddToggle('HiddenFling', {
+	Text = 'Hidden fling',
+	Default = false,
+	Tooltip = 'Flings... and its hidden!.',
+})
+
+Misc:AddToggle('DisableFDMG_RAGDOLL', {
+	Text = 'Disable Ragdoll',
+	Default = false,
+	Tooltip = 'Disables ragdoll and adicionaly disable fall damage!.',
+})
+
+Misc:AddButton('Suicide', function()
+
+	Damage(1000,{
+		["Head"] = 1000
 	})
 
-	Misc:AddToggle('DisableFDMG_RAGDOLL', {
-		Text = 'Disable Ragdoll',
-		Default = false,
-		Tooltip = 'Disables ragdoll and adicionaly disable fall damage!.',
-	})
+end)
 
-	Misc:AddButton('Suicide', function()
+Toggles.SpeedToggle:OnChanged(function()
+	if (not Toggles.SpeedToggle.Value) then
+		Character.Humanoid.WalkSpeed = 16
+		return;
+	end;
 
-		Damage(1000,{
-			["Head"] = 1000
-		})
+	Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
+end)
+
+Toggles.FlyToggle:OnChanged(function()
+
+	if (not Toggles.FlyToggle.Value) then
+		return;
+	end;
+
+	Fly()
+
+end)
+
+local function GetClothes(id)
+	local NewClothing = nil
+
+	local Success, ClothingID = pcall(function()
+		local UID = tonumber(id)
+		local Request = game:HttpGet("https://assetdelivery.roblox.com/v1/asset/?ID="..UID)
+
+		if Request then
+			local Start = string.find(Request,"<url>")
+			local End = string.find(Request,"</url>",Start)
+
+			if Start and End then
+				print("Success")
+				NewClothing = string.sub(Request,Start+5,End-1)
+				return NewClothing
+			end
+		end
 
 	end)
 
-	Toggles.SpeedToggle:OnChanged(function()
-		if (not Toggles.SpeedToggle.Value) then
-			Character.Humanoid.WalkSpeed = 16
-			return;
-		end;
+	if NewClothing then 
+		print("ID: ".. NewClothing)
+		return NewClothing
+	else 
+		print("err")
+		return "rbxassetid://0"
+	end
 
-		Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
-	end)
+end
 
-	Toggles.FlyToggle:OnChanged(function()
+local function GetBodyParts(Head,Torso,RightArm,LeftArm,RightLeg,LeftLeg)
+	local d = Instance.new("HumanoidDescription")
+	d.Head = Head
+	d.Torso = Torso
+	d.RightArm = RightArm
+	d.LeftArm = LeftArm
+	d.RightLeg = RightLeg
+	d.LeftLeg = LeftLeg
 
-		if (not Toggles.FlyToggle.Value) then
-			return;
-		end;
+	local m = Players:CreateHumanoidModelFromDescription(d,Enum.HumanoidRigType.R6,Enum.AssetTypeVerification.ClientOnly)
+	local meshes = {}
 
-		Fly()
+	for _,mesh in pairs(m:GetChildren()) do 
+		if mesh:IsA("CharacterMesh") then
+			meshes[#meshes+1] = mesh
+			mesh.Parent = nil
+		end
+	end
 
-	end)
+	m:Destroy()
 
-	local function GetClothes(id)
-		local NewClothing = nil
+	return meshes
+end
 
-		local Success, ClothingID = pcall(function()
-			local UID = tonumber(id)
-			local Request = game:HttpGet("https://assetdelivery.roblox.com/v1/asset/?ID="..UID)
+function weldAttachments(attach1, attach2)
+	local weld = Instance.new("Weld")
+	weld.Part0 = attach1.Parent
+	weld.Part1 = attach2.Parent
+	weld.C0 = attach1.CFrame
+	weld.C1 = attach2.CFrame
+	weld.Parent = attach1.Parent
+	return weld
+end
 
-			if Request then
-				local Start = string.find(Request,"<url>")
-				local End = string.find(Request,"</url>",Start)
+local function buildWeld(weldName, parent, part0, part1, c0, c1)
+	local weld = Instance.new("Weld")
+	weld.Name = weldName
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.C0 = c0
+	weld.C1 = c1
+	weld.Parent = parent
+	return weld
+end
 
-				if Start and End then
-					print("Success")
-					NewClothing = string.sub(Request,Start+5,End-1)
-					return NewClothing
+local function findFirstMatchingAttachment(model, name)
+	for _, child in pairs(model:GetChildren()) do
+		if child:IsA("Attachment") and child.Name == name then
+			return child
+		elseif not child:IsA("Accoutrement") and not child:IsA("Tool") then -- Don't look in hats or tools in the character
+			local foundAttachment = findFirstMatchingAttachment(child, name)
+			if foundAttachment then
+				return foundAttachment
+			end
+		end
+	end
+end
+
+function addAccoutrement(character, accoutrement)  
+	accoutrement.Parent = character
+	local handle = accoutrement:FindFirstChild("Handle")
+	if handle then
+		local accoutrementAttachment = handle:FindFirstChildOfClass("Attachment")
+		if accoutrementAttachment then
+			local characterAttachment = findFirstMatchingAttachment(character, accoutrementAttachment.Name)
+			if characterAttachment then
+				weldAttachments(characterAttachment, accoutrementAttachment)
+			end
+		else
+			local head = character:FindFirstChild("Head")
+			if head then
+				local attachmentCFrame = CFrame.new(0, 0.5, 0)
+				local hatCFrame = accoutrement.AttachmentPoint
+				buildWeld("HeadWeld", head, head, handle, attachmentCFrame, hatCFrame)
+			end
+		end
+	end
+end
+
+local function ExtractDescriptor(ID)
+	local NID = tonumber(ID)
+	local OutfitId = NID
+	local UserName = Players:GetNameFromUserIdAsync(NID)
+	FakeName = UserName
+	local UserInfo = UserService:GetUserInfosByUserIdsAsync({NID})
+
+	if UserInfo then
+		FakeDisplayName = UserInfo[1].DisplayName
+		FakeVerifiedBadge = UserInfo[1].HasVerifiedBadge
+	end
+
+	local Description = Players:GetHumanoidDescriptionFromUserId(OutfitId)
+	local Extracted = nil
+
+	if OutfitId then
+
+		if PlayerDescriptionDump:FindFirstChild(UserName) then			
+			return PlayerDescriptionDump[UserName]:GetChildren()
+		else 
+			Extracted = Instance.new("Folder", PlayerDescriptionDump)
+			Extracted.Name = UserName
+			Description = Players:GetHumanoidDescriptionFromUserId(OutfitId)
+		end
+	end
+
+
+	for _,Accessory in pairs(Description:GetAccessories(true)) do 
+		if not Accessory.IsLayered then
+			local NewAccessory = nil
+			NewAccessory = game:GetObjects("rbxassetid://"..Accessory.AssetId)[1]
+			NewAccessory.Parent = Extracted
+		end
+	end
+
+	Instance.new("Decal",Extracted).Texture = (Description.Face == 0 and "rbxasset://textures/face.png") or "rbxthumb://type=Asset&id="..Description.Face.."&w=420&h=420"
+
+	local Colors = Instance.new("BodyColors",Extracted)
+
+	Colors.TorsoColor3 = Description.TorsoColor
+	Colors.HeadColor3 = Description.HeadColor
+	Colors.LeftArmColor3 = Description.LeftArmColor
+	Colors.RightArmColor3 = Description.RightArmColor
+	Colors.LeftLegColor3 = Description.LeftLegColor
+	Colors.RightLegColor3 = Description.RightLegColor
+
+	if Description.Shirt ~= 0 then
+		local Top = Instance.new("Shirt", Extracted)
+		local Template = GetClothes(Description.Shirt)
+
+		local indexo = 1
+
+		if not Template then
+			repeat
+				indexo += 1
+				Template = GetClothes(Description.Shirt)
+			until Template or indexo >= 50
+		end
+
+		if Template then
+			Top.ShirtTemplate = Template
+		end
+
+	end
+
+	if Description.Pants ~= 0 then
+		local Bottom = Instance.new("Pants",Extracted)
+		local Template = GetClothes(Description.Pants)
+		local indexo = 1
+
+		if not Template then
+			repeat
+				indexo += 1
+				Template = GetClothes(Description.Pants)
+			until Template or indexo >= 50
+		end
+
+		if Template then
+			Bottom.PantsTemplate = Template
+		end
+
+	end
+
+	for _,m in pairs(GetBodyParts(Description.Head,Description.Torso,Description.RightArm,Description.LeftArm,Description.RightLeg,Description.LeftLeg)) do
+		m.Parent = Extracted
+	end
+
+	return Extracted:GetChildren()
+end
+
+local function ChangeChar(ID)
+	if not ID then return end
+	if not Players:GetNameFromUserIdAsync(tonumber(ID)) then return end
+
+	local _Desc = ExtractDescriptor(ID)
+
+	if _Desc then
+
+		for _, v in pairs(Character:GetChildren()) do
+			if v:IsA("Accessory") then
+				v:Destroy()
+			end
+		end
+
+		for _, Accourtment in pairs(_Desc) do 
+			local NewAccourtment = Accourtment:Clone()
+
+			if NewAccourtment:IsA("Accessory") then
+				NewAccourtment.Handle.Anchored = false
+				NewAccourtment.Handle.CanCollide = false
+				addAccoutrement(Character, NewAccourtment)
+			elseif NewAccourtment:IsA("Decal") then
+				Character:WaitForChild("Head"):FindFirstChildOfClass("Decal").Texture = NewAccourtment.Texture
+			elseif NewAccourtment:IsA("Shirt") then
+				local ClothingPiece = Character:FindFirstChildOfClass("Shirt")
+
+				if ClothingPiece then
+					ClothingPiece.ShirtTemplate = NewAccourtment.ShirtTemplate
+				else 
+					ClothingPiece:Clone().Parent = Character
 				end
+
+			elseif NewAccourtment:IsA("Pants") then
+				local ClothingPiece = Character:FindFirstChildOfClass("Pants")
+
+				if ClothingPiece then
+					ClothingPiece.PantsTemplate = NewAccourtment.PantsTemplate
+				else 
+					ClothingPiece:Clone().Parent = Character
+				end
+
+			elseif NewAccourtment:IsA("CharacterMesh") then
+				NewAccourtment:Clone().Parent = Character
+			elseif NewAccourtment:IsA("BodyColors") then
+				--		
+				if Character:FindFirstChild("Head") then
+					Character["Head"].Color = NewAccourtment.HeadColor3
+
+					if Character.Head:FindFirstChild("FaceMount") then
+						Character.Head["FaceMount"].Color = NewAccourtment.HeadColor3
+					end
+
+				end
+
+				if Character:FindFirstChild("Torso") then
+					Character["Torso"].Color = NewAccourtment.TorsoColor3
+				end
+
+				if Character:FindFirstChild("Right Arm") then
+					Character["Right Arm"].Color = NewAccourtment.RightArmColor3
+				end
+
+				if Character:FindFirstChild("Left Arm") then
+					Character["Left Arm"].Color = NewAccourtment.LeftArmColor3
+				end
+
+				if Character:FindFirstChild("Right Leg") then
+					Character["Right Leg"].Color = NewAccourtment.RightLegColor3
+				end
+
+				if Character:FindFirstChild("Left Leg") then
+					Character["Left Leg"].Color = NewAccourtment.LeftLegColor3
+				end
+
 			end
 
+		end
+
+	end
+
+end
+
+function newOBJ(D_OBJ)
+	local SSssLootTable = D_OBJ:WaitForChild("LootTable",5)
+	if SSssLootTable then
+		SetUpLootTables(SSssLootTable)
+	end
+
+	for _, __ProxPrompt in pairs(D_OBJ:GetDescendants()) do
+
+		if __ProxPrompt:IsA("ProximityPrompt") then
+			PromptSetUp(__ProxPrompt)
+		end
+
+	end
+
+end
+
+local function Check_LTS(__INS)
+	if __INS.Name == "Loot" then
+
+		__INS.ChildAdded:Connect(function(ooOBJ)
+			newOBJ(ooOBJ)
 		end)
 
-		if NewClothing then 
-			print("ID: ".. NewClothing)
-			return NewClothing
-		else 
-			print("err")
-			return "rbxassetid://0"
+		for i, ooOBJ in pairs(__INS:GetChildren()) do
+			newOBJ(ooOBJ)
 		end
 
 	end
+end
 
-	local function GetBodyParts(Head,Torso,RightArm,LeftArm,RightLeg,LeftLeg)
-		local d = Instance.new("HumanoidDescription")
-		d.Head = Head
-		d.Torso = Torso
-		d.RightArm = RightArm
-		d.LeftArm = LeftArm
-		d.RightLeg = RightLeg
-		d.LeftLeg = LeftLeg
+--/#
 
-		local m = Players:CreateHumanoidModelFromDescription(d,Enum.HumanoidRigType.R6,Enum.AssetTypeVerification.ClientOnly)
-		local meshes = {}
+--// Setup Connections
 
-		for _,mesh in pairs(m:GetChildren()) do 
-			if mesh:IsA("CharacterMesh") then
-				meshes[#meshes+1] = mesh
-				mesh.Parent = nil
-			end
-		end
 
-		m:Destroy()
+for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
+	if PlrDeathBLootTable.Name == "LootTable" then
+		SetUpLootTables(PlrDeathBLootTable)
+	end
+end
 
-		return meshes
+for _, Lootinstancee in pairs(workspace:GetDescendants()) do
+
+	if Lootinstancee.Parent.Name == "Loot" then
+		table.insert(BunkerLoot, Lootinstancee)
+	elseif Lootinstancee:IsA("ProximityPrompt") then
+		PromptSetUp(Lootinstancee)
+	elseif Lootinstancee.Name == "LootTable" then
+		SetUpLootTables(Lootinstancee)
 	end
 
-	function weldAttachments(attach1, attach2)
-		local weld = Instance.new("Weld")
-		weld.Part0 = attach1.Parent
-		weld.Part1 = attach2.Parent
-		weld.C0 = attach1.CFrame
-		weld.C1 = attach2.CFrame
-		weld.Parent = attach1.Parent
-		return weld
+end
+
+--/#
+
+--//Events
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
+	Name = "Military Scout",
+	Color = Color3.fromRGB(25,25,255),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
+	Name = "Military Guard",
+	Color = Color3.fromRGB(25,25,255),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+--
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
+	Name = "Vulture Scout",
+	Color = Color3.fromRGB(25,25,255),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
+	Name = "Vulture Guard",
+	Color = Color3.fromRGB(25,25,255),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+--
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
+	Name = "Rebel Scout",
+	Color = Color3.fromRGB(25,25,255),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+
+ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
+	Name = "Rebel Guard",
+	Color = Color3.fromRGB(25,25,255),
+	ColorDynamic = false,
+	IsEnabled = "NPC_ESP",
+})
+--
+ESPFramework:AddObjectListener(Other_NPCs,{ --Merchants
+	Name = "Merchant",
+	Color = Color3.fromRGB(25,200,0),
+	ColorDynamic = false,
+	IsEnabled = "Merchant_ESP",
+})
+
+ESPFramework:AddObjectListener(Other_NPCs,{ --Brokers
+	Name = "Broker",
+	Color = Color3.fromRGB(25,200,0),
+	ColorDynamic = false,
+	IsEnabled = "Broker_ESP",
+})
+--
+ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Rebel Merchants
+	Name = "Rebel Merchant",
+	Color = Color3.fromRGB(255,255,0),
+	ColorDynamic = false,
+	IsEnabled = "Factions_Merchant_ESP",
+})
+
+ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
+	Name = "Vulture Merchant",
+	Color = Color3.fromRGB(255,255,0),
+	ColorDynamic = false,
+	IsEnabled = "Factions_Merchant_ESP",
+})
+
+VisualsTab:AddInput('Disguiser', {
+	Default = LocalPlayer.UserId,
+	Numeric = true,
+	Finished = false,
+
+	Text = 'Disguiser',
+	Tooltip = 'Changes ur avatar by user ID (LOCAL)',
+
+	Placeholder = 'USER ID',
+
+	Callback = function(Value)
+		if typeof(Value) == "string" then end
+		ChangeChar(Value)
 	end
-
-	local function buildWeld(weldName, parent, part0, part1, c0, c1)
-		local weld = Instance.new("Weld")
-		weld.Name = weldName
-		weld.Part0 = part0
-		weld.Part1 = part1
-		weld.C0 = c0
-		weld.C1 = c1
-		weld.Parent = parent
-		return weld
-	end
-
-	local function findFirstMatchingAttachment(model, name)
-		for _, child in pairs(model:GetChildren()) do
-			if child:IsA("Attachment") and child.Name == name then
-				return child
-			elseif not child:IsA("Accoutrement") and not child:IsA("Tool") then -- Don't look in hats or tools in the character
-				local foundAttachment = findFirstMatchingAttachment(child, name)
-				if foundAttachment then
-					return foundAttachment
-				end
-			end
-		end
-	end
-
-	function addAccoutrement(character, accoutrement)  
-		accoutrement.Parent = character
-		local handle = accoutrement:FindFirstChild("Handle")
-		if handle then
-			local accoutrementAttachment = handle:FindFirstChildOfClass("Attachment")
-			if accoutrementAttachment then
-				local characterAttachment = findFirstMatchingAttachment(character, accoutrementAttachment.Name)
-				if characterAttachment then
-					weldAttachments(characterAttachment, accoutrementAttachment)
-				end
-			else
-				local head = character:FindFirstChild("Head")
-				if head then
-					local attachmentCFrame = CFrame.new(0, 0.5, 0)
-					local hatCFrame = accoutrement.AttachmentPoint
-					buildWeld("HeadWeld", head, head, handle, attachmentCFrame, hatCFrame)
-				end
-			end
-		end
-	end
-
-	local function ExtractDescriptor(ID)
-		local NID = tonumber(ID)
-		local OutfitId = NID
-		local UserName = Players:GetNameFromUserIdAsync(NID)
-		FakeName = UserName
-		local UserInfo = UserService:GetUserInfosByUserIdsAsync({NID})
-
-		if UserInfo then
-			FakeDisplayName = UserInfo[1].DisplayName
-			FakeVerifiedBadge = UserInfo[1].HasVerifiedBadge
-		end
-
-		local Description = Players:GetHumanoidDescriptionFromUserId(OutfitId)
-		local Extracted = nil
-
-		if OutfitId then
-
-			if PlayerDescriptionDump:FindFirstChild(UserName) then			
-				return PlayerDescriptionDump[UserName]:GetChildren()
-			else 
-				Extracted = Instance.new("Folder", PlayerDescriptionDump)
-				Extracted.Name = UserName
-				Description = Players:GetHumanoidDescriptionFromUserId(OutfitId)
-			end
-		end
-
-
-		for _,Accessory in pairs(Description:GetAccessories(true)) do 
-			if not Accessory.IsLayered then
-				local NewAccessory = nil
-				NewAccessory = game:GetObjects("rbxassetid://"..Accessory.AssetId)[1]
-				NewAccessory.Parent = Extracted
-			end
-		end
-
-		Instance.new("Decal",Extracted).Texture = (Description.Face == 0 and "rbxasset://textures/face.png") or "rbxthumb://type=Asset&id="..Description.Face.."&w=420&h=420"
-
-		local Colors = Instance.new("BodyColors",Extracted)
-
-		Colors.TorsoColor3 = Description.TorsoColor
-		Colors.HeadColor3 = Description.HeadColor
-		Colors.LeftArmColor3 = Description.LeftArmColor
-		Colors.RightArmColor3 = Description.RightArmColor
-		Colors.LeftLegColor3 = Description.LeftLegColor
-		Colors.RightLegColor3 = Description.RightLegColor
-
-		if Description.Shirt ~= 0 then
-			local Top = Instance.new("Shirt", Extracted)
-			local Template = GetClothes(Description.Shirt)
-
-			local indexo = 1
-
-			if not Template then
-				repeat
-					indexo += 1
-					Template = GetClothes(Description.Shirt)
-				until Template or indexo >= 50
-			end
-
-			if Template then
-				Top.ShirtTemplate = Template
-			end
-
-		end
-
-		if Description.Pants ~= 0 then
-			local Bottom = Instance.new("Pants",Extracted)
-			local Template = GetClothes(Description.Pants)
-			local indexo = 1
-
-			if not Template then
-				repeat
-					indexo += 1
-					Template = GetClothes(Description.Pants)
-				until Template or indexo >= 50
-			end
-
-			if Template then
-				Bottom.PantsTemplate = Template
-			end
-
-		end
-
-		for _,m in pairs(GetBodyParts(Description.Head,Description.Torso,Description.RightArm,Description.LeftArm,Description.RightLeg,Description.LeftLeg)) do
-			m.Parent = Extracted
-		end
-
-		return Extracted:GetChildren()
-	end
-
-	local function ChangeChar(ID)
-		if not ID then return end
-		if not Players:GetNameFromUserIdAsync(tonumber(ID)) then return end
-
-		local _Desc = ExtractDescriptor(ID)
-
-		if _Desc then
-
-			for _, v in pairs(Character:GetChildren()) do
-				if v:IsA("Accessory") then
-					v:Destroy()
-				end
-			end
-
-			for _, Accourtment in pairs(_Desc) do 
-				local NewAccourtment = Accourtment:Clone()
-
-				if NewAccourtment:IsA("Accessory") then
-					NewAccourtment.Handle.Anchored = false
-					NewAccourtment.Handle.CanCollide = false
-					addAccoutrement(Character, NewAccourtment)
-				elseif NewAccourtment:IsA("Decal") then
-					Character:WaitForChild("Head"):FindFirstChildOfClass("Decal").Texture = NewAccourtment.Texture
-				elseif NewAccourtment:IsA("Shirt") then
-					local ClothingPiece = Character:FindFirstChildOfClass("Shirt")
-
-					if ClothingPiece then
-						ClothingPiece.ShirtTemplate = NewAccourtment.ShirtTemplate
-					else 
-						ClothingPiece:Clone().Parent = Character
-					end
-
-				elseif NewAccourtment:IsA("Pants") then
-					local ClothingPiece = Character:FindFirstChildOfClass("Pants")
-
-					if ClothingPiece then
-						ClothingPiece.PantsTemplate = NewAccourtment.PantsTemplate
-					else 
-						ClothingPiece:Clone().Parent = Character
-					end
-
-				elseif NewAccourtment:IsA("CharacterMesh") then
-					NewAccourtment:Clone().Parent = Character
-				elseif NewAccourtment:IsA("BodyColors") then
-					--		
-					if Character:FindFirstChild("Head") then
-						Character["Head"].Color = NewAccourtment.HeadColor3
-
-						if Character.Head:FindFirstChild("FaceMount") then
-							Character.Head["FaceMount"].Color = NewAccourtment.HeadColor3
-						end
-
-					end
-
-					if Character:FindFirstChild("Torso") then
-						Character["Torso"].Color = NewAccourtment.TorsoColor3
-					end
-
-					if Character:FindFirstChild("Right Arm") then
-						Character["Right Arm"].Color = NewAccourtment.RightArmColor3
-					end
-
-					if Character:FindFirstChild("Left Arm") then
-						Character["Left Arm"].Color = NewAccourtment.LeftArmColor3
-					end
-
-					if Character:FindFirstChild("Right Leg") then
-						Character["Right Leg"].Color = NewAccourtment.RightLegColor3
-					end
-
-					if Character:FindFirstChild("Left Leg") then
-						Character["Left Leg"].Color = NewAccourtment.LeftLegColor3
-					end
-
-				end
-
-			end
-
-		end
-
-	end
-
-	function newOBJ(D_OBJ)
-		local SSssLootTable = D_OBJ:WaitForChild("LootTable",5)
-		if SSssLootTable then
-			SetUpLootTables(SSssLootTable)
-		end
-
-		for _, __ProxPrompt in pairs(D_OBJ:GetDescendants()) do
-
-			if __ProxPrompt:IsA("ProximityPrompt") then
-				PromptSetUp(__ProxPrompt)
-			end
-
-		end
-
-	end
-
-	local function Check_LTS(__INS)
-		if __INS.Name == "Loot" then
-
-			__INS.ChildAdded:Connect(function(ooOBJ)
-				newOBJ(ooOBJ)
-			end)
-
-			for i, ooOBJ in pairs(__INS:GetChildren()) do
-				newOBJ(ooOBJ)
-			end
-
-		end
-	end
-
-	--/#
-
-	--// Setup Connections
-
-
-	for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
-		if PlrDeathBLootTable.Name == "LootTable" then
-			SetUpLootTables(PlrDeathBLootTable)
-		end
-	end
-
-	for _, Lootinstancee in pairs(workspace:GetDescendants()) do
-
-		if Lootinstancee.Parent.Name == "Loot" then
-			table.insert(BunkerLoot, Lootinstancee)
-		elseif Lootinstancee:IsA("ProximityPrompt") then
-			PromptSetUp(Lootinstancee)
-		elseif Lootinstancee.Name == "LootTable" then
-			SetUpLootTables(Lootinstancee)
-		end
-
-	end
-
-	--/#
-
-	--//Events
-	ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
-		Name = "Military Scout",
-		Color = Color3.fromRGB(25,25,255),
-		ColorDynamic = false,
-		IsEnabled = "NPC_ESP",
-	})
-
-	ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
-		Name = "Military Guard",
-		Color = Color3.fromRGB(25,25,255),
-		ColorDynamic = false,
-		IsEnabled = "NPC_ESP",
-	})
-
-	--
-	ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
-		Name = "Vulture Scout",
-		Color = Color3.fromRGB(25,25,255),
-		ColorDynamic = false,
-		IsEnabled = "NPC_ESP",
-	})
-
-	ESPFramework:AddObjectListener(Hostile_NPCs,{ --Vulture
-		Name = "Vulture Guard",
-		Color = Color3.fromRGB(25,25,255),
-		ColorDynamic = false,
-		IsEnabled = "NPC_ESP",
-	})
-
-	--
-	ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
-		Name = "Rebel Scout",
-		Color = Color3.fromRGB(25,25,255),
-		ColorDynamic = false,
-		IsEnabled = "NPC_ESP",
-	})
-
-	ESPFramework:AddObjectListener(Hostile_NPCs,{ --Rebels
-		Name = "Rebel Guard",
-		Color = Color3.fromRGB(25,25,255),
-		ColorDynamic = false,
-		IsEnabled = "NPC_ESP",
-	})
-	--
-	ESPFramework:AddObjectListener(Other_NPCs,{ --Merchants
-		Name = "Merchant",
-		Color = Color3.fromRGB(25,200,0),
-		ColorDynamic = false,
-		IsEnabled = "Merchant_ESP",
-	})
-
-	ESPFramework:AddObjectListener(Other_NPCs,{ --Brokers
-		Name = "Broker",
-		Color = Color3.fromRGB(25,200,0),
-		ColorDynamic = false,
-		IsEnabled = "Broker_ESP",
-	})
-	--
-	ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Rebel Merchants
-		Name = "Rebel Merchant",
-		Color = Color3.fromRGB(255,255,0),
-		ColorDynamic = false,
-		IsEnabled = "Factions_Merchant_ESP",
-	})
-
-	ESPFramework:AddObjectListener(Other_NPCs,{ --Faction Vulture Merchants
-		Name = "Vulture Merchant",
-		Color = Color3.fromRGB(255,255,0),
-		ColorDynamic = false,
-		IsEnabled = "Factions_Merchant_ESP",
-	})
-
-	VisualsTab:AddInput('Disguiser', {
-		Default = LocalPlayer.UserId,
-		Numeric = true,
-		Finished = false,
-
-		Text = 'Disguiser',
-		Tooltip = 'Changes ur avatar by user ID (LOCAL)',
-
-		Placeholder = 'USER ID',
-
-		Callback = function(Value)
-			if typeof(Value) == "string" then end
-			ChangeChar(Value)
-		end
-	})
-
-	workspace.Debris.Loot.ChildAdded:Connect(function(LootBag)
-		local LoooottableeOMG = LootBag:WaitForChild("LootTable", 5)
-		if not LoooottableeOMG then return end
-		table.insert(LootTables, LoooottableeOMG)
-		SetUpLootTables(LoooottableeOMG)
-	end)
+})
+
+workspace.Debris.Loot.ChildAdded:Connect(function(LootBag)
+	local LoooottableeOMG = LootBag:WaitForChild("LootTable", 5)
+	if not LoooottableeOMG then return end
+	table.insert(LootTables, LoooottableeOMG)
+	SetUpLootTables(LoooottableeOMG)
+end)
 
 --[[
 game.DescendantAdded:Connect(function(OBJa)
@@ -1656,354 +1657,352 @@ game.DescendantAdded:Connect(function(OBJa)
 	end
 end)
 --]]
-	Hostile_NPCs.ChildAdded:Connect(NPCAdded)
+Hostile_NPCs.ChildAdded:Connect(NPCAdded)
 
-	Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
+Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 
-	LocalPlayer.CharacterAdded:Connect(function()
-		Character = LocalPlayer.Character
-		table.insert(AllCharacters, Character)
-	end)
+LocalPlayer.CharacterAdded:Connect(function()
+	Character = LocalPlayer.Character
+	table.insert(AllCharacters, Character)
+end)
 
-	Toggles.NoHD:OnChanged(function()
-		II_C()
-	end)
-
+Toggles.NoHD:OnChanged(function()
 	II_C()
+end)
 
-	mouse.KeyDown:connect(function(keyY)
+II_C()
 
-		if keyY:lower() == "w" then
-			ctrl.f = 1
-		elseif keyY:lower() == "s" then
-			ctrl.b = -1
-		elseif keyY:lower() == "a" then
-			ctrl.l = -1
-		elseif keyY:lower() == "d" then
-			ctrl.r = 1
-		end
+mouse.KeyDown:connect(function(keyY)
 
-	end)
+	if keyY:lower() == "w" then
+		ctrl.f = 1
+	elseif keyY:lower() == "s" then
+		ctrl.b = -1
+	elseif keyY:lower() == "a" then
+		ctrl.l = -1
+	elseif keyY:lower() == "d" then
+		ctrl.r = 1
+	end
 
-	mouse.KeyUp:connect(function(keyY)
+end)
 
-		if keyY:lower() == "w" then
-			ctrl.f = 0
-		elseif keyY:lower() == "s" then
-			ctrl.b = 0
-		elseif keyY:lower() == "a" then
-			ctrl.l = 0
-		elseif keyY:lower() == "d" then
-			ctrl.r = 0
-		end
+mouse.KeyUp:connect(function(keyY)
 
-	end)
+	if keyY:lower() == "w" then
+		ctrl.f = 0
+	elseif keyY:lower() == "s" then
+		ctrl.b = 0
+	elseif keyY:lower() == "a" then
+		ctrl.l = 0
+	elseif keyY:lower() == "d" then
+		ctrl.r = 0
+	end
 
-	--/#
+end)
+
+--/#
 
 
-	Library:Notify("Loaded UI", 5)
-	Library:Notify("Script loaded in ".. (tick() - Started), 5)
+Library:Notify("Loaded UI", 5)
+Library:Notify("Script loaded in ".. (tick() - Started), 5)
 
-	--// Hooks
+--// Hooks
 
-	local oldNamecall
+local oldNamecall
 
-	oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
-		local Method = getnamecallmethod()
+oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
+	local Method = getnamecallmethod()
 
-		local Arguments = {...}
-		local self = Arguments[1]
+	local Arguments = {...}
+	local self = Arguments[1]
 
-		local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
+	local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
 
-		if self == workspace and not checkcaller() and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
-			if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
-				if Arguments[4]["FilterDescendantsInstances"][3] ~= nil then
-					print(Arguments[4]["FilterDescendantsInstances"][3])
+	if self == workspace and not checkcaller() and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
+		if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
+			if Arguments[4]["FilterDescendantsInstances"][3] ~= nil then
+				print(Arguments[4]["FilterDescendantsInstances"][3])
+			end
+			local A_Origin = Arguments[2]
+			local HitPart = getClosestPlayer()
+
+			if HitPart then
+				if Toggles.InstaHit.Value then
+					local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
+					local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
+					print(typeof(CfTVec))
+					Arguments[2] = CfTVec
+					A_Origin = CfTVec
 				end
-				local A_Origin = Arguments[2]
-				local HitPart = getClosestPlayer()
-
-				if HitPart then
-					if Toggles.InstaHit.Value then
-						local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
-						local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
-						print(typeof(CfTVec))
-						Arguments[2] = CfTVec
-						A_Origin = CfTVec
-					end
-					Arguments[3] = getDirection(A_Origin, HitPart.Position)
-					return oldNamecall(unpack(Arguments))
-				else
-					return oldNamecall(...)
-				end
+				Arguments[3] = getDirection(A_Origin, HitPart.Position)
+				return oldNamecall(unpack(Arguments))
 			else
 				return oldNamecall(...)
 			end
 		else
 			return oldNamecall(...)
 		end
-
+	else
 		return oldNamecall(...)
-	end))
-	--/#
+	end
+end))
+--/#
 
-	local BunkerAutoFarmAt = 1
-	local autoFarmWaitTick = tick()
+local BunkerAutoFarmAt = 1
+local autoFarmWaitTick = tick()
 
-	if Tutorial then
-		Map.ChildAdded:Connect(function(Char)
-			if Char:FindFirstChildOfClass("Humanoid") then
-				Char.Parent = Hostile_NPCs --Client-sided but its only tutorial dud no one fucking cares
-			end
-		end)
+if Tutorial then
+	Map.ChildAdded:Connect(function(Char)
+		if Char:FindFirstChildOfClass("Humanoid") then
+			Char.Parent = Hostile_NPCs --Client-sided but its only tutorial dud no one fucking cares
+		end
+	end)
+end
+
+--// Admin detection connection
+Players.PlayerAdded:Connect(OnAdminJoined)
+Players.PlayerRemoving:Connect(OnPlayerDisconnect)
+
+for _,v in pairs(Players:GetPlayers()) do
+	if v == LocalPlayer then continue end
+	table.insert(PlayersInServer,v)
+	task.spawn(OnAdminJoined, v)
+end
+--/#
+
+--/#
+
+RunService.Heartbeat:Connect(function()
+	task.wait()
+
+	Cam = workspace.CurrentCamera
+
+	if LocalPlayer.Character then
+		Character = LocalPlayer.Character
+		CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 	end
 
-	--// Admin detection connection
-	Players.PlayerAdded:Connect(OnAdminJoined)
-	Players.PlayerRemoving:Connect(OnPlayerDisconnect)
+	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
+	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
 
-	for _,v in pairs(Players:GetPlayers()) do
-		if v == Player then continue end
-		table.insert(PlayersInServer,v)
-		task.spawn(OnAdminJoined, v)
+	if not Character:FindFirstChild("Humanoid") then return end
+	if Character.Humanoid.Health <= 0 then return end
+
+	if Toggles.ShowFOV.Value then
+		SilentAIMFov.Visible = Toggles.ShowFOV.Value
+		SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
+		SilentAIMFov.Position = Vector2MousePosition() + Vector2.new(0, 36)
+	else
+		SilentAIMFov.Visible = false
 	end
-	--/#
 
-	--/#
-
-	RunService.Heartbeat:Connect(function()
-		task.wait()
-
-		Cam = workspace.CurrentCamera
-
-		if LocalPlayer.Character then
-			Character = LocalPlayer.Character
-			CharacterRoot = Character:WaitForChild("HumanoidRootPart")
-		end
-
-		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
-		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
-
-		if not Character:FindFirstChild("Humanoid") then return end
-		if Character.Humanoid.Health <= 0 then return end
-
-		if Toggles.ShowFOV.Value then
-			SilentAIMFov.Visible = Toggles.ShowFOV.Value
-			SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
-			SilentAIMFov.Position = Vector2MousePosition() + Vector2.new(0, 36)
-		else
-			SilentAIMFov.Visible = false
-		end
-
-		if Toggles.ShowSilentTarget.Value == true then
-			local HitPart = getClosestPlayer()
-			if HitPart then
-				local Char = HitPart.Parent
-				SilentTargetHightLight.Parent = Root
-			else 
-				SilentTargetHightLight.Parent = nil
-			end
-		else
+	if Toggles.ShowSilentTarget.Value == true then
+		local HitPart = getClosestPlayer()
+		if HitPart then
+			local Char = HitPart.Parent
+			SilentTargetHightLight.Parent = Char
+		else 
 			SilentTargetHightLight.Parent = nil
 		end
+	else
+		SilentTargetHightLight.Parent = nil
+	end
 
-		if Toggles.BreakAI.Value == true then
-			local Velvel = CharacterRoot.Velocity
-			CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
-			RunService.RenderStepped:Wait()
-			CharacterRoot.Velocity = Velvel
-		end
+	if Toggles.BreakAI.Value == true then
+		local Velvel = CharacterRoot.Velocity
+		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
+		RunService.RenderStepped:Wait()
+		CharacterRoot.Velocity = Velvel
+	end
 
-		if Toggles.HideLevel.Value == true then
-			PlayerGui.MainGui.LevelFrame.Visible = false
-		else
-			PlayerGui.MainGui.LevelFrame.Visible = true
-		end
+	if Toggles.HideLevel.Value == true then
+		PlayerGui.MainGui.LevelFrame.Visible = false
+	else
+		PlayerGui.MainGui.LevelFrame.Visible = true
+	end
 
-		if Toggles.SpeedToggle.Value == true then
-			Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
-		end
+	if Toggles.SpeedToggle.Value == true then
+		Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
+	end
 
-		if Toggles.Fullbright.Value == true then
-			Lighting.Brightness = 2
-			Lighting.ClockTime = 14
-			Lighting.FogEnd = 100000
-			Lighting.GlobalShadows = false
-			Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-		end
+	if Toggles.Fullbright.Value == true then
+		Lighting.Brightness = 2
+		Lighting.ClockTime = 14
+		Lighting.FogEnd = 100000
+		Lighting.GlobalShadows = false
+		Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+	end
 
-		if Toggles.Glow.Value == true then
-			Lighting.ExposureCompensation = 1
-		else
-			Lighting.ExposureCompensation = 0
-		end
+	if Toggles.Glow.Value == true then
+		Lighting.ExposureCompensation = 1
+	else
+		Lighting.ExposureCompensation = 0
+	end
 
-		if Toggles.InfiniteStamina.Value == true then
-			PlayerGui:SetAttribute("Stamina", 100)
-		end
+	if Toggles.InfiniteStamina.Value == true then
+		PlayerGui:SetAttribute("Stamina", 100)
+	end
 
-		if Toggles.KillAura.Value == true then
-			local KillAuraChars = {}
+	if Toggles.KillAura.Value == true then
+		local KillAuraChars = {}
 
-			if Toggles.KillAura_Target_Players.Value == true then
-				for _,Instances in pairs(game.Players:GetPlayers()) do
-					local Hum = Instances.Character:FindFirstChild("Humanoid")
-
-					if Hum and Hum.Health > 1 then
-						table.insert(KillAuraChars, Instances.Character)
-					end
-
-				end
-			end
-
-			if Toggles.KillAura_Target_NPCS.Value == true then
-
-				for _,Instances in pairs(waveSurvival_m:GetChildren()) do
-					local Hum = Instances:FindFirstChild("Humanoid")
-
-					if Hum and Hum.Health > 1 then
-						table.insert(KillAuraChars, Instances)
-					end
-
-				end
-
-				for _, Instances in pairs(Hostile_NPCs:GetChildren()) do
-					local Hum = Instances:FindFirstChild("Humanoid")
-
-					if Hum and Hum.Health > 1 then
-						table.insert(KillAuraChars, Instances)
-					end
-
-				end
-
-				for _, Stuff in workspace.ActiveTasks:GetChildren() do 
-					if Stuff.Name == "Location" and Stuff:FindFirstChild("FinalFight") then
-						for _,Instances in Stuff.FinalFight:GetChildren() do
-							local Hum = Instances:FindFirstChild("Humanoid")
-
-							if Hum and Hum.Health > 1 then
-								table.insert(KillAuraChars, Instances)
-							end
-
-						end
-					end
-				end
-
-				for _,Instances in pairs(Arena:GetChildren()) do
-					local Hum = Instances:FindFirstChild("Humanoid")
-
-					if Hum and Hum.Health > 1 then
-						table.insert(KillAuraChars, Instances)
-					end
-
-				end
-
-			end
-
-			for i = 2, #KillAuraChars do
-				local KillAuraTargetCharacter = KillAuraChars[i]
-
-				if KillAuraTargetCharacter and KillAuraTargetCharacter:FindFirstChild("Humanoid") and KillAuraTargetCharacter.Humanoid.Health > 0 and KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart") and (CharacterRoot.Position - KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart").Position).Magnitude <= Options.KillAura_Range.Value then
-					Swing()
-					Hit(KillAuraTargetCharacter, Options.KillAura_TargetPart.Value)
-				end
-
-			end
-
-		end
-
-		if Toggles.HideLeaderboard.Value == true then
-			PlayerGui.MainStaticGui.RightTab.Visible = false
-		else
-			PlayerGui.MainStaticGui.RightTab.Visible = true
-		end
-
-		if Toggles.ShowCustomLevel.Value == true then
-			PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = Options.CustomLevel.Value
-			PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = Options.CustomLevel.Value
-			PlayerGui:SetAttribute("Level", Options.CustomLevel.Value)
-
-			if Options.CustomLevel.Value == 50 then
-				game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
-				game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
-			else
-				game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = true
-				game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = false
-			end
-
-		else
-			PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = LocalPlayer:GetAttribute("Level")
-			PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = LocalPlayer:GetAttribute("Level")
-			PlayerGui:SetAttribute("Level", LocalPlayer:GetAttribute("Level"))
-
-			if LocalPlayer:GetAttribute("Level") == 50 then
-				game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
-				game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
-			else
-				game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = true
-				game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = false
-			end
-
-		end
-
-		--PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = ""
-
-		if Toggles.HiddenFling.Value == true then
-			local vel = CharacterRoot.Velocity
-			local movel = 0.1
-
-			CharacterRoot.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
-			RunService.RenderStepped:Wait()
-			CharacterRoot.Velocity = vel
-			RunService.RenderStepped:Wait()
-			CharacterRoot.Velocity = vel + Vector3.new(0, movel, 0)
-			movel = movel * -1
-		end
-
-		if Toggles.DisableFDMG_RAGDOLL.Value == true then
-			Character:WaitForChild("RagdollClient").Enabled = false
-		else
-			Character:WaitForChild("RagdollClient").Enabled = true
-		end
-
-		if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
-			local LootModel = BunkerLoot[BunkerAutoFarmAt]
-			TPtoLootAndPickUp(LootModel.LootBase,false)
-			BunkerAutoFarmAt += 1
-			autoFarmWaitTick = tick()
-
-			if BunkerAutoFarmAt >= #BunkerLoot then
-				BunkerAutoFarmAt = 1
-			end
-
-		end
-
-		if Toggles.Arena_AutoFarm.Value == true then
-			for _,Instances in pairs(Arena:GetChildren()) do
-				local Hum = Instances:FindFirstChild("Humanoid")
+		if Toggles.KillAura_Target_Players.Value == true then
+			for _,Instances in pairs(game.Players:GetPlayers()) do
+				local Hum = Instances.Character:FindFirstChild("Humanoid")
 
 				if Hum and Hum.Health > 1 then
-					ArenaInstanceAdded(Instances)
-					return
+					table.insert(KillAuraChars, Instances.Character)
 				end
 
 			end
 		end
 
-		if Toggles.RedRaid_AutoFarm.Value == true then
+		if Toggles.KillAura_Target_NPCS.Value == true then
 
 			for _,Instances in pairs(waveSurvival_m:GetChildren()) do
 				local Hum = Instances:FindFirstChild("Humanoid")
 
 				if Hum and Hum.Health > 1 then
-					RedRaidInstanceAdded(Instances)
-					return
+					table.insert(KillAuraChars, Instances)
+				end
+
+			end
+
+			for _, Instances in pairs(Hostile_NPCs:GetChildren()) do
+				local Hum = Instances:FindFirstChild("Humanoid")
+
+				if Hum and Hum.Health > 1 then
+					table.insert(KillAuraChars, Instances)
+				end
+
+			end
+
+			for _, Stuff in workspace.ActiveTasks:GetChildren() do 
+				if Stuff.Name == "Location" and Stuff:FindFirstChild("FinalFight") then
+					for _,Instances in Stuff.FinalFight:GetChildren() do
+						local Hum = Instances:FindFirstChild("Humanoid")
+
+						if Hum and Hum.Health > 1 then
+							table.insert(KillAuraChars, Instances)
+						end
+
+					end
+				end
+			end
+
+			for _,Instances in pairs(Arena:GetChildren()) do
+				local Hum = Instances:FindFirstChild("Humanoid")
+
+				if Hum and Hum.Health > 1 then
+					table.insert(KillAuraChars, Instances)
 				end
 
 			end
 
 		end
 
-	end)
+		for i = 2, #KillAuraChars do
+			local KillAuraTargetCharacter = KillAuraChars[i]
+
+			if KillAuraTargetCharacter and KillAuraTargetCharacter:FindFirstChild("Humanoid") and KillAuraTargetCharacter.Humanoid.Health > 0 and KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart") and (CharacterRoot.Position - KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart").Position).Magnitude <= Options.KillAura_Range.Value then
+				Swing()
+				Hit(KillAuraTargetCharacter, Options.KillAura_TargetPart.Value)
+			end
+
+		end
+
+	end
+
+	if Toggles.HideLeaderboard.Value == true then
+		PlayerGui.MainStaticGui.RightTab.Visible = false
+	else
+		PlayerGui.MainStaticGui.RightTab.Visible = true
+	end
+
+	if Toggles.ShowCustomLevel.Value == true then
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = Options.CustomLevel.Value
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = Options.CustomLevel.Value
+		PlayerGui:SetAttribute("Level", Options.CustomLevel.Value)
+
+		if Options.CustomLevel.Value == 50 then
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
+		else
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = true
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = false
+		end
+
+	else
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Level.Text = LocalPlayer:GetAttribute("Level")
+		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = LocalPlayer:GetAttribute("Level")
+		PlayerGui:SetAttribute("Level", LocalPlayer:GetAttribute("Level"))
+
+		if LocalPlayer:GetAttribute("Level") == 50 then
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
+		else
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = true
+			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = false
+		end
+
+	end
+
+	--PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = ""
+
+	if Toggles.HiddenFling.Value == true then
+		local vel = CharacterRoot.Velocity
+		local movel = 0.1
+
+		CharacterRoot.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+		RunService.RenderStepped:Wait()
+		CharacterRoot.Velocity = vel
+		RunService.RenderStepped:Wait()
+		CharacterRoot.Velocity = vel + Vector3.new(0, movel, 0)
+		movel = movel * -1
+	end
+
+	if Toggles.DisableFDMG_RAGDOLL.Value == true then
+		Character:WaitForChild("RagdollClient").Enabled = false
+	else
+		Character:WaitForChild("RagdollClient").Enabled = true
+	end
+
+	if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
+		local LootModel = BunkerLoot[BunkerAutoFarmAt]
+		TPtoLootAndPickUp(LootModel.LootBase,false)
+		BunkerAutoFarmAt += 1
+		autoFarmWaitTick = tick()
+
+		if BunkerAutoFarmAt >= #BunkerLoot then
+			BunkerAutoFarmAt = 1
+		end
+
+	end
+
+	if Toggles.Arena_AutoFarm.Value == true then
+		for _,Instances in pairs(Arena:GetChildren()) do
+			local Hum = Instances:FindFirstChild("Humanoid")
+
+			if Hum and Hum.Health > 1 then
+				ArenaInstanceAdded(Instances)
+				return
+			end
+
+		end
+	end
+
+	if Toggles.RedRaid_AutoFarm.Value == true then
+
+		for _,Instances in pairs(waveSurvival_m:GetChildren()) do
+			local Hum = Instances:FindFirstChild("Humanoid")
+
+			if Hum and Hum.Health > 1 then
+				RedRaidInstanceAdded(Instances)
+				return
+			end
+
+		end
+
+	end
+
+end)
