@@ -1763,6 +1763,7 @@ Players.PlayerRemoving:Connect(OnPlayerDisconnect)
 
 for _,v in pairs(Players:GetPlayers()) do
 	if v == LocalPlayer then continue end
+	OnCharacterAdded(v.Character)
 	v.CharacterAdded:Connect(function()
 		OnCharacterAdded(v.Character)
 	end)
