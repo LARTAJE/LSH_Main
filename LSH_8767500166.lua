@@ -812,7 +812,6 @@ local OnAdminJoined = function(Plr)
 			AdminSound:Play()
 			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
 		else
-			AdminSound:Play()
 			Library:Notify(Plr.Name.." Joined, be careful!")
 		end
 
