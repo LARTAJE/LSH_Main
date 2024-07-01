@@ -91,7 +91,7 @@ local ExpectedArguments = {
 --]]
 
 local ValidTargetParts = {"Head", "Torso"};
-local BlackListedItems = {"Skyfall T.A.G.", "GL-06"}
+local BlackListedItems = {"Skyfall T.A.G."}
 local ctrl = {f = 0, b = 0, l = 0, r = 0}
 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 
