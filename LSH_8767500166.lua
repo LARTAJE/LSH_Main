@@ -766,7 +766,7 @@ local function OnCharacterAdded(__Character)
 		end
 	end)
 
-	
+
 end
 
 local OnAdminJoined = function(Plr)
@@ -795,7 +795,7 @@ local OnAdminJoined = function(Plr)
 
 	Plr.CharacterAdded:Connect(function()
 		OnCharacterAdded(Plr.Character)
-		table.insert(Plr, Plr.Character)
+		table.insert(AllCharacters, Plr.Character)
 	end)
 
 	if GroupStates.CrimAdminGroup or GroupStates.Blackout then
@@ -1115,7 +1115,7 @@ local function PromptSetUp(ProxPrompt)
 
 		if ProxPrompt.Name == "LockMinigame" then
 			local ToLockPick = ProxPrompt.Parent.Parent.Parent
-			
+
 			if ProxPrompt:GetAttribute("Unlocked") then
 				task.wait(0.5)
 				OpenLoot(ToLockPick)
