@@ -956,7 +956,6 @@ local function IsPlayerVisible(Player)
 
 	local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
 	local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
-
 	return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
 end
 
@@ -1764,6 +1763,9 @@ Players.PlayerRemoving:Connect(OnPlayerDisconnect)
 
 for _,v in pairs(Players:GetPlayers()) do
 	if v == LocalPlayer then continue end
+	v.CharacterAdded:Connect(function()
+		OnCharacterAdded(v.Character)
+	end)
 	table.insert(PlayersInServer,v)
 	task.spawn(OnAdminJoined, v)
 end
