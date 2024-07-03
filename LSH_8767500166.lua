@@ -11,6 +11,7 @@ local PlayerGui = game.Players.LocalPlayer.PlayerGui
 local Character = LocalPlayer.Character
 local mouse = LocalPlayer:GetMouse()
 
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -21,6 +22,7 @@ local Lighting = game.Lighting
 local GetPlayers = Players.GetPlayers
 
 local GetMouseLocation = UserInputService.GetMouseLocation
+
 local CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 local VirtualInputManager = Instance.new("VirtualInputManager")
 
@@ -91,7 +93,6 @@ local ExpectedArguments = {
 --]]
 
 local ValidTargetParts = {"Head", "Torso"};
-local BlackListedItems = {"Skyfall T.A.G."}
 local ctrl = {f = 0, b = 0, l = 0, r = 0}
 local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 
@@ -112,8 +113,6 @@ local GuiInset = GuiService.GetGuiInset
 local FakeName = LocalPlayer.Name
 local FakeDisplayName = LocalPlayer.DisplayName
 local FakeVerifiedBadge = false
-local CharactersFolders = workspace.Chars
-local AllCharacters = {}
 
 local resume = coroutine.resume 
 local create = coroutine.create
@@ -1058,8 +1057,8 @@ local SwingEvent = MeleeStorage:WaitForChild("Events"):WaitForChild("Swing")
 
 local AdminSound = Instance.new('Sound')
 AdminSound.Volume = 2
-AdminSound.Parent = workspace
-AdminSound.SoundId = 'rbxassetid://5153718519'
+AdminSound.Parent = CoreGui
+AdminSound.SoundId = 'rbxassetid://225320558'
 --/#
 
 --// Functions
@@ -1105,20 +1104,6 @@ local function OnPlayerDisconnect(Plr)
 	table.remove(PlayersInServer,table.find(PlayersInServer,Plr))
 end
 
-local function OnCharacterAdded(__Character)
-	print(__Character.Name)
-	__Character.ChildAdded:Connect(function(Child)
-		print(Child.Name)
-		if table.find(BlackListedItems, Child.Name) then
-			Library:Notify("Item "..Child.Name.. " has been equipped by ".. __Character.Name)
-			HightlightOBJ(__Character, 60)
-			AdminSound:Play()
-		end
-	end)
-
-
-end
-
 local OnAdminJoined = function(Plr)
 	table.insert(PlayersInServer,Plr)
 
@@ -1143,18 +1128,13 @@ local OnAdminJoined = function(Plr)
 		["Blackout"] = IsInGroup(Plr, 6568965),
 	}
 
-	Plr.CharacterAdded:Connect(function()
-		OnCharacterAdded(Plr.Character)
-		table.insert(AllCharacters, Plr.Character)
-	end)
-
-	if GroupStates.CrimAdminGroup or GroupStates.Blackout then
+	if GroupStates.Criminality or GroupStates.Blackout then
 		local Role = GetRoleInGroup(Plr, 6568965)
 
 		if Role ~= "Member" or GroupStates.CrimAdminGroup then
 
 			if Toggles.AdminDetector.Value then
-				LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
+				Player:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
 				return
 			end
 
@@ -1162,18 +1142,22 @@ local OnAdminJoined = function(Plr)
 			AdminSound:Play()
 			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
 		else
+			AdminSound:Play()
 			Library:Notify(Plr.Name.." Joined, be careful!")
 		end
 
 	end
 end
 
+
 local function ItemAdded(Item,Method)
 
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
-		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true) then
+		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
+			or ItemStat.Contraband == true and
+			(Options.NotificateItemsFilter.Value["Contraband"] == true) then
 			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
 
 			if Toggles.NotificateHightlightLoot.Value == true then
@@ -1220,10 +1204,10 @@ local function Fly()
 			end
 		end
 		if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).Position) - game.Workspace.CurrentCamera.CoordinateFrame.Position))*speed
+			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
 			lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
 		elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).Position) - game.Workspace.CurrentCamera.CoordinateFrame.Position))*speed
+			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
 		else
 			bv.velocity = Vector3.new(0,0.1,0)
 		end
@@ -1306,6 +1290,7 @@ local function IsPlayerVisible(Player)
 
 	local CastPoints, IgnoreList = {PlayerRoot.Position, LocalPlayerCharacter, PlayerCharacter}, {LocalPlayerCharacter, PlayerCharacter}
 	local ObscuringObjects = #GetPartsObscuringTarget(Cam, CastPoints, IgnoreList)
+
 	return ((ObscuringObjects == 0 and true) or (ObscuringObjects > 0 and false))
 end
 
@@ -1463,7 +1448,6 @@ local function PromptSetUp(ProxPrompt)
 	ProxPrompt.Triggered:Connect(function()
 
 		if ProxPrompt.Name == "LockMinigame" then
-			local ToLockPick = ProxPrompt.Parent.Parent.Parent
 
 			if ProxPrompt:GetAttribute("Unlocked") then
 				task.wait(0.5)
@@ -1471,6 +1455,7 @@ local function PromptSetUp(ProxPrompt)
 			end
 
 			if Toggles.AutoLockpickToggle.Value == true then
+				local ToLockPick = ProxPrompt.Parent.Parent.Parent
 				task.wait(1)
 				LockPick(ToLockPick,true)
 
@@ -1562,28 +1547,28 @@ end)
 local function GetClothes(id)
 	local NewClothing = nil
 
-	local Success, ClothingID = pcall(function()
-		local UID = tonumber(id)
-		local Request = game:HttpGet("https://assetdelivery.roblox.com/v1/asset/?ID="..UID)
+    local Success, ClothingID = pcall(function()
+        local UID = tonumber(id)
+        local Request = game:HttpGet("https://assetdelivery.roblox.com/v1/asset/?ID="..UID)
+           
+        if Request then
+            local Start = string.find(Request,"<url>")
+            local End = string.find(Request,"</url>",Start)
+        
+             if Start and End then
+                 print("Success")
+                 NewClothing = string.sub(Request,Start+5,End-1)
+                 return NewClothing
+              end
+        end
 
-		if Request then
-			local Start = string.find(Request,"<url>")
-			local End = string.find(Request,"</url>",Start)
-
-			if Start and End then
-				print("Success")
-				NewClothing = string.sub(Request,Start+5,End-1)
-				return NewClothing
-			end
-		end
-
-	end)
+    end)
 
 	if NewClothing then 
-		print("ID: ".. NewClothing)
+        print("ID: ".. NewClothing)
 		return NewClothing
 	else 
-		print("err")
+        print("err")
 		return "rbxassetid://0"
 	end
 
@@ -1614,71 +1599,71 @@ local function GetBodyParts(Head,Torso,RightArm,LeftArm,RightLeg,LeftLeg)
 end
 
 function weldAttachments(attach1, attach2)
-	local weld = Instance.new("Weld")
-	weld.Part0 = attach1.Parent
-	weld.Part1 = attach2.Parent
-	weld.C0 = attach1.CFrame
-	weld.C1 = attach2.CFrame
-	weld.Parent = attach1.Parent
-	return weld
+    local weld = Instance.new("Weld")
+    weld.Part0 = attach1.Parent
+    weld.Part1 = attach2.Parent
+    weld.C0 = attach1.CFrame
+    weld.C1 = attach2.CFrame
+    weld.Parent = attach1.Parent
+    return weld
 end
-
+ 
 local function buildWeld(weldName, parent, part0, part1, c0, c1)
-	local weld = Instance.new("Weld")
-	weld.Name = weldName
-	weld.Part0 = part0
-	weld.Part1 = part1
-	weld.C0 = c0
-	weld.C1 = c1
-	weld.Parent = parent
-	return weld
+    local weld = Instance.new("Weld")
+    weld.Name = weldName
+    weld.Part0 = part0
+    weld.Part1 = part1
+    weld.C0 = c0
+    weld.C1 = c1
+    weld.Parent = parent
+    return weld
 end
-
+ 
 local function findFirstMatchingAttachment(model, name)
-	for _, child in pairs(model:GetChildren()) do
-		if child:IsA("Attachment") and child.Name == name then
-			return child
-		elseif not child:IsA("Accoutrement") and not child:IsA("Tool") then -- Don't look in hats or tools in the character
-			local foundAttachment = findFirstMatchingAttachment(child, name)
-			if foundAttachment then
-				return foundAttachment
-			end
-		end
-	end
+    for _, child in pairs(model:GetChildren()) do
+        if child:IsA("Attachment") and child.Name == name then
+            return child
+        elseif not child:IsA("Accoutrement") and not child:IsA("Tool") then -- Don't look in hats or tools in the character
+            local foundAttachment = findFirstMatchingAttachment(child, name)
+            if foundAttachment then
+                return foundAttachment
+            end
+        end
+    end
 end
-
+ 
 function addAccoutrement(character, accoutrement)  
-	accoutrement.Parent = character
-	local handle = accoutrement:FindFirstChild("Handle")
-	if handle then
-		local accoutrementAttachment = handle:FindFirstChildOfClass("Attachment")
-		if accoutrementAttachment then
-			local characterAttachment = findFirstMatchingAttachment(character, accoutrementAttachment.Name)
-			if characterAttachment then
-				weldAttachments(characterAttachment, accoutrementAttachment)
-			end
-		else
-			local head = character:FindFirstChild("Head")
-			if head then
-				local attachmentCFrame = CFrame.new(0, 0.5, 0)
-				local hatCFrame = accoutrement.AttachmentPoint
-				buildWeld("HeadWeld", head, head, handle, attachmentCFrame, hatCFrame)
-			end
-		end
-	end
+    accoutrement.Parent = character
+    local handle = accoutrement:FindFirstChild("Handle")
+    if handle then
+        local accoutrementAttachment = handle:FindFirstChildOfClass("Attachment")
+        if accoutrementAttachment then
+            local characterAttachment = findFirstMatchingAttachment(character, accoutrementAttachment.Name)
+            if characterAttachment then
+                weldAttachments(characterAttachment, accoutrementAttachment)
+            end
+        else
+            local head = character:FindFirstChild("Head")
+            if head then
+                local attachmentCFrame = CFrame.new(0, 0.5, 0)
+                local hatCFrame = accoutrement.AttachmentPoint
+                buildWeld("HeadWeld", head, head, handle, attachmentCFrame, hatCFrame)
+            end
+        end
+    end
 end
 
 local function ExtractDescriptor(ID)
-	local NID = tonumber(ID)
+    local NID = tonumber(ID)
 	local OutfitId = NID
-	local UserName = Players:GetNameFromUserIdAsync(NID)
-	FakeName = UserName
-	local UserInfo = UserService:GetUserInfosByUserIdsAsync({NID})
-
-	if UserInfo then
-		FakeDisplayName = UserInfo[1].DisplayName
-		FakeVerifiedBadge = UserInfo[1].HasVerifiedBadge
-	end
+    local UserName = Players:GetNameFromUserIdAsync(NID)
+    FakeName = UserName
+    local UserInfo = UserService:GetUserInfosByUserIdsAsync({NID})
+   
+    if UserInfo then
+        FakeDisplayName = UserInfo[1].DisplayName
+        FakeVerifiedBadge = UserInfo[1].HasVerifiedBadge
+    end
 
 	local Description = Players:GetHumanoidDescriptionFromUserId(OutfitId)
 	local Extracted = nil
@@ -1703,74 +1688,74 @@ local function ExtractDescriptor(ID)
 		end
 	end
 
-	Instance.new("Decal",Extracted).Texture = (Description.Face == 0 and "rbxasset://textures/face.png") or "rbxthumb://type=Asset&id="..Description.Face.."&w=420&h=420"
+Instance.new("Decal",Extracted).Texture = (Description.Face == 0 and "rbxasset://textures/face.png") or "rbxthumb://type=Asset&id="..Description.Face.."&w=420&h=420"
 
-	local Colors = Instance.new("BodyColors",Extracted)
+local Colors = Instance.new("BodyColors",Extracted)
 
-	Colors.TorsoColor3 = Description.TorsoColor
-	Colors.HeadColor3 = Description.HeadColor
-	Colors.LeftArmColor3 = Description.LeftArmColor
-	Colors.RightArmColor3 = Description.RightArmColor
-	Colors.LeftLegColor3 = Description.LeftLegColor
-	Colors.RightLegColor3 = Description.RightLegColor
+Colors.TorsoColor3 = Description.TorsoColor
+Colors.HeadColor3 = Description.HeadColor
+Colors.LeftArmColor3 = Description.LeftArmColor
+Colors.RightArmColor3 = Description.RightArmColor
+Colors.LeftLegColor3 = Description.LeftLegColor
+Colors.RightLegColor3 = Description.RightLegColor
 
-	if Description.Shirt ~= 0 then
-		local Top = Instance.new("Shirt", Extracted)
-		local Template = GetClothes(Description.Shirt)
+if Description.Shirt ~= 0 then
+	local Top = Instance.new("Shirt", Extracted)
+    local Template = GetClothes(Description.Shirt)
+   
+    local indexo = 1
 
-		local indexo = 1
+if not Template then
+    repeat
+		indexo += 1
+        Template = GetClothes(Description.Shirt)
+    until Template or indexo >= 50
+end
 
-		if not Template then
-			repeat
-				indexo += 1
-				Template = GetClothes(Description.Shirt)
-			until Template or indexo >= 50
-		end
+    if Template then
+        Top.ShirtTemplate = Template
+    end
 
-		if Template then
-			Top.ShirtTemplate = Template
-		end
+end
 
-	end
+if Description.Pants ~= 0 then
+	local Bottom = Instance.new("Pants",Extracted)
+    local Template = GetClothes(Description.Pants)
+    local indexo = 1
 
-	if Description.Pants ~= 0 then
-		local Bottom = Instance.new("Pants",Extracted)
-		local Template = GetClothes(Description.Pants)
-		local indexo = 1
+if not Template then
+	repeat
+			indexo += 1
+			Template = GetClothes(Description.Pants)
+	until Template or indexo >= 50
+end
 
-		if not Template then
-			repeat
-				indexo += 1
-				Template = GetClothes(Description.Pants)
-			until Template or indexo >= 50
-		end
+    if Template then
+        Bottom.PantsTemplate = Template
+    end
 
-		if Template then
-			Bottom.PantsTemplate = Template
-		end
+end
 
-	end
+for _,m in pairs(GetBodyParts(Description.Head,Description.Torso,Description.RightArm,Description.LeftArm,Description.RightLeg,Description.LeftLeg)) do
+	m.Parent = Extracted
+end
 
-	for _,m in pairs(GetBodyParts(Description.Head,Description.Torso,Description.RightArm,Description.LeftArm,Description.RightLeg,Description.LeftLeg)) do
-		m.Parent = Extracted
-	end
-
-	return Extracted:GetChildren()
+return Extracted:GetChildren()
 end
 
 local function ChangeChar(ID)
-	if not ID then return end
-	if not Players:GetNameFromUserIdAsync(tonumber(ID)) then return end
+    if not ID then return end
+    if not Players:GetNameFromUserIdAsync(tonumber(ID)) then return end
 
 	local _Desc = ExtractDescriptor(ID)
 
-	if _Desc then
+    if _Desc then
 
-		for _, v in pairs(Character:GetChildren()) do
-			if v:IsA("Accessory") then
-				v:Destroy()
-			end
-		end
+        for _, v in pairs(Character:GetChildren()) do
+            if v:IsA("Accessory") then
+                v:Destroy()
+            end
+        end
 
 		for _, Accourtment in pairs(_Desc) do 
 			local NewAccourtment = Accourtment:Clone()
@@ -1979,7 +1964,7 @@ VisualsTab:AddInput('Disguiser', {
 	Placeholder = 'USER ID',
 
 	Callback = function(Value)
-		if typeof(Value) == "string" then end
+        if typeof(Value) == "string" then end
 		ChangeChar(Value)
 	end
 })
@@ -2011,7 +1996,6 @@ Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
-	table.insert(AllCharacters, Character)
 end)
 
 Toggles.NoHD:OnChanged(function()
@@ -2093,6 +2077,8 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 	else
 		return oldNamecall(...)
 	end
+
+	return oldNamecall(...)
 end))
 --/#
 
@@ -2112,11 +2098,7 @@ Players.PlayerAdded:Connect(OnAdminJoined)
 Players.PlayerRemoving:Connect(OnPlayerDisconnect)
 
 for _,v in pairs(Players:GetPlayers()) do
-	if v == LocalPlayer then continue end
-	OnCharacterAdded(v.Character)
-	v.CharacterAdded:Connect(function()
-		OnCharacterAdded(v.Character)
-	end)
+	if v == Player then continue end
 	table.insert(PlayersInServer,v)
 	task.spawn(OnAdminJoined, v)
 end
@@ -2134,8 +2116,8 @@ RunService.Heartbeat:Connect(function()
 		CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 	end
 
-	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
-	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
+    PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
+    PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
 
 	if not Character:FindFirstChild("Humanoid") then return end
 	if Character.Humanoid.Health <= 0 then return end
@@ -2152,7 +2134,7 @@ RunService.Heartbeat:Connect(function()
 		local HitPart = getClosestPlayer()
 		if HitPart then
 			local Char = HitPart.Parent
-			SilentTargetHightLight.Parent = Char
+			SilentTargetHightLight.Parent = Root
 		else 
 			SilentTargetHightLight.Parent = nil
 		end
@@ -2230,16 +2212,16 @@ RunService.Heartbeat:Connect(function()
 			end
 
 			for _, Stuff in workspace.ActiveTasks:GetChildren() do 
-				if Stuff.Name == "Location" and Stuff:FindFirstChild("FinalFight") then
-					for _,Instances in Stuff.FinalFight:GetChildren() do
-						local Hum = Instances:FindFirstChild("Humanoid")
-
-						if Hum and Hum.Health > 1 then
-							table.insert(KillAuraChars, Instances)
-						end
-
+			   if Stuff.Name == "Location" and Stuff:FindFirstChild("FinalFight") then
+				for _,Instances in Stuff.FinalFight:GetChildren() do
+					local Hum = Instances:FindFirstChild("Humanoid")
+	
+					if Hum and Hum.Health > 1 then
+						table.insert(KillAuraChars, Instances)
 					end
+	
 				end
+			   end
 			end
 
 			for _,Instances in pairs(Arena:GetChildren()) do
