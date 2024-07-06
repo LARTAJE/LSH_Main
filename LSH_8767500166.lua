@@ -2446,9 +2446,9 @@ Library:OnUnload(function()
 	SilentAIMFov.Visible = false
 	SilentTargetHightLight:Destroy()
 	_G.LACKSKILL_LOADED = false
-	Library.Unloaded = true
 	for _, Toggle in Toggles do
 		Toggle.Value = false
 	end
+	Library.Unloaded = true
 	script:Destroy()
 end)
