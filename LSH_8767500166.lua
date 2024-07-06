@@ -2265,6 +2265,7 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 	end
 
 	if Toggles.InfiniteStamina.Value == true then
+	print("e")
 		PlayerGui:SetAttribute("Stamina", 100)
 	end
 
