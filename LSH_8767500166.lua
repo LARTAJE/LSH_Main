@@ -641,19 +641,19 @@ Notificate:AddDropdown('NotificateItemsFilter', {
 })
 
 --// Gun stuff
-Notificate:AddToggle('GamePRecoil', {
+GunStuff:AddToggle('GamePRecoil', {
 	Text = 'Gamepad Recoil',
 	Default = false, --false
 	Tooltip = 'Removes alot of your recoil.',
 })
 
-Notificate:AddToggle('NoRecoil', {
+GunStuff:AddToggle('NoRecoil', {
 	Text = 'No recoil',
 	Default = false, --false
 	Tooltip = 'Removes your recoil.',
 })
 
-Notificate:AddToggle('TP_SPREAD', {
+GunStuff:AddToggle('TP_SPREAD', {
 	Text = 'Remove third person spread multi',
 	Default = false, --false
 	Tooltip = 'Removes the stupit spread multi on third person.',
@@ -2217,8 +2217,12 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 		PlatformHandler.Enabled = true
 	end
 	
-	if Toggles.GamePRecoil.TP_SPREAD and __G  then
+	if Toggles.TP_SPREAD.Value and __G  then
 		__G.CharacterStates.InFirstPerson = true
+	end
+	
+	if Toggles.NoRecoil.Value and __G  then
+		__G.CharacterStates.ZoomRecoilModifier = 0.000001
 	end
 
 	if Toggles.ShowSilentTarget.Value == true then
@@ -2265,7 +2269,6 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 	end
 
 	if Toggles.InfiniteStamina.Value == true then
-	print("e")
 		PlayerGui:SetAttribute("Stamina", 100)
 	end
 
