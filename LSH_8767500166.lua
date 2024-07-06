@@ -1,4 +1,5 @@
-
+if _G.LACKSKILL_LOADED then return end
+_G.LACKSKILL_LOADED = true
 local Started = tick() - 1
 local is_synapse_function = isexecutorclosure
 
@@ -11,13 +12,13 @@ local PlayerGui = game.Players.LocalPlayer.PlayerGui
 local Character = LocalPlayer.Character
 local mouse = LocalPlayer:GetMouse()
 
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
 local UserService = game:GetService("UserService")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local Lighting = game.Lighting
 local GetPlayers = Players.GetPlayers
 
@@ -34,6 +35,7 @@ local Tutorial = workspace:FindFirstChild("Tutorial")
 local Arena = game.Workspace:WaitForChild("Arena")
 local waveSurvival_m = game.Workspace:WaitForChild("WaveSurvival").NPCs
 local MeleeStorage = game:GetService("ReplicatedStorage"):WaitForChild("MeleeStorage")
+local PlatformHandler = ReplicatedFirst.PlatformHandler
 
 local Map
 local Bunker_LootAutoFarmPath
@@ -116,6 +118,8 @@ local FakeVerifiedBadge = false
 
 local resume = coroutine.resume 
 local create = coroutine.create
+local RunServiceConnection
+local __G
 
 local SilentAIMFov = Drawing.new("Circle")
 SilentAIMFov.Thickness = 1
@@ -193,6 +197,7 @@ local Notificate = LeftSideTab2:AddTab('Notify items')
 local QualityOfLive = LeftSideTab3:AddTab('Quality Of Live')
 local Missions = LeftSideTab4:AddTab('Missions')
 local SilentAim = RightSideTab1:AddTab('Silent Aim')
+local GunStuff = RightSideTab1:AddTab('Gun Stuff')
 local Misc = RightSideTab2:AddTab('Misc')
 local Teleport = RightSideTab3:AddTab('Teleport')
 local AutofarmTab = LeftSideTab5:AddTab('Auto farms')
@@ -635,7 +640,24 @@ Notificate:AddDropdown('NotificateItemsFilter', {
 	Tooltip = 'Allowed types to notificate.',
 })
 
+--// Gun stuff
+Notificate:AddToggle('GamePRecoil', {
+	Text = 'Gamepad Recoil',
+	Default = false, --false
+	Tooltip = 'Removes alot of your recoil.',
+})
 
+Notificate:AddToggle('NoRecoil', {
+	Text = 'No recoil',
+	Default = false, --false
+	Tooltip = 'Removes your recoil.',
+})
+
+Notificate:AddToggle('TP_SPREAD', {
+	Text = 'Remove third person spread multi',
+	Default = false, --false
+	Tooltip = 'Removes the stupit spread multi on third person.',
+})
 
 Toggles.NotificateAddToESP:OnChanged(function(state)
 	ESPFramework.Notificate_Items = state
@@ -665,12 +687,6 @@ AutofarmTab:AddToggle('RedRaid_AutoFarm', {
 Library:SetWatermarkVisibility(true)
 Library:SetWatermark('LackSkill Hub')
 
-Library:OnUnload(function()
-	print('Unloaded!')
-	Library.Unloaded = true
-	script:Destroy()
-end)
-
 local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
 
 MenuGroup:AddButton('Unload', function() Library:Unload() end)
@@ -687,6 +703,7 @@ ThemeManager:SetFolder('LackSkillHub')
 SaveManager:SetFolder('LackSkillHub/Blackout')
 SaveManager:BuildConfigSection(Tabs['UI Settings']) 
 ThemeManager:ApplyToTab(Tabs['UI Settings'])
+SaveManager:LoadAutoloadConfig()
 
 --/#
 
@@ -778,6 +795,11 @@ local ItemStats = {
 	},
 
 	["Tactical Knife"] = {
+		Type = "Melee",
+		Contraband = false
+	},
+	
+	["Trench Knife"] = {
 		Type = "Melee",
 		Contraband = false
 	},
@@ -897,10 +919,25 @@ local ItemStats = {
 		Type = "Gun",
 		Contraband = true
 	},
+	
+	["RSH-12"] = {
+		Type = "Gun",
+		Contraband = true
+	},
+	
+	["KS-23"] = {
+		Type = "Gun",
+		Contraband = true
+	},
 	--/#
 
 
 	--// Explosives
+	
+	["M79"] = {
+		Type = "Explosive",
+		Contraband = false
+	},
 
 	["GL-06"] = {
 		Type = "Explosive",
@@ -929,6 +966,11 @@ local ItemStats = {
 		Type = "Utility",
 		Contraband = false
 	},
+	
+	["Skyfall T.A.G"] = {
+		Type = "Utility",
+		Contraband = true
+	},
 
 	["Incendiary"] = {
 		Type = "Utility",
@@ -952,8 +994,28 @@ local ItemStats = {
 		Type = "Armor",
 		Contraband = false
 	},
+	
+	["Commander Helmet"] = {
+		Type = "Armor",
+		Contraband = true
+	},
+
+	["Commander Vest"] = {
+		Type = "Armor",
+		Contraband = true
+	},
+
+	["Commander Leggings"] = {
+		Type = "Armor",
+		Contraband = true
+	},
 
 	["Operator Helmet"] = {
+		Type = "Armor",
+		Contraband = true
+	},
+	
+	["Operator Helmet MK2"] = {
 		Type = "Armor",
 		Contraband = true
 	},
@@ -974,6 +1036,16 @@ local ItemStats = {
 	},
 
 	["Tactical Helmet"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	
+	["Vulture Helmet"] = {
+		Type = "Armor",
+		Contraband = false
+	},
+	
+	["Rebel Helmet"] = {
 		Type = "Armor",
 		Contraband = false
 	},
@@ -1057,7 +1129,7 @@ local SwingEvent = MeleeStorage:WaitForChild("Events"):WaitForChild("Swing")
 
 local AdminSound = Instance.new('Sound')
 AdminSound.Volume = 2
-AdminSound.Parent = CoreGui
+AdminSound.Parent = workspace
 AdminSound.SoundId = 'rbxassetid://225320558'
 --/#
 
@@ -1128,13 +1200,13 @@ local OnAdminJoined = function(Plr)
 		["Blackout"] = IsInGroup(Plr, 6568965),
 	}
 
-	if GroupStates.Criminality or GroupStates.Blackout then
+	if GroupStates.CrimAdminGroup or GroupStates.Blackout then
 		local Role = GetRoleInGroup(Plr, 6568965)
 
 		if Role ~= "Member" or GroupStates.CrimAdminGroup then
 
 			if Toggles.AdminDetector.Value then
-				Player:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
+				LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
 				return
 			end
 
@@ -1179,6 +1251,12 @@ local function ItemAdded(Item,Method)
 
 	end
 
+end
+
+function Get_G()
+	local PlatformHandler = PlatformHandler
+	local env = getsenv(PlatformHandler)
+	__G = env._G
 end
 
 local speed = Options.FlySpeed.Value
@@ -1448,14 +1526,14 @@ local function PromptSetUp(ProxPrompt)
 	ProxPrompt.Triggered:Connect(function()
 
 		if ProxPrompt.Name == "LockMinigame" then
-
+			local ToLockPick = ProxPrompt.Parent.Parent.Parent
+			
 			if ProxPrompt:GetAttribute("Unlocked") then
 				task.wait(0.5)
 				OpenLoot(ToLockPick)
 			end
 
 			if Toggles.AutoLockpickToggle.Value == true then
-				local ToLockPick = ProxPrompt.Parent.Parent.Parent
 				task.wait(1)
 				LockPick(ToLockPick,true)
 
@@ -1547,28 +1625,28 @@ end)
 local function GetClothes(id)
 	local NewClothing = nil
 
-    local Success, ClothingID = pcall(function()
-        local UID = tonumber(id)
-        local Request = game:HttpGet("https://assetdelivery.roblox.com/v1/asset/?ID="..UID)
-           
-        if Request then
-            local Start = string.find(Request,"<url>")
-            local End = string.find(Request,"</url>",Start)
-        
-             if Start and End then
-                 print("Success")
-                 NewClothing = string.sub(Request,Start+5,End-1)
-                 return NewClothing
-              end
-        end
+	local Success, ClothingID = pcall(function()
+		local UID = tonumber(id)
+		local Request = game:HttpGet("https://assetdelivery.roblox.com/v1/asset/?ID="..UID)
 
-    end)
+		if Request then
+			local Start = string.find(Request,"<url>")
+			local End = string.find(Request,"</url>",Start)
+
+			if Start and End then
+				print("Success")
+				NewClothing = string.sub(Request,Start+5,End-1)
+				return NewClothing
+			end
+		end
+
+	end)
 
 	if NewClothing then 
-        print("ID: ".. NewClothing)
+		print("ID: ".. NewClothing)
 		return NewClothing
 	else 
-        print("err")
+		print("err")
 		return "rbxassetid://0"
 	end
 
@@ -1599,71 +1677,71 @@ local function GetBodyParts(Head,Torso,RightArm,LeftArm,RightLeg,LeftLeg)
 end
 
 function weldAttachments(attach1, attach2)
-    local weld = Instance.new("Weld")
-    weld.Part0 = attach1.Parent
-    weld.Part1 = attach2.Parent
-    weld.C0 = attach1.CFrame
-    weld.C1 = attach2.CFrame
-    weld.Parent = attach1.Parent
-    return weld
+	local weld = Instance.new("Weld")
+	weld.Part0 = attach1.Parent
+	weld.Part1 = attach2.Parent
+	weld.C0 = attach1.CFrame
+	weld.C1 = attach2.CFrame
+	weld.Parent = attach1.Parent
+	return weld
 end
- 
+
 local function buildWeld(weldName, parent, part0, part1, c0, c1)
-    local weld = Instance.new("Weld")
-    weld.Name = weldName
-    weld.Part0 = part0
-    weld.Part1 = part1
-    weld.C0 = c0
-    weld.C1 = c1
-    weld.Parent = parent
-    return weld
+	local weld = Instance.new("Weld")
+	weld.Name = weldName
+	weld.Part0 = part0
+	weld.Part1 = part1
+	weld.C0 = c0
+	weld.C1 = c1
+	weld.Parent = parent
+	return weld
 end
- 
+
 local function findFirstMatchingAttachment(model, name)
-    for _, child in pairs(model:GetChildren()) do
-        if child:IsA("Attachment") and child.Name == name then
-            return child
-        elseif not child:IsA("Accoutrement") and not child:IsA("Tool") then -- Don't look in hats or tools in the character
-            local foundAttachment = findFirstMatchingAttachment(child, name)
-            if foundAttachment then
-                return foundAttachment
-            end
-        end
-    end
+	for _, child in pairs(model:GetChildren()) do
+		if child:IsA("Attachment") and child.Name == name then
+			return child
+		elseif not child:IsA("Accoutrement") and not child:IsA("Tool") then -- Don't look in hats or tools in the character
+			local foundAttachment = findFirstMatchingAttachment(child, name)
+			if foundAttachment then
+				return foundAttachment
+			end
+		end
+	end
 end
- 
+
 function addAccoutrement(character, accoutrement)  
-    accoutrement.Parent = character
-    local handle = accoutrement:FindFirstChild("Handle")
-    if handle then
-        local accoutrementAttachment = handle:FindFirstChildOfClass("Attachment")
-        if accoutrementAttachment then
-            local characterAttachment = findFirstMatchingAttachment(character, accoutrementAttachment.Name)
-            if characterAttachment then
-                weldAttachments(characterAttachment, accoutrementAttachment)
-            end
-        else
-            local head = character:FindFirstChild("Head")
-            if head then
-                local attachmentCFrame = CFrame.new(0, 0.5, 0)
-                local hatCFrame = accoutrement.AttachmentPoint
-                buildWeld("HeadWeld", head, head, handle, attachmentCFrame, hatCFrame)
-            end
-        end
-    end
+	accoutrement.Parent = character
+	local handle = accoutrement:FindFirstChild("Handle")
+	if handle then
+		local accoutrementAttachment = handle:FindFirstChildOfClass("Attachment")
+		if accoutrementAttachment then
+			local characterAttachment = findFirstMatchingAttachment(character, accoutrementAttachment.Name)
+			if characterAttachment then
+				weldAttachments(characterAttachment, accoutrementAttachment)
+			end
+		else
+			local head = character:FindFirstChild("Head")
+			if head then
+				local attachmentCFrame = CFrame.new(0, 0.5, 0)
+				local hatCFrame = accoutrement.AttachmentPoint
+				buildWeld("HeadWeld", head, head, handle, attachmentCFrame, hatCFrame)
+			end
+		end
+	end
 end
 
 local function ExtractDescriptor(ID)
-    local NID = tonumber(ID)
+	local NID = tonumber(ID)
 	local OutfitId = NID
-    local UserName = Players:GetNameFromUserIdAsync(NID)
-    FakeName = UserName
-    local UserInfo = UserService:GetUserInfosByUserIdsAsync({NID})
-   
-    if UserInfo then
-        FakeDisplayName = UserInfo[1].DisplayName
-        FakeVerifiedBadge = UserInfo[1].HasVerifiedBadge
-    end
+	local UserName = Players:GetNameFromUserIdAsync(NID)
+	FakeName = UserName
+	local UserInfo = UserService:GetUserInfosByUserIdsAsync({NID})
+
+	if UserInfo then
+		FakeDisplayName = UserInfo[1].DisplayName
+		FakeVerifiedBadge = UserInfo[1].HasVerifiedBadge
+	end
 
 	local Description = Players:GetHumanoidDescriptionFromUserId(OutfitId)
 	local Extracted = nil
@@ -1688,74 +1766,74 @@ local function ExtractDescriptor(ID)
 		end
 	end
 
-Instance.new("Decal",Extracted).Texture = (Description.Face == 0 and "rbxasset://textures/face.png") or "rbxthumb://type=Asset&id="..Description.Face.."&w=420&h=420"
+	Instance.new("Decal",Extracted).Texture = (Description.Face == 0 and "rbxasset://textures/face.png") or "rbxthumb://type=Asset&id="..Description.Face.."&w=420&h=420"
 
-local Colors = Instance.new("BodyColors",Extracted)
+	local Colors = Instance.new("BodyColors",Extracted)
 
-Colors.TorsoColor3 = Description.TorsoColor
-Colors.HeadColor3 = Description.HeadColor
-Colors.LeftArmColor3 = Description.LeftArmColor
-Colors.RightArmColor3 = Description.RightArmColor
-Colors.LeftLegColor3 = Description.LeftLegColor
-Colors.RightLegColor3 = Description.RightLegColor
+	Colors.TorsoColor3 = Description.TorsoColor
+	Colors.HeadColor3 = Description.HeadColor
+	Colors.LeftArmColor3 = Description.LeftArmColor
+	Colors.RightArmColor3 = Description.RightArmColor
+	Colors.LeftLegColor3 = Description.LeftLegColor
+	Colors.RightLegColor3 = Description.RightLegColor
 
-if Description.Shirt ~= 0 then
-	local Top = Instance.new("Shirt", Extracted)
-    local Template = GetClothes(Description.Shirt)
-   
-    local indexo = 1
+	if Description.Shirt ~= 0 then
+		local Top = Instance.new("Shirt", Extracted)
+		local Template = GetClothes(Description.Shirt)
 
-if not Template then
-    repeat
-		indexo += 1
-        Template = GetClothes(Description.Shirt)
-    until Template or indexo >= 50
-end
+		local indexo = 1
 
-    if Template then
-        Top.ShirtTemplate = Template
-    end
+		if not Template then
+			repeat
+				indexo += 1
+				Template = GetClothes(Description.Shirt)
+			until Template or indexo >= 50
+		end
 
-end
+		if Template then
+			Top.ShirtTemplate = Template
+		end
 
-if Description.Pants ~= 0 then
-	local Bottom = Instance.new("Pants",Extracted)
-    local Template = GetClothes(Description.Pants)
-    local indexo = 1
+	end
 
-if not Template then
-	repeat
-			indexo += 1
-			Template = GetClothes(Description.Pants)
-	until Template or indexo >= 50
-end
+	if Description.Pants ~= 0 then
+		local Bottom = Instance.new("Pants",Extracted)
+		local Template = GetClothes(Description.Pants)
+		local indexo = 1
 
-    if Template then
-        Bottom.PantsTemplate = Template
-    end
+		if not Template then
+			repeat
+				indexo += 1
+				Template = GetClothes(Description.Pants)
+			until Template or indexo >= 50
+		end
 
-end
+		if Template then
+			Bottom.PantsTemplate = Template
+		end
 
-for _,m in pairs(GetBodyParts(Description.Head,Description.Torso,Description.RightArm,Description.LeftArm,Description.RightLeg,Description.LeftLeg)) do
-	m.Parent = Extracted
-end
+	end
 
-return Extracted:GetChildren()
+	for _,m in pairs(GetBodyParts(Description.Head,Description.Torso,Description.RightArm,Description.LeftArm,Description.RightLeg,Description.LeftLeg)) do
+		m.Parent = Extracted
+	end
+
+	return Extracted:GetChildren()
 end
 
 local function ChangeChar(ID)
-    if not ID then return end
-    if not Players:GetNameFromUserIdAsync(tonumber(ID)) then return end
+	if not ID then return end
+	if not Players:GetNameFromUserIdAsync(tonumber(ID)) then return end
 
 	local _Desc = ExtractDescriptor(ID)
 
-    if _Desc then
+	if _Desc then
 
-        for _, v in pairs(Character:GetChildren()) do
-            if v:IsA("Accessory") then
-                v:Destroy()
-            end
-        end
+		for _, v in pairs(Character:GetChildren()) do
+			if v:IsA("Accessory") then
+				v:Destroy()
+			end
+		end
 
 		for _, Accourtment in pairs(_Desc) do 
 			local NewAccourtment = Accourtment:Clone()
@@ -1964,7 +2042,7 @@ VisualsTab:AddInput('Disguiser', {
 	Placeholder = 'USER ID',
 
 	Callback = function(Value)
-        if typeof(Value) == "string" then end
+		if typeof(Value) == "string" then end
 		ChangeChar(Value)
 	end
 })
@@ -2098,7 +2176,7 @@ Players.PlayerAdded:Connect(OnAdminJoined)
 Players.PlayerRemoving:Connect(OnPlayerDisconnect)
 
 for _,v in pairs(Players:GetPlayers()) do
-	if v == Player then continue end
+	if v == LocalPlayer then continue end
 	table.insert(PlayersInServer,v)
 	task.spawn(OnAdminJoined, v)
 end
@@ -2106,7 +2184,9 @@ end
 
 --/#
 
-RunService.Heartbeat:Connect(function()
+Get_G()
+
+RunServiceConnection = RunService.Heartbeat:Connect(function()
 	task.wait()
 
 	Cam = workspace.CurrentCamera
@@ -2116,8 +2196,8 @@ RunService.Heartbeat:Connect(function()
 		CharacterRoot = Character:WaitForChild("HumanoidRootPart")
 	end
 
-    PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
-    PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
+	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
+	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
 
 	if not Character:FindFirstChild("Humanoid") then return end
 	if Character.Humanoid.Health <= 0 then return end
@@ -2129,12 +2209,23 @@ RunService.Heartbeat:Connect(function()
 	else
 		SilentAIMFov.Visible = false
 	end
+	
+	if Toggles.GamePRecoil.Value == true and __G then
+		PlatformHandler.Enabled = false
+		__G.CurrentInputType = "Gamepad"
+	else
+		PlatformHandler.Enabled = true
+	end
+	
+	if Toggles.GamePRecoil.TP_SPREAD and __G  then
+		__G.CharacterStates.InFirstPerson = true
+	end
 
 	if Toggles.ShowSilentTarget.Value == true then
 		local HitPart = getClosestPlayer()
 		if HitPart then
 			local Char = HitPart.Parent
-			SilentTargetHightLight.Parent = Root
+			SilentTargetHightLight.Parent = Char
 		else 
 			SilentTargetHightLight.Parent = nil
 		end
@@ -2179,9 +2270,12 @@ RunService.Heartbeat:Connect(function()
 
 	if Toggles.KillAura.Value == true then
 		local KillAuraChars = {}
-
+		local StartAt = 1
+		
 		if Toggles.KillAura_Target_Players.Value == true then
-			for _,Instances in pairs(game.Players:GetPlayers()) do
+			StartAt = 2
+			
+			for _,Instances in game.Players:GetPlayers() do
 				local Hum = Instances.Character:FindFirstChild("Humanoid")
 
 				if Hum and Hum.Health > 1 then
@@ -2212,16 +2306,16 @@ RunService.Heartbeat:Connect(function()
 			end
 
 			for _, Stuff in workspace.ActiveTasks:GetChildren() do 
-			   if Stuff.Name == "Location" and Stuff:FindFirstChild("FinalFight") then
-				for _,Instances in Stuff.FinalFight:GetChildren() do
-					local Hum = Instances:FindFirstChild("Humanoid")
-	
-					if Hum and Hum.Health > 1 then
-						table.insert(KillAuraChars, Instances)
+				if Stuff.Name == "Location" and Stuff:FindFirstChild("FinalFight") then
+					for _,Instances in Stuff.FinalFight:GetChildren() do
+						local Hum = Instances:FindFirstChild("Humanoid")
+
+						if Hum and Hum.Health > 1 then
+							table.insert(KillAuraChars, Instances)
+						end
+
 					end
-	
 				end
-			   end
 			end
 
 			for _,Instances in pairs(Arena:GetChildren()) do
@@ -2235,12 +2329,14 @@ RunService.Heartbeat:Connect(function()
 
 		end
 
-		for i = 2, #KillAuraChars do
+		for i = StartAt, #KillAuraChars do
 			local KillAuraTargetCharacter = KillAuraChars[i]
 
 			if KillAuraTargetCharacter and KillAuraTargetCharacter:FindFirstChild("Humanoid") and KillAuraTargetCharacter.Humanoid.Health > 0 and KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart") and (CharacterRoot.Position - KillAuraTargetCharacter:FindFirstChild("HumanoidRootPart").Position).Magnitude <= Options.KillAura_Range.Value then
 				Swing()
-				Hit(KillAuraTargetCharacter, Options.KillAura_TargetPart.Value)
+				task.delay(.1, function()
+					Hit(KillAuraTargetCharacter, Options.KillAura_TargetPart.Value)
+				end)
 			end
 
 		end
@@ -2339,4 +2435,16 @@ RunService.Heartbeat:Connect(function()
 
 	end
 
+end)
+
+Library:OnUnload(function()
+	RunServiceConnection:Disconnect()
+	SilentAIMFov.Visible = false
+	SilentTargetHightLight:Destroy()
+	_G.LACKSKILL_LOADED = false
+	Library.Unloaded = true
+	for _, Toggle in Toggles do
+		Toggle.Value = false
+	end
+	script:Destroy()
 end)
