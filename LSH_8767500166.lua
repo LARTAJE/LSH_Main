@@ -565,13 +565,13 @@ QualityOfLive:AddToggle('OpenlootOnLockpick', {
 	Default = false, --false
 	Tooltip = 'when lockpicking is done auto opens loot gui.',
 })
-
+--[[
 QualityOfLive:AddToggle('BreakAI', {
 	Text = 'Break AI',
 	Default = false, --false
 	Tooltip = 'Breaks the mob AI lol.',
 })
-
+--]]
 VisualsTab:AddToggle('Fullbright', {
 	Text = 'Fullbright',
 	Default = false, --false
@@ -675,12 +675,13 @@ end)
 --/#
 
 --// AutoFarm
+--[[
 AutofarmTab:AddToggle('Bunker_AutoFarm', {
 	Text = 'Bunker Auto-farm',
 	Default = false, --false
 	Tooltip = 'Auto Loots all of bunker',
 })
-
+--]]
 AutofarmTab:AddToggle('Arena_AutoFarm', {
 	Text = 'Arena Auto-farm',
 	Default = false, --false
@@ -2273,14 +2274,14 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 	else
 		SilentTargetHightLight.Parent = nil
 	end
-
+--[[
 	if Toggles.BreakAI.Value == true then
 		local Velvel = CharacterRoot.Velocity
 		CharacterRoot.Velocity = (CharacterRoot.CFrame.LookVector.Unit * 20) + Vector3.new(0,-1000,0);
 		RunService.RenderStepped:Wait()
 		CharacterRoot.Velocity = Velvel
 	end
-
+--]]
 	if Toggles.HideLevel.Value == true then
 		PlayerGui.MainGui.LevelFrame.Visible = false
 	else
@@ -2437,7 +2438,7 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 	else
 		Character:WaitForChild("RagdollClient").Enabled = true
 	end
-
+--[[
 	if Toggles.Bunker_AutoFarm.Value == true and (tick() - autoFarmWaitTick) > 3 then
 		local LootModel = BunkerLoot[BunkerAutoFarmAt]
 		TPtoLootAndPickUp(LootModel.LootBase,false)
@@ -2449,7 +2450,7 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 		end
 
 	end
-
+--]]
 	if Toggles.Arena_AutoFarm.Value == true then
 		for _,Instances in pairs(Arena:GetChildren()) do
 			local Hum = Instances:FindFirstChild("Humanoid")
