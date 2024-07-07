@@ -1,8 +1,9 @@
- game.Players.LocalPlayer.OnTeleport:Connect(function(State)
+--[[
+game.Players.LocalPlayer.OnTeleport:Connect(function(State)
      TeleportCheck = true
      queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/LSH_8767500166.lua'))()")
  end)
-
+--]]
 if _G.LACKSKILL_LOADED == true then
    game.Players.LocalPlayer:Kick("LACKSKILL HUB: plz dont execute teh script more than one time")
 end
