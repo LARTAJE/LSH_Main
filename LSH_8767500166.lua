@@ -1,4 +1,6 @@
-if _G.LACKSKILL_LOADED then return end
+if _G.LACKSKILL_LOADED or game.PlaceId ~= 15432890326 then
+    return
+end
 _G.LACKSKILL_LOADED = true
 local Started = tick() - 1
 local is_synapse_function = isexecutorclosure
@@ -2440,6 +2442,11 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 
 	end
 
+end)
+
+LocalPlayer.OnTeleport:Connect(function(State)
+    TeleportCheck = true
+    queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/LSH_8767500166.lua'))()")
 end)
 
 Library:OnUnload(function()
