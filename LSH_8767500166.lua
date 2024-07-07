@@ -980,6 +980,11 @@ local ItemStats = {
 		Contraband = true
 	},
 
+	["Proximity Mine"] = {
+		Type = "Utility",
+		Contraband = false
+	},
+
 	["Incendiary"] = {
 		Type = "Utility",
 		Contraband = false
@@ -1117,6 +1122,25 @@ local ItemStats = {
 
 	["Green Flare Gun"] = {
 		Type = "Flares",
+		Contraband = false
+	},
+
+	--/#
+
+	--// Inhalers
+
+	["Purple Combat Inhaler"] = {
+		Type = "Inhaler",
+		Contraband = false
+	},
+
+	["Green Combat Inhaler"] = {
+		Type = "Inhaler",
+		Contraband = false
+	},
+
+	["Orange Combat Inhaler"] = {
+		Type = "Inhaler",
 		Contraband = false
 	},
 
