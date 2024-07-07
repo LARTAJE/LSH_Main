@@ -6,7 +6,7 @@
 if _G.LACKSKILL_LOADED == true then
    game.Players.LocalPlayer:Kick("LACKSKILL HUB: plz dont execute teh script more than one time")
 end
-
+repeat task.wait() until  game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 _G.LACKSKILL_LOADED = true
 local Started = tick() - 1
 local is_synapse_function = isexecutorclosure
