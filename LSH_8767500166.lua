@@ -1235,6 +1235,7 @@ local function ItemAdded(Item,Method)
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
+		print(Item.Name)
 		print(ItemStat.Type)
 		print(ItemStat.Contraband)
 		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
