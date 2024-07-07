@@ -434,7 +434,7 @@ SilentAim:AddDropdown('TargetPart', {
 SilentAim:AddToggle('VisibleCheck', {
 	Text = 'Visible Check',
 	Default = true,
-	Tooltip = 'Checks if target player is in vision.',
+	Tooltip = 'Checks if target player is in vision. WARNING THIS INCLUDES DEBRIS)',
 })
 
 SilentAim:AddToggle('IgnoreFriends', {
@@ -520,7 +520,7 @@ Movement:AddToggle('InfiniteStamina', {
 	Default = false,
 	Tooltip = 'Gives you infinite stamina (LOCAL).',
 })
-
+--[[
 Movement:AddToggle('Noclip', {
 	Text = 'Noclip',
 	Default = false,
@@ -532,7 +532,7 @@ Movement:AddToggle('StopNoclipOnRagdoll', {
 	Default = false,
 	Tooltip = 'Stops noclipping when ragdolled.',
 })
-
+--]]
 --/#
 
 --// AutoLoot Stuff
@@ -557,13 +557,13 @@ AutoLoot:AddDropdown('AutoLootFilter', {
 QualityOfLive:AddToggle('AutoLockpickToggle', {
 	Text = 'Auto lockpick',
 	Default = false, --false
-	Tooltip = 'AutoLockpicks when starting the minigame.',
+	Tooltip = 'AutoLockpicks when starting the minigame. WIP',
 })
 
 QualityOfLive:AddToggle('OpenlootOnLockpick', {
 	Text = 'Open loot On Lockpick',
 	Default = false, --false
-	Tooltip = 'when lockpicking is done auto opens loot gui.',
+	Tooltip = 'when lockpicking is done auto opens loot gui. WIP',
 })
 --[[
 QualityOfLive:AddToggle('BreakAI', {
@@ -2112,6 +2112,7 @@ Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
+        Toggles.FlyToggle.Value = false
 end)
 
 Toggles.NoHD:OnChanged(function()
