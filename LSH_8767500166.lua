@@ -1255,6 +1255,7 @@ end
 
 function Get_G()
 	local PlatformHandler = PlatformHandler
+	PlatformHandler.Enabled = true
 	local env = getsenv(PlatformHandler)
 	__G = env._G
 end
