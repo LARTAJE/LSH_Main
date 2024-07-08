@@ -1,13 +1,16 @@
+
 --[[
 game.Players.LocalPlayer.OnTeleport:Connect(function(State)
      TeleportCheck = true
      queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/LARTAJE/LSH_Main/main/LSH_8767500166.lua'))()")
  end)
 --]]
+
 if _G.LACKSKILL_LOADED == true then
-   game.Players.LocalPlayer:Kick("LACKSKILL HUB: plz dont execute teh script more than one time")
+	game.Players.LocalPlayer:Kick("LACKSKILL HUB: plz dont execute teh script more than one time.")
 end
-repeat task.wait() until  game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+repeat task.wait() until game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 _G.LACKSKILL_LOADED = true
 local Started = tick() - 1
 local is_synapse_function = isexecutorclosure
@@ -139,6 +142,8 @@ SilentAIMFov.Visible = false
 SilentAIMFov.ZIndex = 999
 SilentAIMFov.Transparency = 1
 SilentAIMFov.Color = Color3.fromRGB(255,255,255)
+
+local BulletTracerColor = Color3.new(1,1,1)
 
 --]]
 local GuiLoaded
@@ -358,6 +363,16 @@ ColorsTab:AddLabel('Ambient color'):AddColorPicker('Amb_ColorP', {
 	end
 })
 
+ColorsTab:AddLabel('BulletTracerColor'):AddColorPicker('BTC', {
+	Default = Color3.new(1, 1, 1),
+	Title = 'Bullet tracer color',
+	Transparency = 0,
+
+	Callback = function(Value)
+		BulletTracerColor = Value
+	end
+})
+
 --//#
 
 --// Esp toggle settings
@@ -520,7 +535,7 @@ Movement:AddToggle('InfiniteStamina', {
 	Default = false,
 	Tooltip = 'Gives you infinite stamina (LOCAL).',
 })
---[[
+
 Movement:AddToggle('Noclip', {
 	Text = 'Noclip',
 	Default = false,
@@ -532,7 +547,7 @@ Movement:AddToggle('StopNoclipOnRagdoll', {
 	Default = false,
 	Tooltip = 'Stops noclipping when ragdolled.',
 })
---]]
+
 --/#
 
 --// AutoLoot Stuff
@@ -611,6 +626,12 @@ VisualsTab:AddSlider('CustomLevel', {
 	Rounding = 0,
 
 	Compact = false,
+})
+
+VisualsTab:AddToggle('ShowBulletTracers', {
+	Text = 'Bullet tracers',
+	Default = false, --false
+	Tooltip = 'Show your bullet tracers.',
 })
 
 QualityOfLive:AddToggle('NoHD', {
@@ -808,7 +829,7 @@ local ItemStats = {
 		Type = "Melee",
 		Contraband = false
 	},
-	
+
 	["Trench Knife"] = {
 		Type = "Melee",
 		Contraband = false
@@ -929,12 +950,12 @@ local ItemStats = {
 		Type = "Gun",
 		Contraband = true
 	},
-	
+
 	["RSH-12"] = {
 		Type = "Gun",
 		Contraband = true
 	},
-	
+
 	["KS-23"] = {
 		Type = "Gun",
 		Contraband = true
@@ -943,7 +964,7 @@ local ItemStats = {
 
 
 	--// Explosives
-	
+
 	["M79"] = {
 		Type = "Explosive",
 		Contraband = false
@@ -976,7 +997,7 @@ local ItemStats = {
 		Type = "Utility",
 		Contraband = false
 	},
-	
+
 	["Skyfall T.A.G"] = {
 		Type = "Utility",
 		Contraband = true
@@ -1009,7 +1030,7 @@ local ItemStats = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Commander Helmet"] = {
 		Type = "Armor",
 		Contraband = true
@@ -1029,7 +1050,7 @@ local ItemStats = {
 		Type = "Armor",
 		Contraband = true
 	},
-	
+
 	["Operator Helmet MK2"] = {
 		Type = "Armor",
 		Contraband = true
@@ -1054,12 +1075,12 @@ local ItemStats = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Vulture Helmet"] = {
 		Type = "Armor",
 		Contraband = false
 	},
-	
+
 	["Rebel Helmet"] = {
 		Type = "Armor",
 		Contraband = false
@@ -1474,6 +1495,34 @@ local function NPCRemoved(NPCChar)
 	--ESPFramework:AddObjectListener.removeObject(NPCChar,)
 end
 
+local function NoclipLoop()
+	if Toggles.Noclip.Value == true and Character ~= nil then
+		if Toggles.StopNoclipOnRagdoll and Character:FindFirstChildOfClass("Humanoid").PlatformStand == true then
+			return
+		end
+		
+		for _, child in Character:GetDescendants() do
+			if child:IsA("BasePart") and child.CanCollide == true and child.Name ~= floatName then
+				child.CanCollide = false
+			end
+		end
+			
+	end
+end
+
+local function CreateTracer(Origin: Vector3, Goto: Vector3)
+	local Tracer = Instance.new("Part")
+	Tracer.Material = Enum.Material.ForceField
+	Tracer.Transparency = 0
+	Tracer.Color = BulletTracerColor
+	Tracer.Parent = workspace
+	Tracer.Anchored = true
+	Tracer.CanCollide = false
+	Tracer.Size = Vector3.new(0.1, 0.1, (Goto - Origin).Magnitude + 1)
+	Tracer.CFrame = CFrame.lookAt((Origin + Goto) / 2, Goto)
+	game:GetService("Debris"):AddItem(Tracer, 5)
+end
+
 local function CollectLootFromLootTable(LootTable)
 	local ItemsInLootTable = LootTable:GetChildren()
 	local CurrentItemIndex = 1
@@ -1564,7 +1613,7 @@ local function PromptSetUp(ProxPrompt)
 
 		if ProxPrompt.Name == "LockMinigame" then
 			local ToLockPick = ProxPrompt.Parent.Parent.Parent
-			
+
 			if ProxPrompt:GetAttribute("Unlocked") then
 				task.wait(0.5)
 				OpenLoot(ToLockPick)
@@ -2111,7 +2160,7 @@ Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
-        Toggles.FlyToggle.Value = false
+	Toggles.FlyToggle.Value = false
 end)
 
 Toggles.NoHD:OnChanged(function()
@@ -2166,27 +2215,41 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 	local chance = CalculateChance(Options.SilentAimHitChanceSlider.Value)
 
-	if self == workspace and not checkcaller() and chance == true and Method == "Raycast" and Toggles.SilentAimToggle.Value == true then
+	if self == workspace and not checkcaller() and Method == "Raycast" then
 		if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
-			if Arguments[4]["FilterDescendantsInstances"][3] ~= nil then
-				print(Arguments[4]["FilterDescendantsInstances"][3])
-			end
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
-
-			if HitPart then
-				if Toggles.InstaHit.Value then
-					local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
-					local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
-					print(typeof(CfTVec))
-					Arguments[2] = CfTVec
-					A_Origin = CfTVec
+			
+			if chance == true and Toggles.SilentAimToggle.Value == true then
+				if HitPart then
+					if Toggles.InstaHit.Value then
+						local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
+						local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
+						print(typeof(CfTVec))
+						Arguments[2] = CfTVec
+						A_Origin = CfTVec
+					end
+					Arguments[3] = getDirection(A_Origin, HitPart.Position)
+					return oldNamecall(unpack(Arguments))
+				else
+					return oldNamecall(...)
 				end
-				Arguments[3] = getDirection(A_Origin, HitPart.Position)
-				return oldNamecall(unpack(Arguments))
-			else
-				return oldNamecall(...)
 			end
+			
+			if true == true then
+				local function CastRay(origin: Vector3, direction: Vector3)
+					local raycastParams = RaycastParams.new()
+					raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+					raycastParams.FilterDescendantsInstances = {workspace.CurrentCamera, Character} -- Ignore the camera
+
+					local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+
+					return raycastResult
+				end
+
+				CreateTracer(A_Origin, CastRay(A_Origin, Arguments[3]).Position)
+			end
+			
 		else
 			return oldNamecall(...)
 		end
@@ -2224,7 +2287,7 @@ end
 
 Get_G()
 
-RunServiceConnection = RunService.Heartbeat:Connect(function()
+RunServiceConnection = RunService.Stepped:Connect(function()
 	task.wait()
 
 	Cam = workspace.CurrentCamera
@@ -2248,17 +2311,19 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 		SilentAIMFov.Visible = false
 	end
 	
+	NoclipLoop()
+
 	if Toggles.GamePRecoil.Value == true and __G then
 		PlatformHandler.Enabled = false
 		__G.CurrentInputType = "Gamepad"
 	else
 		PlatformHandler.Enabled = true
 	end
-	
+
 	if Toggles.TP_SPREAD.Value and __G  then
 		__G.CharacterStates.InFirstPerson = true
 	end
-	
+
 	if Toggles.NoRecoil.Value and __G  then
 		__G.CharacterStates.ZoomRecoilModifier = 0.000001
 	end
@@ -2313,10 +2378,10 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 	if Toggles.KillAura.Value == true then
 		local KillAuraChars = {}
 		local StartAt = 1
-		
+
 		if Toggles.KillAura_Target_Players.Value == true then
 			StartAt = 2
-			
+
 			for _,Instances in game.Players:GetPlayers() do
 				local Hum = Instances.Character:FindFirstChild("Humanoid")
 
@@ -2396,7 +2461,7 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = Options.CustomLevel.Value
 		PlayerGui:SetAttribute("Level", Options.CustomLevel.Value)
 
-		if Options.CustomLevel.Value == 50 then
+		if Options.CustomLevel.Value >= 50 then
 			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
 			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
 		else
@@ -2409,7 +2474,7 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 		PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].LayoutOrder = LocalPlayer:GetAttribute("Level")
 		PlayerGui:SetAttribute("Level", LocalPlayer:GetAttribute("Level"))
 
-		if LocalPlayer:GetAttribute("Level") == 50 then
+		if LocalPlayer:GetAttribute("Level") >= 50 then
 			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.Level.Visible = false
 			game:GetService("Players").LocalPlayer.PlayerGui.MainGui.LevelFrame.MaxLevel.Visible = true
 		else
