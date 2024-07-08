@@ -1,4 +1,3 @@
-
 --[[
 game.Players.LocalPlayer.OnTeleport:Connect(function(State)
      TeleportCheck = true
@@ -559,7 +558,7 @@ AutoLoot:AddToggle('AutoLootToggle', {
 })
 
 AutoLoot:AddDropdown('AutoLootFilter', {
-	Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melee', 'Gun', 'Explosive' , 'Armor', 'Keycard', 'Flare','Contraband'},
+	Values = {'Cash', 'Valuables', 'Food','Healing', 'Utility' ,'Misc','Melee', 'Gun', 'Explosive' , 'Armor', 'Keycard', 'Flare', 'Inhaler','Contraband'},
 	Default = 1,
 	Multi = true,
 	Text = 'Loot Filter',
@@ -1541,12 +1540,12 @@ local function CollectLootFromLootTable(LootTable)
 
 	if Options.AutoLootFilter.Value["Cash"] == true then
 		task.wait(0.5)
-		PickUpItem(LootTable, "Cash",nil)
+		PickUpItem(LootTable,"Cash", nil)
 	end
 
 	if Options.AutoLootFilter.Value["Valuables"] == true then
 		task.wait(0.5)
-		PickUpItem(LootTable, "Valuables",nil)
+		PickUpItem(LootTable,"Valuables",nil)
 	end
 
 end
@@ -1613,7 +1612,7 @@ local function PromptSetUp(ProxPrompt)
 
 		if ProxPrompt.Name == "LockMinigame" then
 			local ToLockPick = ProxPrompt.Parent.Parent.Parent
-
+			
 			if ProxPrompt:GetAttribute("Unlocked") then
 				task.wait(0.5)
 				OpenLoot(ToLockPick)
@@ -2031,7 +2030,8 @@ for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 end
 
 for _, Lootinstancee in pairs(workspace:GetDescendants()) do
-
+	
+	Check_LTS(Lootinstancee)
 	if Lootinstancee.Parent.Name == "Loot" then
 		table.insert(BunkerLoot, Lootinstancee)
 	elseif Lootinstancee:IsA("ProximityPrompt") then
@@ -2236,7 +2236,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 				end
 			end
 			
-			if true == true then
+			if Toggles.ShowBulletTracers.Value == true then
 				local function CastRay(origin: Vector3, direction: Vector3)
 					local raycastParams = RaycastParams.new()
 					raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
