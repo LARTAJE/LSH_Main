@@ -529,6 +529,23 @@ Movement:AddSlider('SpeedhackSlider', {
 	Compact = false,
 })
 
+Movement:AddToggle('AntiAim', {
+	Text = 'Fly',
+	Default = false,
+	Tooltip = 'Enables fly.',
+})
+
+Movement:AddSlider('AntiAimSpeed', {
+	Text = 'Speed',
+
+	Default = 50,
+	Min = 10,
+	Max = 250,
+	Rounding = 1,
+
+	Compact = false,
+})
+
 Movement:AddToggle('InfiniteStamina', {
 	Text = 'Infinite Stamina',
 	Default = false,
@@ -1318,6 +1335,36 @@ end
 
 local speed = Options.FlySpeed.Value
 
+local function AntiAim(spinSpeed, Toggle)
+	
+	local function DeleteSpin()
+		for _,v in pairs(CharacterRoot:GetChildren()) do
+			if v.Name == "Spinning" then
+				v:Destroy()
+			end
+		end
+	end
+	
+	if Toggle == true then
+		DeleteSpin()
+		
+		local Spin = Instance.new("BodyAngularVelocity")
+		Spin.Name = "Spinning"
+		Spin.Parent = CharacterRoot
+		Spin.MaxTorque = Vector3.new(0, math.huge, 0)
+		Spin.AngularVelocity = Vector3.new(0,spinSpeed,0)
+	elseif Toggle == false then
+		DeleteSpin()
+	end
+	
+end
+
+Options.AntiAimSpeed:OnChanged(function()
+	if Toggles.AntiAim.Value == true then
+		AntiAim(Options.AntiAimSpeed.Value, false)
+	end
+end)
+
 local function Fly()
 	local torso = Character.Torso
 	local bg = Instance.new("BodyGyro", torso)
@@ -1704,6 +1751,17 @@ Toggles.FlyToggle:OnChanged(function()
 	end;
 
 	Fly()
+
+end)
+
+Toggles.AntiAim:OnChanged(function()
+
+	if (not Toggles.AntiAim.Value) then
+		AntiAim(nil, false)
+		return;
+	end;
+
+	AntiAim(Options.AntiAimSpeed.Value, true)
 
 end)
 
@@ -2329,7 +2387,7 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 
 	if not Character:FindFirstChild("Humanoid") then return end
 	if Character.Humanoid.Health <= 0 then return end
-
+	
 	if Toggles.ShowFOV.Value then
 		SilentAIMFov.Visible = Toggles.ShowFOV.Value
 		SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
