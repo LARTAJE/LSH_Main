@@ -530,9 +530,9 @@ Movement:AddSlider('SpeedhackSlider', {
 })
 
 Movement:AddToggle('AntiAim', {
-	Text = 'Fly',
+	Text = 'Anti Aim',
 	Default = false,
-	Tooltip = 'Enables fly.',
+	Tooltip = 'Enables anti aim.',
 })
 
 Movement:AddSlider('AntiAimSpeed', {
@@ -2075,9 +2075,7 @@ end
 
 local function LocalCharacterAdded(__Character)
 	__Character.ChildAdded:Connect(function(Child)
-		if Child.Name == "ServerGunModel" then
-		   InjectCustomConfig(ToModify)
-		end
+	    InjectCustomConfig()
 	end)
 end
 
