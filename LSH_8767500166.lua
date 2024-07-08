@@ -2046,14 +2046,13 @@ local function ChangeChar(ID)
 
 end
 
-local function InjectCustomConfig(SettingsToModify)
+local function InjectCustomConfig()
 	for _, Module in getgc(true) do 
-		if type(Module) == 'table' then 
-			
-			for Setting, Value in SettingsToModify do
-				Module[Setting] = Value
-			end
-			
+		if type(Module) == 'table' and rawget(Module, 'Reloading') then 
+	            if Toggles.NoRecoil.Value == true then
+		        Module.Firing.Recoil = NumberRange.new(1, 1)
+	        	Module.Firing.Shake = 0
+	            end
 		end
 	end
 end
@@ -2077,13 +2076,7 @@ end
 local function LocalCharacterAdded(__Character)
 	__Character.ChildAdded:Connect(function(Child)
 		if Child.Name == "ServerGunModel" then
-			local ServerGunModel = Child
-			local ToModify = {}
-			
-			if Toggles.NoRecoil.Value == true then
-				ToModify["ZoomRecoilModifier"] = 0.000001
-			end
-			InjectCustomConfig(ToModify)
+		   InjectCustomConfig(ToModify)
 		end
 	end)
 end
