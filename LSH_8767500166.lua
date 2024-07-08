@@ -1499,13 +1499,13 @@ local function NoclipLoop()
 		if Toggles.StopNoclipOnRagdoll and Character:FindFirstChildOfClass("Humanoid").PlatformStand == true then
 			return
 		end
-		
+
 		for _, child in Character:GetDescendants() do
 			if child:IsA("BasePart") and child.CanCollide == true and child.Name ~= floatName then
 				child.CanCollide = false
 			end
 		end
-			
+
 	end
 end
 
@@ -1612,7 +1612,7 @@ local function PromptSetUp(ProxPrompt)
 
 		if ProxPrompt.Name == "LockMinigame" then
 			local ToLockPick = ProxPrompt.Parent.Parent.Parent
-			
+
 			if ProxPrompt:GetAttribute("Unlocked") then
 				task.wait(0.5)
 				OpenLoot(ToLockPick)
@@ -1988,6 +1988,18 @@ local function ChangeChar(ID)
 
 end
 
+local function InjectCustomConfig(SettingsToModify)
+	for _, Module in getgc(true) do 
+		if type(Module) == 'table' then 
+			
+			for Setting, Value in SettingsToModify do
+				Module[Setting] = Value
+			end
+			
+		end
+	end
+end
+
 function newOBJ(D_OBJ)
 	local SSssLootTable = D_OBJ:WaitForChild("LootTable",5)
 	if SSssLootTable then
@@ -2002,6 +2014,20 @@ function newOBJ(D_OBJ)
 
 	end
 
+end
+
+local function LocalCharacterAdded(__Character)
+	__Character.ChildAdded:Connect(function(Child)
+		if Child.Name == "ServerGunModel" then
+			local ServerGunModel = Child
+			local ToModify = {}
+			
+			if Toggles.NoRecoil.Value == true then
+				ToModify["ZoomRecoilModifier"] = 0.000001
+			end
+			InjectCustomConfig(ToModify)
+		end
+	end)
 end
 
 local function Check_LTS(__INS)
@@ -2030,7 +2056,7 @@ for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 end
 
 for _, Lootinstancee in pairs(workspace:GetDescendants()) do
-	
+
 	Check_LTS(Lootinstancee)
 	if Lootinstancee.Parent.Name == "Loot" then
 		table.insert(BunkerLoot, Lootinstancee)
@@ -2160,6 +2186,7 @@ Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
+	LocalCharacterAdded(Character)
 	Toggles.FlyToggle.Value = false
 end)
 
@@ -2219,7 +2246,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 		if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
-			
+
 			if chance == true and Toggles.SilentAimToggle.Value == true then
 				if HitPart then
 					if Toggles.InstaHit.Value then
@@ -2235,7 +2262,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 					return oldNamecall(...)
 				end
 			end
-			
+
 			if Toggles.ShowBulletTracers.Value == true then
 				local function CastRay(origin: Vector3, direction: Vector3)
 					local raycastParams = RaycastParams.new()
@@ -2249,7 +2276,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
 				CreateTracer(A_Origin, CastRay(A_Origin, Arguments[3]).Position)
 			end
-			
+
 		else
 			return oldNamecall(...)
 		end
@@ -2310,7 +2337,7 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 	else
 		SilentAIMFov.Visible = false
 	end
-	
+
 	NoclipLoop()
 
 	if Toggles.GamePRecoil.Value == true and __G then
@@ -2322,10 +2349,6 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 
 	if Toggles.TP_SPREAD.Value and __G  then
 		__G.CharacterStates.InFirstPerson = true
-	end
-
-	if Toggles.NoRecoil.Value and __G  then
-		__G.CharacterStates.ZoomRecoilModifier = 0.000001
 	end
 
 	if Toggles.ShowSilentTarget.Value == true then
