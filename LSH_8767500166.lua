@@ -2232,6 +2232,7 @@ Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
 	Character.ChildAdded:Connect(function()
+		print("tryed to inject")
 		InjectCustomConfig()
 	end)
 	Toggles.FlyToggle.Value = false
