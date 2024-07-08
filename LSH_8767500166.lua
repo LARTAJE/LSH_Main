@@ -1,3 +1,4 @@
+
 --[[
 game.Players.LocalPlayer.OnTeleport:Connect(function(State)
      TeleportCheck = true
@@ -1336,7 +1337,7 @@ end
 local speed = Options.FlySpeed.Value
 
 local function AntiAim(spinSpeed, Toggle)
-	
+
 	local function DeleteSpin()
 		for _,v in pairs(CharacterRoot:GetChildren()) do
 			if v.Name == "Spinning" then
@@ -1344,10 +1345,10 @@ local function AntiAim(spinSpeed, Toggle)
 			end
 		end
 	end
-	
+
 	if Toggle == true then
 		DeleteSpin()
-		
+
 		local Spin = Instance.new("BodyAngularVelocity")
 		Spin.Name = "Spinning"
 		Spin.Parent = CharacterRoot
@@ -1356,7 +1357,7 @@ local function AntiAim(spinSpeed, Toggle)
 	elseif Toggle == false then
 		DeleteSpin()
 	end
-	
+
 end
 
 Options.AntiAimSpeed:OnChanged(function()
@@ -1566,6 +1567,7 @@ local function CreateTracer(Origin: Vector3, Goto: Vector3)
 	Tracer.CanCollide = false
 	Tracer.Size = Vector3.new(0.1, 0.1, (Goto - Origin).Magnitude + 1)
 	Tracer.CFrame = CFrame.lookAt((Origin + Goto) / 2, Goto)
+	print(Tracer)
 	game:GetService("Debris"):AddItem(Tracer, 5)
 end
 
@@ -2049,10 +2051,10 @@ end
 local function InjectCustomConfig()
 	for _, Module in getgc(true) do 
 		if type(Module) == 'table' and rawget(Module, 'Reloading') then 
-	            if Toggles.NoRecoil.Value == true then
-		        Module.Firing.Recoil = NumberRange.new(1, 1)
-	        	Module.Firing.Shake = 0
-	            end
+			if Toggles.NoRecoil.Value == true then
+				Module.Firing.Recoil = NumberRange.new(1, 1)
+				Module.Firing.Shake = 0
+			end
 		end
 	end
 end
@@ -2071,12 +2073,6 @@ function newOBJ(D_OBJ)
 
 	end
 
-end
-
-local function LocalCharacterAdded(__Character)
-	__Character.ChildAdded:Connect(function(Child)
-	    InjectCustomConfig()
-	end)
 end
 
 local function Check_LTS(__INS)
@@ -2107,7 +2103,7 @@ end
 for _, Lootinstancee in pairs(workspace:GetDescendants()) do
 
 	Check_LTS(Lootinstancee)
-	if Lootinstancee.Parent.Name == "Loot" then
+	if Lootinstancee.Parent and Lootinstancee.Parent.Name == "Loot" then
 		table.insert(BunkerLoot, Lootinstancee)
 	elseif Lootinstancee:IsA("ProximityPrompt") then
 		PromptSetUp(Lootinstancee)
@@ -2235,7 +2231,9 @@ Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
-	LocalCharacterAdded(Character)
+	Character.ChildAdded:Connect(function()
+		InjectCustomConfig()
+	end)
 	Toggles.FlyToggle.Value = false
 end)
 
@@ -2315,15 +2313,17 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 			if Toggles.ShowBulletTracers.Value == true then
 				local function CastRay(origin: Vector3, direction: Vector3)
 					local raycastParams = RaycastParams.new()
-					raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-					raycastParams.FilterDescendantsInstances = {workspace.CurrentCamera, Character} -- Ignore the camera
+					raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+					raycastParams.FilterDescendantsInstances = {Character:GetChildren()} -- Ignore the camera
 
 					local raycastResult = workspace:Raycast(origin, direction, raycastParams)
 
-					return raycastResult
+					return raycastResult.Position
 				end
-
-				CreateTracer(A_Origin, CastRay(A_Origin, Arguments[3]).Position)
+				
+				local Position = CastRay(A_Origin, Arguments[3])
+				
+				CreateTracer(A_Origin, Position)
 			end
 
 		else
@@ -2378,7 +2378,7 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 
 	if not Character:FindFirstChild("Humanoid") then return end
 	if Character.Humanoid.Health <= 0 then return end
-	
+
 	if Toggles.ShowFOV.Value then
 		SilentAIMFov.Visible = Toggles.ShowFOV.Value
 		SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
