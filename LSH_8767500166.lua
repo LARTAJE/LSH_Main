@@ -1,4 +1,3 @@
-
 --[[
 game.Players.LocalPlayer.OnTeleport:Connect(function(State)
      TeleportCheck = true
@@ -1565,9 +1564,10 @@ local function CreateTracer(Origin: Vector3, Goto: Vector3)
 	Tracer.Parent = workspace
 	Tracer.Anchored = true
 	Tracer.CanCollide = false
+	Tracer.CanTouch = false
+	Tracer.CanQuery = false
 	Tracer.Size = Vector3.new(0.1, 0.1, (Goto - Origin).Magnitude + 1)
 	Tracer.CFrame = CFrame.lookAt((Origin + Goto) / 2, Goto)
-	print(Tracer)
 	game:GetService("Debris"):AddItem(Tracer, 5)
 end
 
@@ -2231,10 +2231,6 @@ Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
 
 LocalPlayer.CharacterAdded:Connect(function()
 	Character = LocalPlayer.Character
-	Character.ChildAdded:Connect(function()
-		print("tryed to inject")
-		InjectCustomConfig()
-	end)
 	Toggles.FlyToggle.Value = false
 end)
 
@@ -2294,6 +2290,23 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 		if ValidateArguments(Arguments, ExpectedArguments.Raycast) and Arguments[4]["FilterDescendantsInstances"][1] == LocalPlayer.Character and Arguments[4]["FilterDescendantsInstances"][2] == workspace.Debris then
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
+			
+			if Toggles.ShowBulletTracers.Value == true then
+				local function CastRay(origin: Vector3, direction: Vector3)
+					local raycastParams = RaycastParams.new()
+					raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+					raycastParams.FilterDescendantsInstances = {Character:GetChildren()} -- Ignore the camera
+
+					local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+
+					return raycastResult.Position
+				end
+
+				local Position = CastRay(A_Origin, Arguments[3])
+
+				CreateTracer(A_Origin, Position)
+			end
+
 
 			if chance == true and Toggles.SilentAimToggle.Value == true then
 				if HitPart then
@@ -2311,25 +2324,12 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 				end
 			end
 
-			if Toggles.ShowBulletTracers.Value == true then
-				local function CastRay(origin: Vector3, direction: Vector3)
-					local raycastParams = RaycastParams.new()
-					raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-					raycastParams.FilterDescendantsInstances = {Character:GetChildren()} -- Ignore the camera
-
-					local raycastResult = workspace:Raycast(origin, direction, raycastParams)
-
-					return raycastResult.Position
-				end
-				
-				local Position = CastRay(A_Origin, Arguments[3])
-				
-				CreateTracer(A_Origin, Position)
-			end
-
 		else
 			return oldNamecall(...)
 		end
+	elseif not checkcaller() and self == MinigameResult and Method == "FireServer" and Toggles.AutoLockpickToggle.Value == true then	
+		Arguments[2] = true
+		return oldNamecall(unpack(Arguments))
 	else
 		return oldNamecall(...)
 	end
@@ -2395,6 +2395,12 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 		__G.CurrentInputType = "Gamepad"
 	else
 		PlatformHandler.Enabled = true
+	end
+	
+	local ServerGunModel = Character:FindFirstChild("ServerGunModel")
+	if ServerGunModel and not ServerGunModel:GetAttribute("LACKSKILL_OWNED") then
+		ServerGunModel:SetAttribute("LACKSKILL_OWNED", true)
+		InjectCustomConfig()
 	end
 
 	if Toggles.TP_SPREAD.Value and __G  then
