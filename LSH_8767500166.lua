@@ -2379,10 +2379,10 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 
 	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
 	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
-
+print("1")
 	if not Character:FindFirstChild("Humanoid") then return end
 	if Character.Humanoid.Health <= 0 then return end
-
+print("2")
 	if Toggles.ShowFOV.Value then
 		SilentAIMFov.Visible = Toggles.ShowFOV.Value
 		SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
@@ -2400,8 +2400,7 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 		PlatformHandler.Enabled = true
 	end
 	
-	local ServerGunModel = Character:FindFirstChild("ServerGunModel")
-	if ServerGunModel then
+	if Character:FindFirstChild("ServerGunModel") then
 	print("TTT")
 		InjectCustomConfig()
 	end
