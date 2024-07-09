@@ -9,7 +9,6 @@ if _G.LACKSKILL_LOADED == true then
 	game.Players.LocalPlayer:Kick("LACKSKILL HUB: plz dont execute teh script more than one time.")
 end
 
-repeat task.wait() until game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 _G.LACKSKILL_LOADED = true
 local Started = tick() - 1
 local is_synapse_function = isexecutorclosure
@@ -20,7 +19,7 @@ local userId = game.Players.LocalPlayer.UserId;
 
 local LocalPlayer = game.Players.LocalPlayer
 local PlayerGui = game.Players.LocalPlayer.PlayerGui
-local Character = LocalPlayer.Character
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local mouse = LocalPlayer:GetMouse()
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -2366,6 +2365,8 @@ end
 
 Get_G()
 
+task.wait(1)
+
 RunServiceConnection = RunService.Stepped:Connect(function()
 	task.wait()
 
@@ -2390,7 +2391,7 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 		SilentAIMFov.Visible = false
 	end
 
-	NoclipLoop()
+	--NoclipLoop()
 
 	if Toggles.GamePRecoil.Value == true and __G then
 		PlatformHandler.Enabled = false
