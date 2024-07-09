@@ -75,6 +75,7 @@ local ProxPrompts = {}
 local LootTables = {}
 local InstancessLol = {}
 local PlayersInServer = {}
+local NoRecoilThreads = {}
 
 local ExpectedArguments = {
 	FindPartOnRayWithIgnoreList = {
@@ -361,7 +362,7 @@ ColorsTab:AddLabel('Ambient color'):AddColorPicker('Amb_ColorP', {
 	end
 })
 
-ColorsTab:AddLabel('Bullet Tracer Color'):AddColorPicker('BTC', {
+ColorsTab:AddLabel('BulletTracerColor'):AddColorPicker('BTC', {
 	Default = Color3.new(1, 1, 1),
 	Title = 'Bullet tracer color',
 	Transparency = 0,
@@ -529,9 +530,9 @@ Movement:AddSlider('SpeedhackSlider', {
 })
 
 Movement:AddToggle('AntiAim', {
-	Text = 'Anti Aim',
+	Text = 'Fly',
 	Default = false,
-	Tooltip = 'Enables anti aim.',
+	Tooltip = 'Enables fly.',
 })
 
 Movement:AddSlider('AntiAimSpeed', {
@@ -1296,33 +1297,33 @@ local function ItemAdded(Item,Method)
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
-		local Suc, Error = pcall(function()
-				if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
-			or ItemStat.Contraband == true and
-			(Options.NotificateItemsFilter.Value["Contraband"] == true) then
-			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
+		local Suc, Err = pcall(function()
+			if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
+				or ItemStat.Contraband == true and
+				(Options.NotificateItemsFilter.Value["Contraband"] == true) then
+				Library:Notify("Item ".. Item.Name.. " Dropped", 10)
 
-			if Toggles.NotificateHightlightLoot.Value == true then
-				HightlightOBJ(Item.Parent.Parent,10)
-			end
+				if Toggles.NotificateHightlightLoot.Value == true then
+					HightlightOBJ(Item.Parent.Parent,10)
+				end
 
-			if Toggles.NotificateAddToESP.Value == true then
+				if Toggles.NotificateAddToESP.Value == true then
 
-				ESPFramework:Add(Item.Parent.Parent,{
-					Name = Item.Parent.Parent.Parent.Name,
-					Color = Color3.fromRGB(255, 135, 239),
-					ColorDynamic = false,
-					IsEnabled = "Notificate_Items",
-				})
+					ESPFramework:Add(Item.Parent.Parent,{
+						Name = Item.Parent.Parent.Parent.Name,
+						Color = Color3.fromRGB(255, 135, 239),
+						ColorDynamic = false,
+						IsEnabled = "Notificate_Items",
+					})
 
-			end
+				end
 
-		end
-			if Suc == false then
-			warn("LACKSKILL: item ".. Item.Name.. " was not found in the type module")
 			end
 		end)
 
+		if not Suc then
+			print("lol "..Item.Name)
+		end
 	end
 
 end
@@ -1332,6 +1333,7 @@ function Get_G()
 	PlatformHandler.Enabled = true
 	local env = getsenv(PlatformHandler)
 	__G = env._G
+	print("Got _G!")
 end
 
 local speed = Options.FlySpeed.Value
@@ -1387,10 +1389,10 @@ local function Fly()
 			end
 		end
 		if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).Position) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
 			lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
 		elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+			bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).Position) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
 		else
 			bv.velocity = Vector3.new(0,0.1,0)
 		end
@@ -1549,7 +1551,7 @@ local function NoclipLoop()
 		end
 
 		for _, child in Character:GetDescendants() do
-			if child:IsA("BasePart") and child.CanCollide == true and child.Name ~= floatName then
+			if child:IsA("BasePart") and child.CanCollide == true then
 				child.CanCollide = false
 			end
 		end
@@ -1560,13 +1562,11 @@ end
 local function CreateTracer(Origin: Vector3, Goto: Vector3)
 	local Tracer = Instance.new("Part")
 	Tracer.Material = Enum.Material.ForceField
-	Tracer.Transparency = 0
-	Tracer.Color = Color3.new(1,1,1)--BulletTracerColor
+	Tracer.Transparency = 0.5
+	Tracer.Color = BulletTracerColor
 	Tracer.Parent = workspace.Debris
 	Tracer.Anchored = true
 	Tracer.CanCollide = false
-	Tracer.CanTouch = false
-	Tracer.CanQuery = false
 	Tracer.Size = Vector3.new(0.1, 0.1, (Goto - Origin).Magnitude + 1)
 	Tracer.CFrame = CFrame.lookAt((Origin + Goto) / 2, Goto)
 	game:GetService("Debris"):AddItem(Tracer, 5)
@@ -2053,8 +2053,12 @@ local function InjectCustomConfig()
 	for _, Module in getgc(true) do 
 		if type(Module) == 'table' and rawget(Module, 'Reloading') then 
 			if Toggles.NoRecoil.Value == true then
-				Module.Firing.Recoil = NumberRange.new(1, 1)
-				Module.Firing.Shake = 0
+				local NewNoRecThread = task.spawn(function()
+                    task.wait(1)
+					Module.Firing.Recoil = NumberRange.new(1, 1)
+					Module.Firing.Shake = 0
+				end)
+				table.insert(NoRecoilThreads, NewNoRecThread)
 			end
 		end
 	end
@@ -2074,6 +2078,10 @@ function newOBJ(D_OBJ)
 
 	end
 
+end
+
+local function LocalCharacterAdded(__Character)
+	if not __Character then return end
 end
 
 local function Check_LTS(__INS)
@@ -2100,19 +2108,21 @@ for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 		SetUpLootTables(PlrDeathBLootTable)
 	end
 end
+--[[
+task.spawn(function()
+	for _, Lootinstancee in pairs(workspace:GetDescendants()) do
+		if Lootinstancee.Parent and Lootinstancee.Parent.Name == "Loot" then
+			Check_LTS(Lootinstancee.Parent)
+			table.insert(BunkerLoot, Lootinstancee)
+		elseif Lootinstancee:IsA("ProximityPrompt") then
+			PromptSetUp(Lootinstancee)
+		elseif Lootinstancee.Name == "LootTable" then
+			SetUpLootTables(Lootinstancee)
+		end
 
-for _, Lootinstancee in pairs(workspace:GetDescendants()) do
-
-	Check_LTS(Lootinstancee)
-	if Lootinstancee.Parent and Lootinstancee.Parent.Name == "Loot" then
-		table.insert(BunkerLoot, Lootinstancee)
-	elseif Lootinstancee:IsA("ProximityPrompt") then
-		PromptSetUp(Lootinstancee)
-	elseif Lootinstancee.Name == "LootTable" then
-		SetUpLootTables(Lootinstancee)
 	end
-
-end
+end)
+--]]
 
 --/#
 
@@ -2226,6 +2236,7 @@ game.DescendantAdded:Connect(function(OBJa)
 	end
 end)
 --]]
+
 Hostile_NPCs.ChildAdded:Connect(NPCAdded)
 
 Hostile_NPCs.ChildRemoved:Connect(NPCRemoved)
@@ -2238,8 +2249,9 @@ end)
 Toggles.NoHD:OnChanged(function()
 	II_C()
 end)
-
+print("1")
 II_C()
+print("2")
 
 mouse.KeyDown:connect(function(keyY)
 
@@ -2292,45 +2304,40 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 			local A_Origin = Arguments[2]
 			local HitPart = getClosestPlayer()
 			
-			if Toggles.ShowBulletTracers.Value == true then
-				local function CastRay(origin: Vector3, direction: Vector3)
-					local raycastParams = RaycastParams.new()
-					raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-					raycastParams.FilterDescendantsInstances = {Character} -- Ignore the camera
+			local function F_CastRay(origin: Vector3, direction: Vector3)
+				local raycastParams = RaycastParams.new()
+				raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+				raycastParams.FilterDescendantsInstances = {workspace.CurrentCamera, Character} -- Ignore the camera
 
-					local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+				local raycastResult = workspace:Raycast(origin, direction, raycastParams)
 
-					return raycastResult.Position
-				end
-
-				local Position = CastRay(A_Origin, Arguments[3])
-
-				CreateTracer(A_Origin, Position)
+				return raycastResult.Position
 			end
-
 
 			if chance == true and Toggles.SilentAimToggle.Value == true then
 				if HitPart then
 					if Toggles.InstaHit.Value then
 						local pos = HitPart.CFrame + HitPart.CFrame.LookVector * -2
 						local CfTVec = Vector3.new(pos.X, pos.Y, pos.Z)
-						print(typeof(CfTVec))
 						Arguments[2] = CfTVec
 						A_Origin = CfTVec
 					end
 					Arguments[3] = getDirection(A_Origin, HitPart.Position)
+					CreateTracer(A_Origin, HitPart.Position)
 					return oldNamecall(unpack(Arguments))
 				else
 					return oldNamecall(...)
 				end
 			end
+			
+			if Toggles.ShowBulletTracers.Value == true then
+				local pos = F_CastRay(A_Origin, Arguments[3])
+				CreateTracer(A_Origin, pos)
+			end
 
 		else
 			return oldNamecall(...)
 		end
-	elseif not checkcaller() and self == MinigameResult and Method == "FireServer" and Toggles.AutoLockpickToggle.Value == true then	
-		Arguments[2] = true
-		return oldNamecall(unpack(Arguments))
 	else
 		return oldNamecall(...)
 	end
@@ -2364,25 +2371,37 @@ end
 --/#
 
 Get_G()
-
-task.wait(1)
-
-RunServiceConnection = RunService.Stepped:Connect(function()
+RunServiceConnection = RunService.Heartbeat:Connect(function()
 	task.wait()
 
 	Cam = workspace.CurrentCamera
-
 	if LocalPlayer.Character then
 		Character = LocalPlayer.Character
 		CharacterRoot = Character:WaitForChild("HumanoidRootPart")
+		
+		if Character then
+			if not Character:GetAttribute("LACKSKILL_TRACKING") then
+				Character:SetAttribute("LACKSKILL_TRACKING", true)
+
+				Character.ChildAdded:Connect(function(Child)
+					if Child.Name == "ServerGunModel" then
+						for _, v in NoRecoilThreads do
+							task.cancel(v)
+						end
+						InjectCustomConfig()
+					end
+				end)
+			end
+		end
+	
 	end
 
 	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].Username.Text = FakeName
 	PlayerGui.MainStaticGui.RightTab.Leaderboard.PlayerList[LocalPlayer.Name].DisplayName.Text = FakeDisplayName
-print("1")
+
 	if not Character:FindFirstChild("Humanoid") then return end
 	if Character.Humanoid.Health <= 0 then return end
-print("2")
+
 	if Toggles.ShowFOV.Value then
 		SilentAIMFov.Visible = Toggles.ShowFOV.Value
 		SilentAIMFov.Radius = Options.SilentAimFovSlider.Value
@@ -2391,18 +2410,13 @@ print("2")
 		SilentAIMFov.Visible = false
 	end
 
-	--NoclipLoop()
+	NoclipLoop()
 
 	if Toggles.GamePRecoil.Value == true and __G then
 		PlatformHandler.Enabled = false
 		__G.CurrentInputType = "Gamepad"
 	else
 		PlatformHandler.Enabled = true
-	end
-	
-	if Character:FindFirstChild("ServerGunModel") then
-	print("TTT")
-		InjectCustomConfig()
 	end
 
 	if Toggles.TP_SPREAD.Value and __G  then
