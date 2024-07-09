@@ -362,7 +362,7 @@ ColorsTab:AddLabel('Ambient color'):AddColorPicker('Amb_ColorP', {
 	end
 })
 
-ColorsTab:AddLabel('BulletTracerColor'):AddColorPicker('BTC', {
+ColorsTab:AddLabel('Bullet Tracer Color'):AddColorPicker('BTC', {
 	Default = Color3.new(1, 1, 1),
 	Title = 'Bullet tracer color',
 	Transparency = 0,
@@ -1297,7 +1297,8 @@ local function ItemAdded(Item,Method)
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
-		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
+		local Suc, Error = pcall(function()
+				if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
 			or ItemStat.Contraband == true and
 			(Options.NotificateItemsFilter.Value["Contraband"] == true) then
 			Library:Notify("Item ".. Item.Name.. " Dropped", 10)
@@ -1318,6 +1319,10 @@ local function ItemAdded(Item,Method)
 			end
 
 		end
+			if Suc == false then
+			warn("LACKSKILL: item ".. Item.Name.. " was not found in the type module")
+			end
+		end)
 
 	end
 
@@ -1557,8 +1562,8 @@ local function CreateTracer(Origin: Vector3, Goto: Vector3)
 	local Tracer = Instance.new("Part")
 	Tracer.Material = Enum.Material.ForceField
 	Tracer.Transparency = 0
-	Tracer.Color = BulletTracerColor
-	Tracer.Parent = workspace
+	Tracer.Color = Color3.new(1,1,1)--BulletTracerColor
+	Tracer.Parent = workspace.Debris
 	Tracer.Anchored = true
 	Tracer.CanCollide = false
 	Tracer.CanTouch = false
