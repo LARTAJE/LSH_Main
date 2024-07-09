@@ -1297,9 +1297,6 @@ local function ItemAdded(Item,Method)
 	if Toggles.NotificateItemsToggle.Value == true then
 
 		local ItemStat = ItemStats[Item.Name]
-		print(Item.Name)
-		print(ItemStat.Type)
-		print(ItemStat.Contraband)
 		if ItemStat and (Options.NotificateItemsFilter.Value[ItemStat.Type] == true)
 			or ItemStat.Contraband == true and
 			(Options.NotificateItemsFilter.Value["Contraband"] == true) then
@@ -2294,8 +2291,8 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 			if Toggles.ShowBulletTracers.Value == true then
 				local function CastRay(origin: Vector3, direction: Vector3)
 					local raycastParams = RaycastParams.new()
-					raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-					raycastParams.FilterDescendantsInstances = {Character:GetChildren()} -- Ignore the camera
+					raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+					raycastParams.FilterDescendantsInstances = {Character} -- Ignore the camera
 
 					local raycastResult = workspace:Raycast(origin, direction, raycastParams)
 
@@ -2398,8 +2395,8 @@ RunServiceConnection = RunService.Stepped:Connect(function()
 	end
 	
 	local ServerGunModel = Character:FindFirstChild("ServerGunModel")
-	if ServerGunModel and not ServerGunModel:GetAttribute("LACKSKILL_OWNED") then
-		ServerGunModel:SetAttribute("LACKSKILL_OWNED", true)
+	if ServerGunModel then
+	print("TTT")
 		InjectCustomConfig()
 	end
 
