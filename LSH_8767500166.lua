@@ -1141,6 +1141,11 @@ local ItemStats = {
 		Contraband = false
 	},
 
+	["Orange Keycard"] = {
+		Type = "Keycard",
+		Contraband = false
+	},
+
 	["Blue Keycard"] = {
 		Type = "Keycard",
 		Contraband = false
@@ -1206,6 +1211,22 @@ AdminSound.SoundId = 'rbxassetid://225320558'
 
 --// Functions
 
+Teleport:AddDropdown('DropDownTeleport', {
+	Values = PlayersInServer,
+	Default = 1,
+	Multi = false,
+	Text = 'Players',
+	Tooltip = 'Teleport to selected player.',
+})
+
+Teleport:AddButton('TeleportToPlayer', function()
+	local TargetRoot = PlayersInServer[Options.DropDownTeleport.Value].Character:FindFirstChild("HumanoidRootPart")
+	if TargetRoot then
+		CharacterRoot.CFrame = TargetRoot.CFrame
+	end
+
+end)
+
 local function getPositionOnScreen(Vector)
 	local Vec3, OnScreen = WorldToScreen(Cam, Vector)
 	return Vector2.new(Vec3.X, Vec3.Y), OnScreen
@@ -1245,10 +1266,12 @@ end
 
 local function OnPlayerDisconnect(Plr)
 	table.remove(PlayersInServer,table.find(PlayersInServer,Plr))
+	Options.PlayersInServer.Values = PlayersInServer
 end
 
 local OnAdminJoined = function(Plr)
 	table.insert(PlayersInServer,Plr)
+	Options.PlayersInServer.Values = PlayersInServer
 
 	local IsInGroup = function(Plr, Id)
 		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
@@ -1364,7 +1387,7 @@ end
 
 Options.AntiAimSpeed:OnChanged(function()
 	if Toggles.AntiAim.Value == true then
-		AntiAim(Options.AntiAimSpeed.Value, false)
+		AntiAim(Options.AntiAimSpeed.Value, true)
 	end
 end)
 
@@ -1514,6 +1537,41 @@ local function getClosestPlayer()
 	return Closest
 end
 
+local function TriggerBotCheckFun()
+	if not Options.TargetPart.Value then return end
+	local Closest
+	local DistanceToMouse
+	local ToCheck = {}
+
+	for _, Player in next, GetPlayers(Players) do
+		if Player == LocalPlayer then continue end
+		local _Character = Player.Character
+		if not _Character then continue end
+		table.insert(ToCheck, _Character)
+
+		if Toggles.VisibleCheck.Value and not IsPlayerVisible(Player) then continue end
+		if Toggles.IgnoreFriends.Value and Player:IsFriendsWith(LocalPlayer.UserId) then continue end
+
+		local HumanoidRootPart = FindFirstChild(_Character, "HumanoidRootPart")
+		local Humanoid = FindFirstChild(_Character, "Humanoid")
+
+		if not HumanoidRootPart or not Humanoid or Humanoid and Humanoid.Health <= 0 then continue end
+
+		local ScreenPosition, OnScreen = getPositionOnScreen(HumanoidRootPart.Position)
+		if not OnScreen then continue end
+
+		local Distance = (getMousePosition() - ScreenPosition).Magnitude
+
+		if Distance <= (DistanceToMouse or 10 or 2000) then
+			Closest = ((Options.TargetPart.Value == "Random" and _Character[ValidTargetParts[math.random(1, #ValidTargetParts)]]) or _Character[Options.TargetPart.Value])
+			DistanceToMouse = Distance
+		end
+
+	end
+
+	return Closest
+end
+
 --]]
 
 local function StartMission(Mission, TPBack)
@@ -1569,7 +1627,9 @@ local function CreateTracer(Origin: Vector3, Goto: Vector3)
 	Tracer.CanCollide = false
 	Tracer.Size = Vector3.new(0.1, 0.1, (Goto - Origin).Magnitude + 1)
 	Tracer.CFrame = CFrame.lookAt((Origin + Goto) / 2, Goto)
-	game:GetService("Debris"):AddItem(Tracer, 5)
+	task.delay(5, function()
+		Tracer:Destroy()
+	end)
 end
 
 local function CollectLootFromLootTable(LootTable)
@@ -1699,23 +1759,6 @@ Missions:AddButton('Start Cargo Ambush', function()
 	StartMission("StealCargo", true)
 end)
 
---[[
-Teleport:AddDropdown('DropDownTeleport', {
-	Values = PlayersInServer,
-	Default = 1,
-	Multi = false,
-	Text = 'Players',
-	Tooltip = 'Teleport to selected player.',
-})
-
-Teleport:AddButton('TeleportToPlayer', function()
-	local TargetRoot = PlayersInServer.Character:FindFirstChild("HumanoidRootPart")
-
-	if TargetRoot then
-		CharacterRoot.CFrame = TargetRoot.CFrame
-	end
-
-end)
 --]]
 
 Misc:AddToggle('HiddenFling', {
@@ -2421,6 +2464,11 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 
 	if Toggles.TP_SPREAD.Value and __G  then
 		__G.CharacterStates.InFirstPerson = true
+	end
+
+	local TriggerBotVictim = nil--TriggerBotCheckFun()
+	if TriggerBotVictim then
+	
 	end
 
 	if Toggles.ShowSilentTarget.Value == true then
