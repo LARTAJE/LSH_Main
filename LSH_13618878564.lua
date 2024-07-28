@@ -1,5 +1,3 @@
-Toggles = {}
-Options = {}
 
 if _G.LACKSKILL_LOADED == true then
 	game.Players.LocalPlayer:Kick("LACKSKILL HUB: plz dont execute teh script more than one time.")
@@ -132,71 +130,62 @@ ESP_MAIN:AddToggle('Esp', {
 	Text = 'Enabled',
 	Default = false,
 	Tooltip = 'ESP toggle.',
+	
+	Callback = function(state)
+		ESPFramework.Color = Color3.fromRGB(255,255,255)
+		ESPFramework.FaceCamera = true
+		ESPFramework:Toggle(state)
+	end,
 })
 
 ESP_MAIN:AddToggle('BoxEsp', {
 	Text = 'Box ESP',
 	Default = false,
 	Tooltip = 'Show box esp toggle.',
+	
+	Callback = function(state)
+		ESPFramework.Boxes = state
+	end,
 })
---[[
-ESP_MAIN:AddToggle("HighlightTarget",
-{ Text = "Player ESP color" }):AddColorPicker('HighlightColor',
-{ Default = Color3.new(255,1,1)});
---]]
 ESP_MAIN:AddToggle('NameEsp', {
 	Text = 'Show names',
 	Default = false,
 	Tooltip = 'Shows players names.',
+	
+	Callback = function(state)
+		ESPFramework.Names = state
+	end,
 })
 
 ESP_MAIN:AddToggle('HealthBarESP', {
 	Text = 'Show health bars',
 	Default = false,
 	Tooltip = 'Enables health bars.',
+	
+	Callback = function(state)
+		ESPFramework.Health = state
+	end,
 })
 
 ESP_MAIN:AddToggle('ShowDistanceESP', {
 	Text = 'Show distance',
 	Default = false,
 	Tooltip = 'Enables tracers.',
+	
+	Callback = function(state)
+		ESPFramework.Distance = state
+	end,
 })
 
 ESP_MAIN:AddToggle('TracerEsp', {
 	Text = 'Show tracers',
 	Default = false,
 	Tooltip = 'Enables tracers.',
+	
+	Callback = function(state)
+		ESPFramework.Tracers = state
+	end,
 })
-
-Toggles.Esp:OnChanged(function(state)
-	ESPFramework.Color = Color3.fromRGB(255,255,255)
-	ESPFramework.FaceCamera = true
-	ESPFramework:Toggle(state)
-end)
-
-Toggles.NPC_ESP:OnChanged(function(state)
-	ESPFramework.NPC_ESP = state
-end)
-
-Toggles.BoxEsp:OnChanged(function(state)
-	ESPFramework.Boxes = state
-end)
-
-Toggles.NameEsp:OnChanged(function(state)
-	ESPFramework.Names = state
-end)
-
-Toggles.TracerEsp:OnChanged(function(state)
-	ESPFramework.Tracers = state
-end)
-
-Toggles.ShowDistanceESP:OnChanged(function(state)
-	ESPFramework.Distance = state
-end)
-
-Toggles.HealthBarESP:OnChanged(function(state)
-	ESPFramework.Health = state
-end)
 
 --// SilentAim
 
