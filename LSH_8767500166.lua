@@ -693,16 +693,22 @@ GunStuff:AddToggle('GamePRecoil', {
 	Tooltip = 'Removes alot of your recoil.',
 })
 
+GunStuff:AddToggle('RapidFire', {
+	Text = 'Rapid fire',
+	Default = false, --false
+	Tooltip = 'Brrrrrrrrrrrrr.',
+})
+
 GunStuff:AddToggle('NoRecoil', {
 	Text = 'No recoil',
 	Default = false, --false
 	Tooltip = 'Removes your recoil.',
 })
 
-GunStuff:AddToggle('TP_SPREAD', {
-	Text = 'Remove third person spread multi',
+GunStuff:AddToggle('NoSpread', {
+	Text = 'No Spread',
 	Default = false, --false
-	Tooltip = 'Removes the stupit spread multi on third person.',
+	Tooltip = 'Removes your spread.',
 })
 
 Toggles.NotificateAddToESP:OnChanged(function(state)
@@ -1715,7 +1721,7 @@ local function SetUpLootTables(_LootTable)
 end
 
 local function PromptSetUp(ProxPrompt)
-	table.insert(ProxPrompts,ProxPrompt)
+	table.insert(ProxPrompts, ProxPrompt)
 	ProxPrompt:SetAttribute("_Original_HoldTime", ProxPrompt.HoldDuration)
 	II_C()
 	ProxPrompt.Triggered:Connect(function()
@@ -2093,18 +2099,31 @@ local function ChangeChar(ID)
 end
 
 local function InjectCustomConfig()
-	for _, Module in getgc(true) do 
-		if type(Module) == 'table' and rawget(Module, 'Reloading') then 
-			if Toggles.NoRecoil.Value == true then
-				local NewNoRecThread = task.spawn(function()
-                    task.wait(1)
-					Module.Firing.Recoil = NumberRange.new(1, 1)
-					Module.Firing.Shake = 0
-				end)
-				table.insert(NoRecoilThreads, NewNoRecThread)
-			end
-		end
-	end
+    task.delay(1,function()
+        for _, Module in getgc(true) do 
+            if type(Module) == 'table' and rawget(Module, 'Reloading') then 
+                if type(Module.Firing) ~= 'table' then
+                    continue
+                end
+                if Toggles.NoRecoil.Value then
+                    rawset(Module.Firing, 'Recoil', NumberRange.new(0, 0))
+                    rawset(Module.Firing, 'Shake', 0)
+                end
+
+                if Toggles.RapidFire.Value then
+                    for _, Mode in Module.Modes do
+                        rawset(Mode, 'Automatic', true)
+                        rawset(Mode, 'RPM', 999999)
+                    end
+                end
+    
+                if Toggles.NoSpread.Value then
+                    rawset(Module.Firing, 'Spread', 0)
+                end
+    
+            end
+        end
+    end)
 end
 
 function newOBJ(D_OBJ)
@@ -2151,6 +2170,14 @@ for _, PlrDeathBLootTable in pairs(workspace.Debris.Loot:GetDescendants()) do
 		SetUpLootTables(PlrDeathBLootTable)
 	end
 end
+
+local l_ProximityPromptService_0 = game:GetService("ProximityPromptService");
+
+l_ProximityPromptService_0.PromptShown:Connect(function(Prompt, v91)
+    print(v91)
+    PromptSetUp(Prompt)
+    table.insert(ProxPrompts, Prompt)
+end);
 --[[
 task.spawn(function()
 	for _, Lootinstancee in pairs(workspace:GetDescendants()) do
@@ -2428,10 +2455,8 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 
 				Character.ChildAdded:Connect(function(Child)
 					if Child.Name == "ServerGunModel" then
-						for _, v in NoRecoilThreads do
-							task.cancel(v)
-						end
 						InjectCustomConfig()
+                        warn('ye')
 					end
 				end)
 			end
@@ -2460,10 +2485,6 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 		__G.CurrentInputType = "Gamepad"
 	else
 		PlatformHandler.Enabled = true
-	end
-
-	if Toggles.TP_SPREAD.Value and __G  then
-		__G.CharacterStates.InFirstPerson = true
 	end
 
 	local TriggerBotVictim = nil--TriggerBotCheckFun()
