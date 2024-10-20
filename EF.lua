@@ -1,9 +1,7 @@
 --Settings--
-local CachedHighlights = {}
 local ESP = {
 	Enabled = false,
 	Boxes = false,
-    Highlight = true,
 	BoxShift = CFrame.new(0,-1.5,0),
 	BoxSize = Vector3.new(4,6,0),
 	Color = Color3.fromRGB(199, 255, 255),
@@ -207,20 +205,6 @@ function boxBase:Update()
                 Torso = cf * ESP.BoxShift
             }
 
-            if ESP.Highlight then
-                local NewHighlight = instance.new('Highlight')
-                table.insert(CachedHighlights, NewHighlight)
-                NewHighlight.Parent = self.Object
-                NewHighlight.FillTransparency = 0.9
-                NewHighlight.FillColor = ESP.HighlightColor
-            else
-                if #CachedHighlights then
-                    for _, v in CachedHighlights do
-                        v:Destroy()
-                    end
-                end
-            end
-
             if ESP.Boxes then
                 local TopLeft, Vis1 = WorldToViewportPoint(cam, locs.TopLeft.p)
                 local TopRight, Vis2 = WorldToViewportPoint(cam, locs.TopRight.p)
@@ -284,8 +268,8 @@ function boxBase:Update()
                     if Vis5 then
                         self.Components.Tool.Visible = true
                         self.Components.Tool.Position = Vector2.new(TagPos.X, TagPos.Y - 14)
-                        if self.Player.Character:FindFirstChildOfClass("RayValue") then
-                            self.Components.Tool.Text = self.Player.Character:FindFirstChildOfClass("RayValue").Name
+                        if self.Player.Character:FindFirstChildOfClass("Tool") then
+                            self.Components.Tool.Text = self.Player.Character:FindFirstChildOfClass("Tool").Name
                             self.Components.Tool.Color = ESP.ToolColor
                         else
                             self.Components.Tool.Visible = false
