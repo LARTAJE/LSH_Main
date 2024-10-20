@@ -530,7 +530,7 @@ Movement:AddSlider('SpeedhackSlider', {
 })
 
 Movement:AddToggle('AntiAim', {
-	Text = 'Fly',
+	Text = 'Anti aim',
 	Default = false,
 	Tooltip = 'Enables fly.',
 })
