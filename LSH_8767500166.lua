@@ -1317,7 +1317,7 @@ local OnAdminJoined = function(Plr)
 		local Role = GetRoleInGroup(Plr, 6568965)
 
 		if Role ~= "Member" or GroupStates.CrimAdminGroup then
-			LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
+			--LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
 			AdminSound:Play()
 			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
 		else
