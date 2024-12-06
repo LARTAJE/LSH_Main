@@ -1291,7 +1291,6 @@ end
 
 local OnAdminJoined = function(Plr)
 	table.insert(PlayersInServer,Plr)
-	Options.PlayersInServer.Values = PlayersInServer
 
 	local IsInGroup = function(Plr, Id)
 		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
@@ -1318,57 +1317,7 @@ local OnAdminJoined = function(Plr)
 		local Role = GetRoleInGroup(Plr, 6568965)
 
 		if Role ~= "Member" or GroupStates.CrimAdminGroup then
-
-			if Toggles.AdminDetector.Value then
-				LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
-				return
-			end
-
-
-			AdminSound:Play()
-			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
-		else
-			Library:Notify(Plr.Name.." Joined, be careful!")
-		end
-
-	end
-end
-
-local OnAdminJoined = function(Plr)
-	table.insert(PlayersInServer,Plr)
-
-	local IsInGroup = function(Plr, Id)
-		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
-		if Success then 
-			return Response 
-		end
-		return false
-	end
-
-	local GetRoleInGroup = function(Plr, Id)
-		local Success, Response = pcall(Plr.GetRoleInGroup, Plr, Id)
-		if Success then
-			return Response
-		end
-		return false
-	end
-
-	local GroupStates = { 
-		["CrimAdminGroup"] = IsInGroup(Plr, 10911475),
-		["Blackout"] = IsInGroup(Plr, 6568965),
-	}
-
-	if GroupStates.CrimAdminGroup or GroupStates.Blackout then
-		local Role = GetRoleInGroup(Plr, 6568965)
-
-		if Role ~= "Member" or GroupStates.CrimAdminGroup then
-
-			if Toggles.AdminDetector.Value then
-				LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
-				return
-			end
-
-
+			LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
 			AdminSound:Play()
 			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
 		else
