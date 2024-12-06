@@ -596,6 +596,12 @@ QualityOfLive:AddToggle('OpenlootOnLockpick', {
 	Default = false, --false
 	Tooltip = 'when lockpicking is done auto opens loot gui. WIP',
 })
+QualityOfLive:AddToggle('yes', {
+	Text = 'yes',
+	Default = false, --false
+	Tooltip = 'yesyes',
+})
+
 --[[
 QualityOfLive:AddToggle('BreakAI', {
 	Text = 'Break AI',
@@ -2516,6 +2522,15 @@ RunServiceConnection = RunService.Heartbeat:Connect(function()
 	else
 		PlayerGui.MainGui.LevelFrame.Visible = true
 	end
+
+if Toggles.yes.Value == true then
+local args = {
+    [1] = "1: Yes."
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("Dialogue"):WaitForChild("Event"):FireServer(unpack(args))
+end
+
 
 	if Toggles.SpeedToggle.Value == true then
 		Character.Humanoid.WalkSpeed = Options.SpeedhackSlider.Value
