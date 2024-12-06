@@ -40,6 +40,14 @@ local VirtualInputManager = Instance.new("VirtualInputManager")
 local Cam = workspace.CurrentCamera
 local GetPartsObscuringTarget = Cam.GetPartsObscuringTarget
 
+--// Admin detector sound
+
+local AdminSound = Instance.new('Sound')
+AdminSound.Volume = 2
+AdminSound.Parent = workspace
+AdminSound.SoundId = 'rbxassetid://225320558'
+
+
 local Events = ReplicatedStorage:WaitForChild("Events",5)
 local Tutorial = workspace:FindFirstChild("Tutorial")
 local Arena = game.Workspace:WaitForChild("Arena")
@@ -1326,6 +1334,51 @@ local OnAdminJoined = function(Plr)
 	end
 end
 
+local OnAdminJoined = function(Plr)
+	table.insert(PlayersInServer,Plr)
+
+	local IsInGroup = function(Plr, Id)
+		local Success, Response = pcall(Plr.IsInGroup, Plr, Id)
+		if Success then 
+			return Response 
+		end
+		return false
+	end
+
+	local GetRoleInGroup = function(Plr, Id)
+		local Success, Response = pcall(Plr.GetRoleInGroup, Plr, Id)
+		if Success then
+			return Response
+		end
+		return false
+	end
+
+	local GroupStates = { 
+		["CrimAdminGroup"] = IsInGroup(Plr, 10911475),
+		["Blackout"] = IsInGroup(Plr, 6568965),
+	}
+
+	if GroupStates.CrimAdminGroup or GroupStates.Blackout then
+		local Role = GetRoleInGroup(Plr, 6568965)
+
+		if Role ~= "Member" or GroupStates.CrimAdminGroup then
+
+			if Toggles.AdminDetector.Value then
+				LocalPlayer:Kick("[LackSkill Hub] - Detected an Admin/Contributor within the server!")
+				return
+			end
+
+
+			AdminSound:Play()
+			Library:Notify(Plr.Name.." Is a Admin/Contributor, please be careful!")
+		else
+			Library:Notify(Plr.Name.." Joined, be careful!")
+		end
+
+	end
+end
+
+
 
 local function ItemAdded(Item,Method)
 
@@ -1713,6 +1766,16 @@ local function RedRaidInstanceAdded(INNNSTANCE)
 
 	end
 end
+
+--// Admin detection connection
+Players.PlayerAdded:Connect(OnAdminJoined)
+
+for _,v in pairs(Players:GetPlayers()) do
+	if v == LocalPlayer then continue end
+	table.insert(PlayersInServer,v)
+	task.spawn(OnAdminJoined, v)
+end
+
 
 local function SetUpLootTables(_LootTable)
 	table.insert(LootTables, _LootTable)
